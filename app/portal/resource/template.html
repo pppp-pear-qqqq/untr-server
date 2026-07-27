@@ -17,16 +17,15 @@
 	<body>
 		{% if type == "standard" %}
 		<header>
-			{% if user %}
-			<div id="actor-data">
-				<span class="name">{{user.name}}</span>
-			</div>
-			{% endif %}
 			<button type="button" aria-controls="global-menu" aria-expanded="false" onclick="this.setAttribute('aria-expanded', this.getAttribute('aria-expanded') !== 'true')//後でファイル分ける">
 				<span></span>
 			</button>
 			<menu id="global-menu">
-				<li><a href="entry" title="entry"><i class="ri-login-circle"></i>Entry</a></li>
+				<li><a href="" title="top"><i class="ri-global-line"></i>Top</a></li>
+				{% if user %}
+				<li><a href="home" title="home"><i class="ri-home-line"></i>Home</a></li>
+				{% endif %}
+				<li><a href="entry" title="entry"><i class="ri-login-circle-line"></i>Entry</a></li>
 				<li></li>
 				<li class="tool-box">
 					<i class="ri-sun-line" role="button" title="ライトテーマ" data-theme="light"></i>
@@ -38,6 +37,11 @@
 			<script defer>// 後でファイル分ける
 				document.querySelectorAll('[data-theme]:not(html)').forEach(e => e.addEventListener('click', () => document.documentElement.dataset.theme = e.dataset.theme));
 			</script>
+			{% if user %}
+			<div id="actor-data">
+				ログイン中: <span class="name">{{user.name}}</span>
+			</div>
+			{% endif %}
 		</header>
 		{% endif %}
 		<main>{% block content %}{% endblock %}</main>

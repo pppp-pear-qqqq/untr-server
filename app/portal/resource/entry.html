@@ -1,0 +1,17 @@
+{% extends "template.html" %}
+{% block head %}
+{% endblock %}
+{% block content %}
+<form method="post" action="login">
+	<h2>ログイン</h2>
+	<input type="text" name="username" placeholder="ユーザー名"><br>
+	<input type="password" name="password" placeholder="パスワード"><br>
+	<button type="submit">ログイン</button>
+</form>
+<form method="post" action="register">
+	<h2>新規登録</h2>
+	<input type="text" name="username" placeholder="ユーザー名"><br>
+	<input type="password" name="password" placeholder="パスワード"><br>
+	<button type="submit">新規登録</button>
+</form>
+{% endblock %}

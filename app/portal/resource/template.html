@@ -26,15 +26,14 @@
 				<span></span>
 			</button>
 			<menu id="global-menu">
-				<li><a href="home" title="ホーム"><i class="ri-home-5-line"></i>ホーム</a></li>
-				<li><a href="location" title="ロケーション"><i class="ri-map-line"></i>地図</a></li>
-				<li><a href="actor" title="キャラクターリスト"><i class="ri-group-line"></i>住人たち</a></li>
+				<li><a href="entry" title="entry"><i class="ri-login-circle"></i>Entry</a></li>
 				<li></li>
 				<li class="tool-box">
 					<i class="ri-sun-line" role="button" title="ライトテーマ" data-theme="light"></i>
 					<i class="ri-moon-line" role="button" title="ダークテーマ" data-theme="dark"></i>
+					<a href="entry/logout" title="ログアウト"><i class="ri-logout-circle-line"></i></a>
 				</li>
-				<li class="credit">author</li>
+				<li class="credit">untroche</li>
 			</menu>
 			<script defer>// 後でファイル分ける
 				document.querySelectorAll('[data-theme]:not(html)').forEach(e => e.addEventListener('click', () => document.documentElement.dataset.theme = e.dataset.theme));

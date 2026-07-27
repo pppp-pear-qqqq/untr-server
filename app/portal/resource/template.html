@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width">
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+		<title>{{title}}</title>
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.min.css">
+		<base href="/">
+		<link rel="stylesheet" href="style/base.css">
+		<link rel="stylesheet" href="style/template.css">
+		{% block head %}{% endblock %}
+	</head>
+	<body>
+		{% if type == "standard" %}
+		<header>
+			{% if user %}
+			<div id="actor-data">
+				<span class="name">{{user.name}}</span>
+			</div>
+			{% endif %}
+			<button type="button" aria-controls="global-menu" aria-expanded="false" onclick="this.setAttribute('aria-expanded', this.getAttribute('aria-expanded') !== 'true')//後でファイル分ける">
+				<span></span>
+			</button>
+			<menu id="global-menu">
+				<li><a href="home" title="ホーム"><i class="ri-home-5-line"></i>ホーム</a></li>
+				<li><a href="location" title="ロケーション"><i class="ri-map-line"></i>地図</a></li>
+				<li><a href="actor" title="キャラクターリスト"><i class="ri-group-line"></i>住人たち</a></li>
+				<li></li>
+				<li class="tool-box">
+					<i class="ri-sun-line" role="button" title="ライトテーマ" data-theme="light"></i>
+					<i class="ri-moon-line" role="button" title="ダークテーマ" data-theme="dark"></i>
+				</li>
+				<li class="credit">author</li>
+			</menu>
+			<script defer>// 後でファイル分ける
+				document.querySelectorAll('[data-theme]:not(html)').forEach(e => e.addEventListener('click', () => document.documentElement.dataset.theme = e.dataset.theme));
+			</script>
+		</header>
+		{% endif %}
+		<main>{% block content %}{% endblock %}</main>
+	</body>
+</html>

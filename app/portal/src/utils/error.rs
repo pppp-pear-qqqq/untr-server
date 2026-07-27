@@ -1,38 +1,32 @@
-use actix_web::{HttpResponse, mime};
+use actix_web::{
+	HttpResponse,
+	body::{BoxBody, MessageBody},
+	dev,
+	http::header,
+	middleware, web,
+};
+use common::ReqType;
+use tera::Tera;
 
-use super::Template;
+use super::Page;
 
-common::error!(pub MessageError);
-impl actix_web::ResponseError for MessageError {
-	fn status_code(&self) -> actix_web::http::StatusCode {
-		self.status_code
-	}
+pub async fn mw_err_format(req: dev::ServiceRequest, next: middleware::Next<impl MessageBody + 'static>) -> std::result::Result<dev::ServiceResponse<BoxBody>, actix_web::Error> {
+	// 実行
+	let res = next.call(req).await?.map_into_boxed_body();
+	let (req, res) = res.into_parts();
 
-	fn error_response(&self) -> HttpResponse<actix_web::body::BoxBody> {
-		HttpResponse::build(self.status_code()).content_type(mime::TEXT_PLAIN).body(format!("{self}"))
-	}
-}
-
-common::error!(pub PageError);
-impl actix_web::ResponseError for PageError {
-	fn status_code(&self) -> actix_web::http::StatusCode {
-		self.status_code
-	}
-
-	fn error_response(&self) -> HttpResponse<actix_web::body::BoxBody> {
-		let mut builder = HttpResponse::build(self.status_code());
-		let tpl = Template::Base {
-			nobots: true,
-			summary: None,
-			user: None,
-		};
-		let main = format!("{self}");
-		match tpl.render_raw(&main) {
-			Ok(html) => builder.content_type(mime::TEXT_HTML).body(html),
-			Err(err) => builder.content_type(mime::TEXT_PLAIN).body(format!("{main}\n\n\n(liquid error)\n{err}")),
+	// エラー整形
+	if let Some(err) = res.error() {
+		let req_type = req.app_data::<ReqType>().copied().unwrap_or(ReqType::Empty);
+		if req_type == ReqType::Document {
+			if let (Some(tmpl), Ok(mut ctx)) = (req.app_data::<web::Data<Tera>>(), Page::default().ctx()) {
+				ctx.insert("body", &err.to_string());
+				if let Ok(body) = tmpl.render("error.html", &ctx) {
+					let res = HttpResponse::build(res.status()).content_type(header::ContentType::html()).body(body);
+					return Ok(dev::ServiceResponse::new(req, res));
+				}
+			}
 		}
 	}
+	Ok(dev::ServiceResponse::new(req, res))
 }
-
-pub type MessageResult<T> = Result<T, MessageError>;
-pub type PageResult<T> = Result<T, PageError>;

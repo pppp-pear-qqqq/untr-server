@@ -5,11 +5,6 @@ edition.workspace = true
 authors.workspace = true
 
 [dependencies]
-actix-session.workspace = true
-actix-web.workspace = true
-base64.workspace = true
-chrono.workspace = true
-futures-util = "0.3.32"
-reqwest.workspace = true
-serde.workspace = true
-serde_json.workspace = true
+actix-session = "0.11.0"
+actix-web = "4.14.0"
+serde = { version = "1.0.229", features = ["derive"] }

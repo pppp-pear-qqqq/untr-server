@@ -1,60 +1,52 @@
-/// ## Example
-/// ```
-/// error!(MyError);
-///
-/// impl actix_web::ResponseError for MyError {
-/// 	fn status_code(&self) -> actix_web::http::StatusCode {
-/// 		self.status_code
-/// 	}
-///
-/// 	fn error_response(&self) -> actix_web::HttpResponse {
-/// 		actix_web::HttpResponse::build(self.status_code())
-/// 			.content_type(actix_web::mime::TEXT_PLAIN_UTF_8)
-/// 			.body(actix_web::body::BoxBody::new(format!("{self}")))
-/// 	}
-/// }
-/// ```
-#[macro_export]
-macro_rules! error {
-	($vis:vis $ty: ident) => {
-		$vis struct $ty {
-			status_code: actix_web::http::StatusCode,
-			cause: Box<dyn std::error::Error>,
-		}
-		impl std::fmt::Debug for $ty {
-			fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-				write!(f, "{:?}", self.cause)
+use actix_web::{HttpResponse, http::StatusCode};
+
+#[derive(Debug)]
+pub struct Error {
+	status: StatusCode,
+	cause: Box<dyn std::error::Error + 'static>,
+}
+
+pub type Result<T> = std::result::Result<T, Error>;
+
+impl Error {
+	pub fn new<E>(status: StatusCode, error: E) -> Self
+	where
+		E: std::error::Error + 'static,
+	{
+		Self { status, cause: Box::new(error) }
+	}
+}
+
+impl<E> From<E> for Error
+where
+	E: std::error::Error + 'static,
+{
+	fn from(err: E) -> Self {
+		let boxed: Box<dyn std::error::Error> = Box::new(err);
+
+		if let Some(actix_err) = boxed.downcast_ref::<actix_web::Error>() {
+			let status = actix_err.as_response_error().status_code();
+			Self { status, cause: boxed }
+		} else {
+			Self {
+				status: StatusCode::INTERNAL_SERVER_ERROR,
+				cause: boxed,
 			}
 		}
-		impl std::fmt::Display for $ty {
-			fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-				write!(f, "{}", self.cause)
-			}
-		}
-		impl<T: std::error::Error + 'static> From<T> for $ty {
-			fn from(value: T) -> Self {
-				let status_code = if let Some(actix) = (&value as &dyn std::error::Error).downcast_ref::<actix_web::Error>() {
-					actix.as_response_error().status_code()
-				} else if let Some(Some(actix)) = value.source().map(|x| x.downcast_ref::<actix_web::Error>()) {
-					actix.as_response_error().status_code()
-				} else {
-					actix_web::http::StatusCode::INTERNAL_SERVER_ERROR
-				};
-				Self {
-					status_code,
-					cause: Box::new(value),
-				}
-			}
-		}
-		impl $ty {
-			fn new(cause: Box<dyn std::error::Error>) -> Self {
-				let status_code = if let Some(actix) = cause.downcast_ref::<actix_web::Error>() {
-					actix.as_response_error().status_code()
-				} else {
-					actix_web::http::StatusCode::INTERNAL_SERVER_ERROR
-				};
-				Self { status_code, cause }
-			}
-		}
-	};
+	}
+}
+
+impl std::fmt::Display for Error {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		self.cause.fmt(f)
+	}
+}
+
+impl actix_web::ResponseError for Error {
+	fn status_code(&self) -> StatusCode {
+		self.status
+	}
+	fn error_response(&self) -> HttpResponse {
+		HttpResponse::build(self.status_code()).body(self.to_string())
+	}
 }

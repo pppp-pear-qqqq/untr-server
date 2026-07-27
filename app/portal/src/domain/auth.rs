@@ -1,60 +1,53 @@
-use actix_web::{HttpResponse, Responder, error::*, mime, web};
-use base64::{Engine, prelude::*};
-use chrono::Local;
-use rand::{TryRngCore as _, rngs::OsRng};
-use serde::Deserialize;
-use sqlx::SqlitePool;
+use std::str::FromStr;
 
-use crate::utils::{MessageResult, Name, State, StateHandle, Template};
+use actix_web::{HttpResponse, Responder, error::ErrorUnauthorized, http::header, web};
+use sqlx::SqlitePool;
+use uuid::Uuid;
+
+use crate::utils::Identity;
 
 pub fn cfg(cfg: &mut web::ServiceConfig) {
-	cfg.service(web::resource("").get(issue).post(cert));
+	cfg.service(web::resource("").get(get).post(post));
 }
 
-async fn issue(user: Option<Name>, state: StateHandle, pool: web::Data<SqlitePool>) -> MessageResult<impl Responder> {
-	// 認証コード有効期限(秒)
-	const EXPIRY: i64 = 120;
+async fn get(id: Option<Identity>, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+	const AUTH_EXPIRY: i64 = 300;
+	let now = chrono::Utc::now().timestamp();
 
-	if *state != State::Active {
-		return Err(ErrorForbidden("当サイトはクローズしています").into());
+	let pool = pool.as_ref();
+	sqlx::query!("DELETE FROM auth WHERE timestamp <= ?", now).execute(pool).await?; // 期限切れの認証情報を削除
+	match id {
+		Some(id) if sqlx::query_scalar!("SELECT EXISTS(SELECT * FROM user WHERE id=?)", *id).fetch_one(pool).await? != 0 => {
+			let code = Uuid::new_v4();
+			let code_slice = code.as_bytes().as_slice();
+			let timestamp = now + AUTH_EXPIRY;
+			sqlx::query!("INSERT INTO auth(code,timestamp,user) VALUES(?,?,?)", code_slice, timestamp, *id).execute(pool).await?;
+			Ok(HttpResponse::Ok().content_type(header::ContentType::plaintext()).body(code.to_string()))
+		}
+		Some(_) => Err(ErrorUnauthorized("ログインセッションが無効です").into()),
+		None => Ok(HttpResponse::SeeOther().insert_header((header::LOCATION, "/entry/login")).finish()),
 	}
-	let code = if let Some(user) = user {
-		// コード生成
-		let mut dst = [0xffu8; 20];
-		OsRng.try_fill_bytes(&mut dst)?;
-		let code = BASE64_URL_SAFE_NO_PAD.encode(dst);
-		let timestamp = Local::now().timestamp() + EXPIRY;
-		sqlx::query!("INSERT INTO auth(code,timestamp,user) VALUES(?,?,?)", code, timestamp, *user)
-			.execute(pool.as_ref())
-			.await?;
-		Some(code)
-	} else {
-		None
-	};
-	// コードを埋め込んだhtmlを返す
-	let html = Template::None.render(
-		"auth.html",
-		liquid::object!({
-			"code": code.as_ref(),
-		}),
-	)?;
-	Ok(HttpResponse::Ok().content_type(mime::TEXT_HTML).body(html))
 }
 
-#[derive(Deserialize)]
-struct Cert {
+#[derive(serde::Deserialize)]
+struct Post {
 	code: String,
 }
-async fn cert(web::Json(info): web::Json<Cert>, state: StateHandle, pool: web::Data<SqlitePool>) -> MessageResult<impl Responder> {
-	if *state != State::Active {
-		return Err(ErrorForbidden("当サイトはクローズしています").into());
-	}
+async fn post(web::Json(info): web::Json<Post>, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+	// HTTPリクエスト・レスポンスに乗せるUUIDは文字列
+	// データベースに保存されているUUIDはバイナリ列
+	let code = Uuid::from_str(&info.code)?;
+	let code = code.as_bytes().as_slice();
+
 	let pool = pool.as_ref();
-	let timestamp = Local::now().timestamp();
-	sqlx::query!("DELETE FROM auth WHERE timestamp<?", timestamp).execute(pool).await?;
-	match sqlx::query_scalar::<_, String>("SELECT user FROM auth WHERE code=?").bind(info.code).fetch_one(pool).await {
-		Ok(id) => Ok(HttpResponse::Ok().body(id)),
-		Err(sqlx::Error::RowNotFound) => Err(ErrorUnauthorized("認証コードが不正です").into()),
-		Err(err) => Err(err.into()),
+	let r = sqlx::query!("DELETE FROM auth WHERE code=? RETURNING user,timestamp", code).fetch_optional(pool).await?;
+
+	match r {
+		Some(r) if r.timestamp > chrono::Utc::now().timestamp() => {
+			let user = Uuid::from_slice(r.user.as_slice())?;
+			Ok(HttpResponse::Ok().content_type(header::ContentType::plaintext()).body(user.to_string()))
+		}
+		Some(_) => Err(ErrorUnauthorized("認証コードが期限切れです").into()),
+		None => Err(ErrorUnauthorized("認証コードが無効です").into()),
 	}
 }

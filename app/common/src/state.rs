@@ -1,48 +1,43 @@
 use std::{
 	future::{Ready, ready},
-	ops::Deref,
-	sync::RwLock,
+	sync::{Arc, RwLock},
 };
 
-use actix_web::{FromRequest, error::*, web};
+use actix_web::FromRequest;
 
 pub trait IsMaintenance {
 	fn is_maintenance(&self) -> bool;
 }
 
-/// # Example
-/// ```
-/// let app_data = web::Data::new(common::StateHandle::new(State::Active).pack());
-/// ```
-pub struct Handle<T: Clone + IsMaintenance>(T);
+#[derive(Clone)]
+pub struct StateHandle<T: Clone + IsMaintenance + 'static>(Arc<RwLock<T>>);
 
-impl<T: Clone + IsMaintenance> Handle<T> {
-	pub fn new(value: T) -> Self {
-		Self(value)
+#[allow(dead_code)]
+impl<T: Clone + IsMaintenance + 'static> StateHandle<T> {
+	pub fn new(state: T) -> Self {
+		Self(Arc::new(RwLock::new(state)))
+	}
+	pub fn get(&self) -> T {
+		self.0.read().unwrap().clone()
+	}
+	pub fn set(&self, state: T) {
+		*self.0.write().unwrap() = state;
 	}
 }
-impl<T: Clone + IsMaintenance> Deref for Handle<T> {
-	type Target = T;
 
-	fn deref(&self) -> &Self::Target {
-		&self.0
-	}
-}
-impl<T: Clone + IsMaintenance + 'static> FromRequest for Handle<T> {
+impl<T: Clone + IsMaintenance + 'static> FromRequest for StateHandle<T> {
 	type Error = actix_web::Error;
 	type Future = Ready<Result<Self, Self::Error>>;
 
-	fn from_request(req: &actix_web::HttpRequest, _: &mut actix_web::dev::Payload) -> Self::Future {
-		ready((|| {
-			let state = req.app_data::<web::Data<RwLock<T>>>().ok_or(ErrorInternalServerError("アプリケーション状態が未定義"))?;
-			let guard = state.read().map_err(|_| ErrorInternalServerError("アプリケーション状態読み込みに失敗"))?;
-			let state = guard.clone();
-			drop(guard);
-			if !state.is_maintenance() {
-				Ok(Handle(state))
-			} else {
-				Err(ErrorForbidden("メンテナンス中"))
-			}
-		})())
+	fn from_request(req: &actix_web::HttpRequest, _payload: &mut actix_web::dev::Payload) -> Self::Future {
+		let state = match req.app_data::<StateHandle<T>>() {
+			Some(data) => data.clone(),
+			None => return ready(Err(actix_web::error::ErrorInternalServerError("State is not configured"))),
+		};
+		if state.get().is_maintenance() {
+			ready(Err(actix_web::error::ErrorServiceUnavailable("Maintenance mode")))
+		} else {
+			ready(Ok(state))
+		}
 	}
 }

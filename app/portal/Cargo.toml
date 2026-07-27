@@ -4,20 +4,23 @@ version = "0.1.0"
 edition.workspace = true
 authors.workspace = true
 
+[features]
+test = ["dep:actix-files", "dep:dotenv"]
+
 [dependencies]
-actix-cors = "0.7.1"
-actix-session.workspace = true
-actix-web.workspace = true
-argon2.workspace = true
-base64.workspace = true
-chrono.workspace = true
+actix-files = { version = "0.6.10", optional = true }
+actix-session = { version = "0.11.0", features = ["cookie-session"] }
+actix-web = "4.14.0"
+argon2 = { version = "0.5.3", features = ["std"] }
+base64 = "0.22.1"
+chrono = { version = "0.4.45", features = ["serde"] }
 common.workspace = true
-env_logger.workspace = true
+dotenv = { version = "0.15.0", optional = true }
+env_logger = "0.11.11"
 html-codec.workspace = true
-liquid.workspace = true
-rand.workspace = true
-serde.workspace = true
-serde_json.workspace = true
-sqlx.workspace = true
-tokio.workspace = true
-validation.workspace = true
+rkyv = { version = "0.8.17", features = ["unaligned"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.151"
+sqlx = { version = "0.8.6", features = ["sqlite", "chrono", "runtime-tokio"] }
+tera = "1.20.1"
+uuid = { version = "1.24.0", features = ["serde", "v4"] }

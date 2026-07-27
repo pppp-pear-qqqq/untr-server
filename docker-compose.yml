@@ -1,65 +1,65 @@
 x-rust-base: &rust-base
- build:
-  context: .
-  dockerfile: app/Dockerfile.dev
- volumes:
-  - ./Cargo.toml:/app/Cargo.toml
-  - ./Cargo.lock:/app/Cargo.lock
-  - ./app:/app/app
-  - ./lib:/app/lib
-  - target:/app/target
-  - cargo-cache:/usr/local/cargo/registry
- networks:
-  - untroche
+    build:
+        context: .
+        dockerfile: app/Dockerfile.dev
+    volumes:
+        - ./Cargo.toml:/app/Cargo.toml
+        - ./Cargo.lock:/app/Cargo.lock
+        - ./app:/app/app
+        - ./lib:/app/lib
+        - target:/app/target
+        - cargo-cache:/usr/local/cargo/registry
+    networks:
+        - untroche
 
 services:
- # --- Nginx (リバースプロキシ) ---
- nginx:
-  image: nginx:alpine
-  ports:
-   - "8080:8080"
-  volumes:
-   - ./nginx.conf:/etc/nginx/nginx.conf:ro
-   - ./app/common/resource:/app/app/common
-   - ./app/portal/resource:/app/app/portal
-  #  - ./app/colllus/resource:/app/app/colllus
-  depends_on:
-   - portal
-  #  - colllus
-  networks:
-   - untroche
+    # --- Nginx (リバースプロキシ) ---
+    nginx:
+        image: nginx:alpine
+        ports:
+            - "8080:8080"
+        volumes:
+            - ./nginx.conf:/etc/nginx/nginx.conf:ro
+            - ./app/common/resource:/app/app/common
+            - ./app/portal/resource:/app/app/portal
+            # - ./app/ondyst/resource:/app/app/ondyst
+        depends_on:
+            - portal
+            # - ondyst
+        networks:
+            - untroche
 
- watcher:
-  build:
-   context: .
-   dockerfile: watcher/Dockerfile.dev
-  volumes:
-   - ./app:/app/app
-   - ./watcher/tsconfig.json:/app/tsconfig.json:ro
-   - ./watcher/compile.sh:/app/compile.sh:ro
+    watcher:
+        build:
+            context: .
+            dockerfile: watcher/Dockerfile.dev
+        volumes:
+            - ./app:/app/app
+            - ./watcher/tsconfig.json:/app/tsconfig.json:ro
+            - ./watcher/compile.sh:/app/compile.sh:ro
 
- portal:
-  <<: *rust-base
-  environment:
-   - APP_NAME=portal
-   - SERVER_PORT=8000
-   - DATABASE_URL=sqlite:app/portal/database.db
-   - RUST_LOG=debug
-  networks:
-   - untroche
+    portal:
+        <<: *rust-base
+        environment:
+            - APP_NAME=portal
+            - SERVER_PORT=8000
+            - DATABASE_URL=sqlite:app/portal/database.db
+            - RUST_LOG=debug
+        networks:
+            - untroche
 
- erltod:
-  <<: *rust-base
-  environment:
-   - APP_NAME=erltod
-   - SERVER_PORT=8001
-   - DATABASE_URL=sqlite:app/erltod/database.db
-  networks:
-   - untroche
+    # ondyst:
+    #     <<: *rust-base
+    #     environment:
+    #         - APP_NAME=ondyst
+    #         - SERVER_PORT=8005
+    #         - DATABASE_URL=sqlite:app/ondyst/database.db
+    #     networks:
+    #         - untroche
 
 networks:
- untroche:
+    untroche:
 
 volumes:
- target:
- cargo-cache:
+    target:
+    cargo-cache:

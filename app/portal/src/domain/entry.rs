@@ -1,73 +1,85 @@
 use actix_session::Session;
-use actix_web::{HttpResponse, Responder, error::*, mime, web};
-use serde::Deserialize;
+use actix_web::{HttpResponse, Responder, error::*, http::header, web};
+use argon2::{
+	Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
+	password_hash::{SaltString, rand_core::OsRng},
+};
+use rkyv::rancor;
 use sqlx::SqlitePool;
-use validation::Validation;
+use uuid::Uuid;
 
-use crate::utils::{MessageResult, Name, PageResult, State, StateHandle, Template, deser_flag};
+use crate::utils::{Identity, Page, PageType};
 
+/// リソース
 pub fn cfg(cfg: &mut web::ServiceConfig) {
-	cfg.service(web::resource("").get(index).post(login).delete(logout));
+	cfg.route("", web::get().to(index));
+	cfg.service(web::resource("login").get(view_login).post(login));
 	cfg.service(web::resource("register").post(register));
+	cfg.route("logout", web::to(logout));
 }
 
-// ログイン
-#[derive(Deserialize, Validation)]
-struct Authorize {
-	#[validation(name = "ユーザー名", min = 2, max = 20)]
-	name: String,
-	#[validation(name = "パスワード", min = 8)]
+/// ログイン・登録画面の表示
+async fn index(id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: web::Data<tera::Tera>) -> common::Result<impl Responder> {
+	let ctx = Page::standard_and_load(&id, &pool).await?.ctx()?;
+	let body = tmpl.render("entry.html", &ctx)?;
+	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
+}
+
+/// ログイン画面の表示
+async fn view_login(tmpl: web::Data<tera::Tera>) -> common::Result<impl Responder> {
+	let ctx = Page {
+		page_type: PageType::Min,
+		..Page::default()
+	}
+	.ctx()?;
+	let body = tmpl.render("entry.html", &ctx)?;
+	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
+}
+
+#[derive(serde::Deserialize)]
+struct Login {
+	username: String,
 	password: String,
 }
-
-// エントランス画面
-#[derive(Deserialize)]
-struct Index {
-	#[serde(deserialize_with = "deser_flag", default)]
-	popup: bool,
-}
-async fn index(web::Query(info): web::Query<Index>) -> PageResult<impl Responder> {
-	let tpl = if info.popup {
-		Template::Popup
-	} else {
-		Template::Base {
-			nobots: false,
-			summary: None,
-			user: None,
-		}
-	};
-	let html = tpl.render("html/entry.html", liquid::object!({}))?;
-	Ok(HttpResponse::Ok().content_type(mime::TEXT_HTML).body(html))
-}
-
-async fn login(web::Form(info): web::Form<Authorize>, session: Session, _: StateHandle, pool: web::Data<SqlitePool>) -> MessageResult<impl Responder> {
-	let hashed = sqlx::query_scalar!("SELECT password FROM user WHERE name=?", info.name).fetch_one(pool.as_ref()).await?;
-	if crate::utils::password::verify(&info.password, &hashed).map_err(|err| ErrorInternalServerError(err))? {
-		Name::save(&session, &info.name)?;
+/// ログイン処理
+async fn login(web::Form(info): web::Form<Login>, session: Session, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+	let pool = pool.as_ref();
+	let record = sqlx::query!("SELECT id,password FROM user WHERE name=?", info.username).fetch_one(pool).await?;
+	let parsed_hash = PasswordHash::new(&record.password)?;
+	if Argon2::default().verify_password(info.password.as_bytes(), &parsed_hash).is_ok() {
+		Identity::set(&session, record.id)?;
 		Ok(HttpResponse::NoContent().finish())
 	} else {
 		Err(ErrorUnauthorized("ユーザー名またはパスワードが異なります").into())
 	}
 }
 
-// ログアウト
-async fn logout(session: Session) -> MessageResult<impl Responder> {
-	Name::delete(&session);
-	Ok(HttpResponse::NoContent().finish())
+#[derive(serde::Deserialize)]
+struct Register {
+	username: String,
+	password: String,
 }
+/// 新規登録処理
+async fn register(web::Form(info): web::Form<Register>, session: Session, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+	let id = Uuid::new_v4();
+	let id = id.as_bytes().as_slice();
+	let hashed = Argon2::default().hash_password(info.password.as_bytes(), &SaltString::generate(&mut OsRng))?.to_string();
+	let mutes = rkyv::to_bytes::<rancor::Error>(&Vec::<String>::new())?;
+	let mutes = mutes.as_slice();
 
-// 新規登録
-async fn register(web::Form(info): web::Form<Authorize>, session: Session, state: StateHandle, pool: web::Data<SqlitePool>) -> MessageResult<impl Responder> {
-	if *state != State::Active {
-		return Err(ErrorForbidden("当サイトはクローズしています").into());
-	}
-	let hashed = crate::utils::password::hash(&info.password).map_err(|err| ErrorInternalServerError(err))?;
-	match sqlx::query!("INSERT INTO user(name,password) VALUES(?,?)", info.name, hashed).execute(pool.as_ref()).await {
+	let pool = pool.as_ref();
+	let query = sqlx::query!("INSERT INTO user(id,name,password,mutes) VALUES(?,?,?,?)", id, info.username, hashed, mutes);
+	match query.execute(pool).await {
 		Ok(_) => {
-			Name::save(&session, &info.name)?;
+			Identity::set(&session, id.to_vec())?;
 			Ok(HttpResponse::NoContent().finish())
 		}
-		Err(sqlx::Error::Database(err)) if err.is_unique_violation() => Err(ErrorConflict("ユーザー名が重複しています").into()),
-		Err(err) => Err(err.into()),
+		Err(sqlx::Error::Database(err)) if err.is_unique_violation() => Err(ErrorForbidden("ユーザー名が既に存在します").into()),
+		Err(err) => Err(ErrorInternalServerError(err).into()),
 	}
+}
+
+async fn logout(session: Session) -> common::Result<impl Responder> {
+	Identity::remove(&session);
+	Ok(HttpResponse::NoContent().finish())
 }

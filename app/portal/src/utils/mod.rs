@@ -1,46 +1,18 @@
-pub mod app_data;
-pub mod error;
-pub mod page_params;
-pub mod password;
-pub mod state;
-pub mod tag_format;
-pub mod template;
+//! アプリケーション全体で使用するような汎用構造体・関数
+mod error;
+mod page;
+mod state;
 
-use html_codec::HTMLEncode;
-use serde::{Deserialize as _, Deserializer};
+pub use error::mw_err_format;
+pub use page::{Page, PageType};
+pub use state::State;
 
-pub use self::{app_data::AppData, error::*, page_params::PageParams, state::State, tag_format::CommonTag, template::Template};
-
+pub type Identity = common::Identity<Vec<u8>>;
 pub type StateHandle = common::StateHandle<State>;
-pub type Name = common::Identity<String>;
 
-// 変数定義
-pub const STATE: &str = "STATE";
-const KEY: &str = "KEY";
-
-/// リソースへのパスを生成する
+pub fn app(path: &str) -> String {
+	format!("app/portal/{}", path)
+}
 pub fn resource(path: &str) -> String {
-	if cfg!(debug_assertions) {
-		format!("{}/resource/{path}", crate::APP_PATH)
-	} else {
-		format!("{}/{path}", crate::APP_PATH)
-	}
-}
-
-/// クエリやフォームからboolを取得
-pub fn deser_flag<'de, D>(deserializer: D) -> Result<bool, D::Error>
-where
-	D: Deserializer<'de>,
-{
-	let s = String::deserialize(deserializer)?;
-	match s.as_str() {
-		"" | "true" | "1" => Ok(true),
-		"false" | "0" => Ok(false),
-		_ => Err(serde::de::Error::custom("boolean flag expected")),
-	}
-}
-
-#[allow(unused)]
-fn code() {
-	"aaa".br().tag(CommonTag);
+	format!("app/portal/resource/{}", path)
 }

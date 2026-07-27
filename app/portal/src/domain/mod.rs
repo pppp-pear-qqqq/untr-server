@@ -1,29 +1,22 @@
 mod auth;
 mod entry;
-mod profile;
-mod report;
+mod home;
 mod user;
 
-use actix_cors::Cors;
-use actix_web::{HttpResponse, Responder, mime, web};
-
-use crate::utils::{PageResult, Template};
+use actix_web::{HttpResponse, Responder, http::header, web};
+use tera::Tera;
 
 pub fn cfg(cfg: &mut web::ServiceConfig) {
-	cfg.route("", web::get().to(index));
-	cfg.service(web::scope("auth").wrap(Cors::default().allow_any_origin().allow_any_header()).configure(auth::cfg));
+	cfg.route("/", web::get().to(index));
 	cfg.service(web::scope("entry").configure(entry::cfg));
+	cfg.service(web::scope("auth").configure(auth::cfg));
+	cfg.service(web::scope("home").configure(home::cfg));
 	cfg.service(web::scope("user").configure(user::cfg));
-	cfg.service(web::scope("profile").configure(profile::cfg));
-	cfg.service(web::scope("report").configure(report::cfg));
+	cfg.route("info", web::get().to(index));
 }
 
-async fn index() -> PageResult<impl Responder> {
-	let html = Template::Base {
-		nobots: false,
-		summary: None,
-		user: None,
-	}
-	.render("html/index.html", liquid::object!({}))?;
-	Ok(HttpResponse::Ok().content_type(mime::TEXT_HTML).body(html))
+async fn index(tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
+	let ctx = crate::utils::Page::default().ctx()?;
+	let body = tmpl.render("index.html", &ctx)?;
+	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }

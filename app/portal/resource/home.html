@@ -3,57 +3,6 @@
 {% endblock %}
 {% block content %}
 <div>
-<a href="home/setting">設定</a></div>
-<form id="upload">
-	<h2>ファイルアップローダー</h2>
-	<label id="file-input">
-		ファイルを選択またはドロップ
-		<input type="file" multiple name="file">
-	</label>
-	<template id="file-box">
-		<div class="file">
-			<span>ファイル名: <span class="file-name"></span></span><br>
-			<span>種類: <span class="file-type"></span></span>
-		</div>
-	</template>
-	<div id="file-list"></div>
-	<button type="submit">登録</button>
-</form>
-<script defer>
-const template = document.querySelector('#file-box');
-const list = document.querySelector('#file-list');
-document.querySelector('#file-input>input[type="file"]').addEventListener('change', (ev) => {
-	const files = ev.target.files;
-	list.replaceChildren();
-	for (const file of files) {
-		const e = template.content.cloneNode(true);
-		e.querySelector('.file-name').textContent = file.name;
-		const ext = file.name.split('.').pop();
-		let type;
-		switch(ext){
-			case 'png':
-			case 'jpg':
-			case 'gif':
-			case 'bmp':
-			case 'svg':
-			case 'webp':
-				type = '画像';
-				break;
-			case 'txt':
-				type = 'テキスト';
-				break;
-			case 'css':
-				type = 'CSS';
-				break;
-			case 'js':
-				type = 'JavaScript';
-				break;
-			default:
-				type = 'その他';
-		}
-		e.querySelector('.file-type').textContent = type;
-		list.appendChild(e);
-	}
-});
-</script>
+	<a href="home/setting">設定</a>
+</div>
 {% endblock %}

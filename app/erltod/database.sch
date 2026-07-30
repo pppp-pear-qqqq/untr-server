@@ -21,6 +21,7 @@ table equipment
 	cost int
 	trigger blob
 	effect blob
+	message text?
 
 # キャラクターの装備品所持状況
 table actor_equipment

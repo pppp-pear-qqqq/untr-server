@@ -6,6 +6,7 @@ table report
 	id int pk
 	timestamp timestamp
 	user ref(user.id).update(cascade).delete(setnull)
+	tag text
 	body text
 
 table user

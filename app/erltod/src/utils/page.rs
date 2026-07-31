@@ -43,6 +43,7 @@ impl Default for Page {
 #[derive(serde::Serialize)]
 pub struct UserData {
 	name: String,
+	icon: String,
 }
 impl UserData {
 	// pub async fn load(id: &super::Identity, pool: &SqlitePool) -> Result<Self, sqlx::Error> {

@@ -12,12 +12,20 @@ table actor
 	icons text default('')
 	portraits text default('')
 
+# ロールタイプマスター
+table role
+	id int pk
+	name text
+	icon text
+	lore text
+
 # 装備品マスター
 table equipment
 	id int pk
 	name text
+	icon text
 	lore text
-	role ref(role).update(cascade).delete(setnull)
+	role ref(role.id).update(cascade).delete(setnull)
 	cost int
 	trigger blob
 	effect blob

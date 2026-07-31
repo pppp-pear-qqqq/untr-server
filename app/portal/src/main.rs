@@ -91,7 +91,7 @@ async fn main() -> Result<(), io::Error> {
 
 	let app_data = AppData::new(&db_url).await;
 
-	println!("admin: {}", app_data.admin_key);
+	println!("portal-admin: {}", app_data.admin_key);
 
 	let server = HttpServer::new(move || {
 		// memo: AppData側にAppの生成関数を組み込まない(組み込めない)のは、App<T>のTが特定困難または不定であるため

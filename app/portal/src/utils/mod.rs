@@ -11,8 +11,8 @@ pub type Identity = common::Identity<Vec<u8>>;
 pub type StateHandle = common::StateHandle<State>;
 
 pub fn app(path: &str) -> String {
-	format!("app/portal/{}", path)
+	format!("{}/{}", env!("CARGO_MANIFEST_DIR"), path)
 }
 pub fn resource(path: &str) -> String {
-	format!("app/portal/resource/{}", path)
+	app(&format!("resource/{}", path))
 }

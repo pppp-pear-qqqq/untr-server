@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width">
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+		<title>{{title}}</title>
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.min.css">
+		<base href="/">
+		<link rel="stylesheet" href="style/base.css">
+		<link rel="stylesheet" href="style/template.css">
+		{% block head %}{% endblock %}
+	</head>
+	<body>
+		{% if type == "standard" %}
+		<header>
+			<button type="button" aria-controls="global-menu" aria-expanded="false" onclick="this.setAttribute('aria-expanded', this.getAttribute('aria-expanded') !== 'true')//後でファイル分ける">
+				<span></span>
+			</button>
+			<menu id="global-menu">
+				<li><a href="" title="top"><i class="ri-global-line"></i>Top</a></li>
+				{% if user %}
+				<li><a href="home" title="home"><i class="ri-home-line"></i>Home</a></li>
+				{% endif %}
+				<li><a href="entry" title="entry"><i class="ri-login-circle-line"></i>Entry</a></li>
+				<li></li>
+				<li class="tool-box">
+					<i class="ri-sun-line" role="button" title="ライトテーマ" data-theme="light"></i>
+					<i class="ri-moon-line" role="button" title="ダークテーマ" data-theme="dark"></i>
+					<a href="entry/logout" title="ログアウト"><i class="ri-logout-circle-line"></i></a>
+				</li>
+				<li class="credit">untroche</li>
+			</menu>
+			<script defer>// 後でファイル分ける
+				document.querySelectorAll('[data-theme]:not(html)').forEach(e => e.addEventListener('click', () => document.documentElement.dataset.theme = e.dataset.theme));
+			</script>
+			{% if user %}
+			<div id="actor-data">
+				<img class="icon" src="{{user.icon}}">
+				<span class="name">{{user.name}}</span>
+			</div>
+			{% endif %}
+		</header>
+		{% endif %}
+		<main>{% block content %}{% endblock %}</main>
+	</body>
+</html>

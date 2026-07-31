@@ -6,4 +6,4 @@
 `docker compose down`
 
 再ビルド
-`docker compose build`
+`docker compose build --no-cache`

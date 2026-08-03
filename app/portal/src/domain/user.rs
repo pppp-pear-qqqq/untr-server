@@ -1,9 +1,9 @@
 use actix_web::{HttpResponse, Responder, http::header, web};
-use common::ReqType;
+use common::{PageRender, ReqType};
 use sqlx::SqlitePool;
 use tera::Tera;
 
-use crate::utils::{Identity, Page};
+use crate::utils::{Identity, Page, UserData};
 
 pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.route("", web::get().to(list));
@@ -20,9 +20,9 @@ async fn list(web::Form(pagination): web::Form<common::Pagination>, req_type: Re
 	match req_type {
 		ReqType::Empty => Ok(HttpResponse::Ok().json(records)),
 		_ => {
-			let mut ctx = Page::standard_and_load(&id, &pool).await?.ctx()?;
+			let mut ctx = tera::Context::new();
 			ctx.insert("list", &records);
-			let body = tmpl.render("list.html", &ctx)?;
+			let body = Page::default().user_data_opt(UserData::load_opt(&id, &pool).await?).render_with_ctx("list.html", &tmpl, ctx)?;
 			Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 		}
 	}
@@ -34,9 +34,12 @@ async fn user(user: web::Path<String>, id: Option<Identity>, pool: web::Data<Sql
 	let pool = pool.as_ref();
 	let record = sqlx::query!("SELECT name,profile FROM user WHERE name=?", name).fetch_one(pool).await?;
 
-	let mut ctx = Page::standard_and_load(&id, &pool).await?.ctx()?;
+	let mut ctx = tera::Context::new();
 	ctx.insert("username", &record.name);
 	ctx.insert("profile", &record.profile);
-	let body = tmpl.render("user.html", &ctx)?;
+	let body = Page::default()
+		.title(&format!("{} - untroche.portal", record.name))
+		.user_data_opt(UserData::load_opt(&id, &pool).await?)
+		.render_with_ctx("user.html", &tmpl, ctx)?;
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }

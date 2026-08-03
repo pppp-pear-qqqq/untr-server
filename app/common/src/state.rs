@@ -1,5 +1,5 @@
 use std::{
-	future::{Ready, ready},
+	future::{ready, Ready},
 	sync::{Arc, RwLock},
 };
 
@@ -35,7 +35,7 @@ impl<T: Clone + IsMaintenance + 'static> FromRequest for StateHandle<T> {
 			None => return ready(Err(actix_web::error::ErrorInternalServerError("State is not configured"))),
 		};
 		if state.get().is_maintenance() {
-			ready(Err(actix_web::error::ErrorServiceUnavailable("Maintenance mode")))
+			ready(Err(actix_web::error::ErrorServiceUnavailable("メンテナンス中です")))
 		} else {
 			ready(Ok(state))
 		}

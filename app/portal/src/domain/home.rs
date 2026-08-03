@@ -1,10 +1,11 @@
 use std::ops::Deref;
 
 use actix_web::{HttpResponse, Responder, http::header, web};
+use common::PageRender;
 use sqlx::SqlitePool;
 use tera::Tera;
 
-use crate::utils::{Identity, Page};
+use crate::utils::{Identity, Page, UserData};
 
 pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.route("", web::get().to(index));
@@ -12,14 +13,12 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 }
 
 async fn index(id: Identity, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
-	let ctx = Page::standard_and_load(&Some(id), &pool).await?.ctx()?;
-	let body = tmpl.render("home.html", &ctx)?;
+	let body = Page::default().user_data(UserData::load(&id, &pool).await?).render("home.html", &tmpl)?;
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }
 
 async fn view_settings(id: Identity, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
-	let ctx = Page::standard_and_load(&Some(id), &pool).await?.ctx()?;
-	let body = tmpl.render("settings.html", &ctx)?;
+	let body = Page::default().user_data(UserData::load(&id, &pool).await?).render("settings.html", &tmpl)?;
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }
 

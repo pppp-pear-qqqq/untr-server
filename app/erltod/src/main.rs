@@ -13,7 +13,6 @@ use tera::Tera;
 const STATE: &str = "STATE";
 const KEY: &str = "KEY";
 
-// memo: ファイル分けしていないのは、この辺りも含めてアプリごとに定義するべきだから
 #[derive(Clone)]
 pub struct AppData {
 	pub state: utils::StateHandle,
@@ -94,8 +93,6 @@ async fn main() -> Result<(), io::Error> {
 	println!("erltod-admin: {}", app_data.admin_key);
 
 	let server = HttpServer::new(move || {
-		// memo: AppData側にAppの生成関数を組み込まない(組み込めない)のは、App<T>のTが特定困難または不定であるため
-		// その辺り暗黙でよしなにできるんだったらやりたいが、仮にできたとしてもapp_dataが持たない設定の所在に困る
 		let app_data = app_data.clone();
 		let session = SessionMiddleware::builder(storage::CookieSessionStore::default(), app_data.session_key)
 			.cookie_secure(false)
@@ -105,7 +102,7 @@ async fn main() -> Result<(), io::Error> {
 			.wrap(middleware::Logger::default())
 			.wrap(middleware::NormalizePath::trim())
 			.wrap(session)
-			.wrap(middleware::from_fn(utils::mw_err_format))
+			.wrap(middleware::from_fn(common::mw_err_format::<utils::Page>))
 			.default_service(web::to(|| HttpResponse::NotFound()))
 			.app_data(app_data.state)
 			.app_data(app_data.pool)

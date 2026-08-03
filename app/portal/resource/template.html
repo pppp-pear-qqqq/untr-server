@@ -12,15 +12,16 @@
 		<base href="/">
 		<link rel="stylesheet" href="style/base.css">
 		<link rel="stylesheet" href="style/template.css">
+		<script defer src="script/common.js"></script>
 		{% block head %}{% endblock %}
 	</head>
 	<body>
 		{% if type == "standard" %}
 		<header>
-			<button type="button" aria-controls="global-menu" aria-expanded="false" onclick="this.setAttribute('aria-expanded', this.getAttribute('aria-expanded') !== 'true')//後でファイル分ける">
+			<button type="button" aria-controls="main-menu" aria-expanded="false" onclick="this.setAttribute('aria-expanded', this.getAttribute('aria-expanded') !== 'true')//後でファイル分ける">
 				<span></span>
 			</button>
-			<menu id="global-menu">
+			<menu id="main-menu">
 				<li><a href="" title="top"><i class="ri-global-line"></i>Top</a></li>
 				{% if user %}
 				<li><a href="home" title="home"><i class="ri-home-line"></i>Home</a></li>
@@ -34,9 +35,6 @@
 				</li>
 				<li class="credit">untroche</li>
 			</menu>
-			<script defer>// 後でファイル分ける
-				document.querySelectorAll('[data-theme]:not(html)').forEach(e => e.addEventListener('click', () => document.documentElement.dataset.theme = e.dataset.theme));
-			</script>
 			{% if user %}
 			<div id="actor-data">
 				ログイン中: <span class="name">{{user.name}}</span>

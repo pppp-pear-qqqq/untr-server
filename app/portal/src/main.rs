@@ -105,7 +105,7 @@ async fn main() -> Result<(), io::Error> {
 			.wrap(middleware::Logger::default())
 			.wrap(middleware::NormalizePath::trim())
 			.wrap(session)
-			.wrap(middleware::from_fn(utils::mw_err_format))
+			.wrap(middleware::from_fn(common::mw_err_format::<utils::Page>))
 			.default_service(web::to(|| HttpResponse::NotFound()))
 			.app_data(app_data.state)
 			.app_data(app_data.pool)

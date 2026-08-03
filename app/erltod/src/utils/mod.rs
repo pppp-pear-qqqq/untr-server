@@ -1,10 +1,8 @@
 //! アプリケーション全体で使用するような汎用構造体・関数
-mod error;
 mod page;
 mod state;
 
-pub use error::mw_err_format;
-pub use page::{Page, PageType};
+pub use page::{ActorData, Page};
 pub use state::State;
 
 pub type Identity = common::Identity<Vec<u8>>;

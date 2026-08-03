@@ -4,8 +4,11 @@ mod home;
 mod user;
 
 use actix_web::{HttpResponse, Responder, http::header, web};
+use common::PageRender;
 use sqlx::SqlitePool;
 use tera::Tera;
+
+use crate::utils::{Identity, Page, UserData};
 
 pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.route("/", web::get().to(index));
@@ -16,8 +19,7 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.route("info", web::get().to(index));
 }
 
-async fn index(id: Option<crate::utils::Identity>, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
-	let ctx = crate::utils::Page::standard_and_load(&id, &pool).await?.ctx()?;
-	let body = tmpl.render("index.html", &ctx)?;
+async fn index(id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
+	let body = Page::default().user_data_opt(UserData::load_opt(&id, &pool).await?).render("index.html", &tmpl)?;
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }

@@ -12,7 +12,7 @@ header {
 	border-bottom: 1px solid var(--border-color);
 }
 
-[aria-controls="global-menu"] {
+[aria-controls="main-menu"] {
 	position: relative;
 	display: block;
 	width: 2rem;
@@ -57,11 +57,11 @@ header {
 		rotate: -45deg;
 	}
 
-	body:has(&[aria-expanded="true"]) #global-menu {
+	body:has(&[aria-expanded="true"]) #main-menu {
 		translate: 0;
 	}
 }
-#global-menu {
+#main-menu {
 	position: fixed;
 	display: block flex;
 	top: 0;

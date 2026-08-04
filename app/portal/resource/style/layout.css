@@ -1,20 +1,34 @@
 /* template.htmlに対するスタイリング */
 
+/* ページ全体の大枠 */
+body {
+	display: block flex;
+	flex-direction: column;
+	height: 100dvh;
+	background-color: var(--surface-color);
+	transition: background-color 0.2s;
+}
+
 header {
-	/* 配置 */
-	position: sticky;
-	top: 0;
 	/* ボックスモデル */
 	display: block flex;
 	flex-direction: row-reverse;
 	justify-content: space-between;
 	align-items: center;
-	padding: 1rem;
+	padding: 1rem 1dvw;
 	/* 装飾 */
 	border-bottom: 1px solid var(--border-color);
 	background-color: var(--surface-color);
 	/* アニメーション */
 	transition: background-color 0.2s;
+}
+
+main {
+	flex-grow: 1;
+	padding: 0 1dvw;
+	overflow-y: auto;
+	scrollbar-width: thin;
+	scrollbar-color: var(--border-color) transparent;
 }
 
 /* メインメニュー */
@@ -28,7 +42,7 @@ header {
 	flex-direction: column;
 	box-sizing: border-box;
 	height: 100dvh;
-	padding: 80px 2rem 2rem 1rem;
+	padding: 80px 2dvw 2dvh 1dvw;
 	/* 装飾 */
 	border-left: 1px solid var(--border-color);
 	background-color: var(--surface-color);

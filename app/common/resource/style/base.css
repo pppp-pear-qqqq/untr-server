@@ -5,13 +5,6 @@
 	padding: 0;
 }
 
-/* ページ全体の大枠 */
-body {
-	height: 100dvh;
-	background-color: var(--surface-color);
-	transition: background-color 0.2s;
-}
-
 /* リスト */
 menu {
 	list-style-type: none;
@@ -31,7 +24,7 @@ a:visited {
 
 /* ユーティリティ・属性 */
 [hidden] {
-	content-visibility: hidden !important;
+	display: none !important;
 }
 
 .partition {

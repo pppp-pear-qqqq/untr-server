@@ -5,6 +5,7 @@ x-rust-base: &rust-base
     volumes:
         - ./Cargo.toml:/app/Cargo.toml
         - ./Cargo.lock:/app/Cargo.lock
+        - ./.ignore:/app/.ignore
         - ./app:/app/app
         - ./lib:/app/lib
         - target:/app/target

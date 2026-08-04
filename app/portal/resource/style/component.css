@@ -81,3 +81,34 @@ button,
 		rotate: -45deg;
 	}
 }
+
+/* 文字装飾 */
+large {
+	font-size: larger;
+}
+em {
+	font-style: normal;
+	background-image: radial-gradient(circle, currentColor 9%, transparent 18%);
+	background-size: 1em 0.5em;
+	background-repeat: repeat-x;
+	padding-top: 0.3em;
+	line-height: 1.6;
+}
+rainbow,
+:where(p, span).rainbow,
+.rainbow :where(p, span) {
+	color: transparent;
+	background-image: linear-gradient(to right in hsl longer hue, var(--rainbow-color), var(--rainbow-color));
+	background-clip: text;
+	background-size: 200%;
+	background-attachment: scroll;
+	animation: moving-back linear 12s infinite;
+}
+@keyframes moving-back {
+	0% {
+		background-position-x: 0;
+	}
+	to {
+		background-position-x: 200%;
+	}
+}

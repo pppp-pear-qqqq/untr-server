@@ -1,0 +1,40 @@
+/* 基本的に全てのアプリで共通のスタイリング */
+
+* {
+	margin: 0;
+	padding: 0;
+}
+
+/* ページ全体の大枠 */
+body {
+	height: 100dvh;
+	background-color: var(--surface-color);
+	transition: background-color 0.2s;
+}
+
+/* リスト */
+menu {
+	list-style-type: none;
+}
+ul,
+ol {
+	list-style-position: inside;
+}
+
+/* リンク */
+a:any-link {
+	color: var(--link-color);
+}
+a:visited {
+	color: var(--link-visited-color);
+}
+
+/* ユーティリティ・属性 */
+[hidden] {
+	content-visibility: hidden !important;
+}
+
+.partition {
+	flex-grow: 1;
+	margin: auto;
+}

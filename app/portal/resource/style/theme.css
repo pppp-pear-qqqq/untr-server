@@ -1,0 +1,37 @@
+/* 色やタイポグラフィ */
+
+:root {
+	&[data-theme="light"] {
+		--surface-color: #eee;
+		--content-color: #222;
+		--accent-color: #ffcd1b;
+		--border-color: #767676;
+		--link-color: #80a0ff;
+		--link-visited-color: #80a0ff;
+	}
+	&[data-theme="dark"] {
+		--surface-color: #222;
+		--content-color: #ddd;
+		--accent-color: #ffcd1b;
+		--border-color: #767676;
+		--link-color: #007bff;
+		--link-visited-color: #007bff;
+	}
+}
+
+html {
+	font-size: 16px;
+}
+
+html,
+input,
+textarea,
+select,
+button {
+	color: var(--content-color);
+	font-family: "Zen Maru Gothic", sans-serif;
+	font-size: 1rem;
+	font-style: normal;
+	font-weight: 400;
+	line-height: 1.5;
+}

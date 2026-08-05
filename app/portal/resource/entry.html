@@ -1,19 +1,59 @@
 {% extends "template.html" %}
 {% block head %}
 <link rel="stylesheet" href="style/note.css">
+<link rel="stylesheet" href="style/entry.css">
 {% endblock %}
 {% block content %}
+<div id="forms">
+	<label role="button">ログイン<input type="radio" name="show" checked hidden></label>
+	<form id="login" method="post" action="entry/login">
+		<label>
+			<i class="ri-user-line"></i>
+			<input type="text" name="username" placeholder="ユーザー名">
+		</label>
+		<label>
+			<i class="ri-lock-line"></i>
+			<input type="password" name="password" placeholder="パスワード">
+			<button type="button" class="toggle-visible">
+				<i class="on ri-eye-line"></i>
+				<i class="off ri-eye-off-line"></i>
+			</button>
+		</label>
+		<button type="submit">ログイン</button>
+	</form>
+	<label role="button">新規登録<input type="radio" name="show" hidden></label>
+	<form id="register" method="post" action="entry/register" autocomplete="off">
+		<label>
+			ユーザー名
+			<i role="button" class="help ri-question-line">
+				ログイン時に使用し、またポータルサイトでは画面にも表示されます。<br>
+				基本的にゲーム中に表示されることはありません。
+			</i>
+			<input type="text" name="username" min="4" max="24" placeholder="4~24文字">
+		</label>
+		<label>
+			パスワード
+			<i role="button" class="help ri-question-line">
+				ログイン時に必要なパスワードです。<br>
+				今のところ変更機能を実装していないので、忘れないようにしてください。
+			</i>
+			<input type="password" name="password" min="4" placeholder="4文字以上">
+			<button type="button" class="toggle-visible">
+				<i class="on ri-eye-line"></i>
+				<i class="off ri-eye-off-line"></i>
+			</button>
+		</label>
+		<label>
+			パスワード確認
+			<input type="password" name="confirm">
+			<button type="button" class="toggle-visible">
+				<i class="on ri-eye-line"></i>
+				<i class="off ri-eye-off-line"></i>
+			</button>
+		</label>
+		<span>新規登録を押した時点で<a href="entry#tos">利用規約</a>に同意したものと見なします</span>
+		<button type="submit">新規登録</button>
+	</form>
+</div>
 {% include "tos.html" %}
-<form method="post" action="entry/login">
-	<h2>ログイン</h2>
-	<input type="text" name="username" placeholder="ユーザー名"><br>
-	<input type="password" name="password" placeholder="パスワード"><br>
-	<button type="submit">ログイン</button>
-</form>
-<form method="post" action="entry/register">
-	<h2>新規登録</h2>
-	<input type="text" name="username" placeholder="ユーザー名"><br>
-	<input type="password" name="password" placeholder="パスワード"><br>
-	<button type="submit">新規登録</button>
-</form>
 {% endblock %}

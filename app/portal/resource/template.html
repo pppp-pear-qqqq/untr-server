@@ -14,6 +14,7 @@
 		<link rel="stylesheet" href="common/style/base.css">
 		<link rel="stylesheet" href="style/component.css">
 		<link rel="stylesheet" href="style/layout.css">
+		<script>document.documentElement.dataset.theme = localStorage.getItem('theme') ?? document.documentElement.dataset.theme</script>
 		<script defer src="script/common.js"></script>
 		{% block head %}{% endblock %}
 	</head>
@@ -29,11 +30,14 @@
 				<li><a href="home" title="home"><i class="ri-home-line"></i>Home</a></li>
 				{% endif %}
 				<li><a href="entry" title="entry"><i class="ri-login-circle-line"></i>Entry</a></li>
-				<li></li>
+				<li class="partition"></li>
 				<li class="tool-box">
 					<i class="ri-sun-line" role="button" title="ライトテーマ" data-theme="light"></i>
 					<i class="ri-moon-line" role="button" title="ダークテーマ" data-theme="dark"></i>
+					{% if user %}
+					<div class="partition"></div>
 					<a href="entry/logout" title="ログアウト"><i class="ri-logout-circle-line"></i></a>
+					{% endif %}
 				</li>
 				<li class="credit">untroche</li>
 			</menu>
@@ -45,5 +49,6 @@
 		</header>
 		{% endif %}
 		<main>{% block content %}{% endblock %}</main>
+		<dialog id="help" closedby="any"></dialog>
 	</body>
 </html>

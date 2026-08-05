@@ -29,6 +29,7 @@ main {
 	overflow-y: auto;
 	scrollbar-width: thin;
 	scrollbar-color: var(--border-color) transparent;
+	scroll-behavior: smooth;
 }
 
 /* メインメニュー */
@@ -41,6 +42,7 @@ main {
 	display: block flex;
 	flex-direction: column;
 	box-sizing: border-box;
+	min-width: 20dvw;
 	height: 100dvh;
 	padding: 80px 2dvw 2dvh 1dvw;
 	/* 装飾 */
@@ -54,7 +56,7 @@ main {
 		/* ボックスモデル */
 		display: block flex;
 		gap: 0.2rem;
-		align-items: center;
+		align-items: baseline;
 		/* タイポグラフィ */
 		color: var(--link-color);
 		font-size: 1.3rem;
@@ -78,11 +80,21 @@ main {
 		font-size: 1.3rem;
 	}
 
-	> li:empty {
-		flex-grow: 1;
-	}
-
 	body:has([aria-controls="main-menu"][aria-expanded="true"]) & {
 		translate: 0;
 	}
+}
+
+dialog {
+	justify-self: center;
+	align-self: center;
+	max-width: 80dvw;
+	max-height: 80dvh;
+	padding: 0.6rem;
+	border: 1px solid var(--border-color);
+	border-radius: 8px;
+	outline: none;
+	overflow-y: auto;
+	scrollbar-width: thin;
+	scrollbar-color: var(--border-color) transparent;
 }

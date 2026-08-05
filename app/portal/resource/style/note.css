@@ -25,7 +25,7 @@ section {
 			flex-grow: 1;
 		}
 
-		> * {
+		> span {
 			font-size: 1rem;
 			font-weight: normal;
 		}
@@ -34,6 +34,12 @@ section {
 	ul,
 	ol {
 		padding: 0 0.4em;
+	}
+
+	dl.line {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		column-gap: 0.5em;
 	}
 }
 article {

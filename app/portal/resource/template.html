@@ -32,18 +32,18 @@
 				<li><a href="entry" title="entry"><i class="ri-login-circle-line"></i>Entry</a></li>
 				<li class="partition"></li>
 				<li class="tool-box">
-					<i class="ri-sun-line" role="button" title="ライトテーマ" data-theme="light"></i>
-					<i class="ri-moon-line" role="button" title="ダークテーマ" data-theme="dark"></i>
+					<a title="ライトテーマ" data-theme="light"><i class="ri-sun-line"></i></a>
+					<a title="ダークテーマ" data-theme="dark"><i class="ri-moon-line"></i></a>
 					{% if user %}
 					<div class="partition"></div>
 					<a href="entry/logout" title="ログアウト"><i class="ri-logout-circle-line"></i></a>
 					{% endif %}
 				</li>
-				<li class="credit">untroche</li>
+				<li class="credit"><small>2026 <a target="_blank" href="https://x.com/untroche_ar">untroche</a></small></li>
 			</menu>
 			{% if user %}
-			<div id="actor-data">
-				ログイン中: <span class="name">{{user.name}}</span>
+			<div id="user-data">
+				ログイン中: <span class="username">{{user.name}}</span>
 			</div>
 			{% endif %}
 		</header>

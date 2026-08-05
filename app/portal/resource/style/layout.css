@@ -50,9 +50,11 @@ main {
 	background-color: var(--surface-color);
 	/* アニメーション */
 	translate: 100%;
-	transition: background-color 0.2s, translate 0.2s;
+	transition:
+		background-color 0.2s,
+		translate 0.2s;
 
-	a {
+	> li > a {
 		/* ボックスモデル */
 		display: block flex;
 		gap: 0.2rem;

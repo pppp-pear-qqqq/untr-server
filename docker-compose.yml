@@ -3,9 +3,9 @@ x-rust-base: &rust-base
         context: .
         dockerfile: app/Dockerfile.dev
     volumes:
-        - ./Cargo.toml:/app/Cargo.toml
+        - ./Cargo.toml:/app/Cargo.toml:ro
         - ./Cargo.lock:/app/Cargo.lock
-        - ./.ignore:/app/.ignore
+        - ./.ignore:/app/.ignore:ro
         - ./app:/app/app
         - ./lib:/app/lib
         - target:/app/target
@@ -19,8 +19,11 @@ services:
         image: nginx:alpine
         ports:
             - "8080:8080"
+        environment:
+            - ASSET_SUFFIX=-min
+            - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx
         volumes:
-            - ./nginx.conf:/etc/nginx/nginx.conf:ro
+            - ./nginx.conf.template:/etc/nginx/templates/nginx.conf.template:ro
             - ./app/common/resource:/app/app/common
             - ./app/portal/resource:/app/app/portal
             - ./app/erltod/resource:/app/app/erltod
@@ -34,6 +37,8 @@ services:
         build:
             context: .
             dockerfile: watcher/Dockerfile.dev
+        environment:
+            - MINIFY=true
         volumes:
             - ./app:/app/app
             - ./watcher/tsconfig.json:/app/tsconfig.json:ro

@@ -2,4 +2,6 @@ FROM node:alpine
 RUN npm install -g chokidar-cli esbuild
 ENV SHELL=/bin/sh
 
-CMD ["chokidar", "/app/app/**/resource/ts/**/*.ts", "-c", "sh /app/compile.sh {path}", "--initial", "--polling"]
+WORKDIR /app
+
+CMD ["chokidar", "app/*/resource/ts/**/*.ts", "app/*/resource/style/**/*.css", "-c", "sh compile.sh {path}", "--initial", "--polling"]

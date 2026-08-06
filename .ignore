@@ -1,4 +1,1 @@
-resource/style/
-resource/script/
-resource/ts/
-resource/image/
+resource/*/

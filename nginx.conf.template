@@ -70,15 +70,20 @@ http {
 			log_not_found off;
 		}
 
-		location ~ ^/(script|style|image)/ {
+		location /image/ {
 			try_files $uri =404;
 			access_log off;
 			log_not_found off;
 		}
 
-		location ^~ /.well-known/ {
-			# scriptなどと分けているのは動作を変えるかもしれないから
+		location /.well-known/ {
 			try_files $uri =404;
+			access_log off;
+			log_not_found off;
+		}
+
+		location ~ ^/(script|style)/(.+)$ {
+			try_files /$1${ASSET_SUFFIX}/$2 =404;
 			access_log off;
 			log_not_found off;
 		}

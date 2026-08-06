@@ -1,18 +1,31 @@
 #!/bin/sh
 filepath=$1
 
-# ts でないファイルが渡された場合は無視
-if ! echo "$filepath" | grep -q '\.ts$'; then
-    exit 0
-fi
-
 if [ ! -s "$filepath" ]; then
-    # echo "[TS Watcher] File is empty, waiting for save: $filepath"
     exit 0
 fi
 
-outfile=$(echo "$filepath" | sed 's|/resource/ts/|/resource/script/|' | sed 's/\.ts$/.js/')
-mkdir -p "$(dirname "$outfile")"
-
-# echo "[TS Watcher] Compiling: $filepath"
-esbuild "$filepath" --outfile="$outfile" --tsconfig=/app/tsconfig.json --log-level=warning
+if [ "$MINIFY" = "true" ]; then
+	# tsとcssを受け取る
+	if ! echo "$filepath" | grep -E -q '\.(ts|css)$'; then
+    	exit 0
+	fi
+	ext="${filepath##*.}"
+	if [ "$ext" = "ts" ]; then
+		outfile=$(echo "$filepath" | sed 's|/resource/ts/|/resource/script-min/|' | sed 's/\.ts$/.js/')
+		mkdir -p "$(dirname "$outfile")"
+		esbuild "$filepath" --minify --outfile="$outfile" --tsconfig=/app/tsconfig.json --log-level=warning
+	elif [ "$ext" = "css" ]; then
+		outfile=$(echo "$filepath" | sed 's|/resource/style/|/resource/style-min/|')
+		mkdir -p "$(dirname "$outfile")"
+		esbuild "$filepath" --minify --outfile="$outfile" --log-level=warning
+	fi
+else
+	# tsのみ受け取る
+	if ! echo "$filepath" | grep -E -q '\.ts$'; then
+    	exit 0
+	fi
+	outfile=$(echo "$filepath" | sed 's|/resource/ts/|/resource/script/|' | sed 's/\.ts$/.js/')
+	mkdir -p "$(dirname "$outfile")"
+	esbuild "$filepath" --outfile="$outfile" --tsconfig=/app/tsconfig.json --log-level=warning
+fi

@@ -9,7 +9,7 @@ body {
 	transition: background-color 0.2s;
 }
 
-body>header {
+body > header {
 	/* ボックスモデル */
 	display: block flex;
 	flex-direction: row-reverse;
@@ -48,9 +48,12 @@ main {
 	min-width: 20dvw;
 	height: 100dvh;
 	padding: 80px 2dvw 2dvh 1dvw;
+	overflow-y: auto;
 	/* 装飾 */
 	border-left: 1px solid var(--border-color);
 	background-color: var(--surface-color);
+	scrollbar-width: thin;
+	scrollbar-color: var(--border-color) transparent;
 	/* アニメーション */
 	translate: 100%;
 	transition:
@@ -91,6 +94,10 @@ main {
 	}
 }
 
+button:has(+ #main-menu) {
+	view-transition-name: main-menu-toggle;
+}
+
 dialog {
 	justify-self: center;
 	align-self: center;
@@ -112,7 +119,17 @@ dialog {
 :root {
 	view-transition-name: none;
 }
-::view-transition-group(main-menu) {
-	translate: 0;
-	animation-duration: 0.2s;
+::view-transition {
+	pointer-events: none;
+}
+::view-transition-image-pair(main-menu-toggle) {
+	animation-name: rotate;
+}
+@keyframes rotate {
+	from {
+		rotate: 0deg;
+	}
+	to {
+		rotate: 180deg;
+	}
 }

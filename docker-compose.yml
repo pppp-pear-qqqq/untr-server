@@ -27,9 +27,11 @@ services:
             - ./app/common/resource:/app/app/common
             - ./app/portal/resource:/app/app/portal
             - ./app/erltod/resource:/app/app/erltod
+            - ./app/ondyst/resource:/app/app/ondyst
         depends_on:
             - portal
-            - erltod
+            # - erltod
+            - ondyst
         networks:
             - untroche
 
@@ -54,12 +56,21 @@ services:
         networks:
             - untroche
 
-    erltod:
+    # erltod:
+    #     <<: *rust-base
+    #     environment:
+    #         - APP_NAME=erltod
+    #         - SERVER_PORT=8005
+    #         - DATABASE_URL=sqlite:app/erltod/database.db
+    #     networks:
+    #         - untroche
+
+    ondyst:
         <<: *rust-base
         environment:
-            - APP_NAME=erltod
-            - SERVER_PORT=8005
-            - DATABASE_URL=sqlite:app/erltod/database.db
+            - APP_NAME=ondyst
+            - SERVER_PORT=8006
+            - DATABASE_URL=sqlite:app/ondyst/database.db
         networks:
             - untroche
 

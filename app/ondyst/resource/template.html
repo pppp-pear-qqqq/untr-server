@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width">
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+		<title>{{title}}</title>
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.min.css">
+		<base href="/">
+		<link rel="stylesheet" href="style/theme.css">
+		<link rel="stylesheet" href="common/style/base.css">
+		<link rel="stylesheet" href="style/component.css">
+		<link rel="stylesheet" href="style/layout.css">
+		<script>document.documentElement.dataset.theme = localStorage.getItem('theme') ?? document.documentElement.dataset.theme</script>
+		<script defer src="script/common.js"></script>
+		{% block head %}{% endblock %}
+	</head>
+	<body>
+		<header>
+			<button type="button" aria-controls="main-menu" aria-expanded="false">
+				<span></span>
+			</button>
+			<menu id="main-menu">
+				<li><a href="" title="top"><i class="ri-global-line"></i>Top</a></li>
+				{% if actor %}
+				<li><a href="home" title="home"><i class="ri-home-line"></i>Home</a></li>
+				{% endif %}
+				<li><a href="entry" title="entry"><i class="ri-login-circle-line"></i>Entry</a></li>
+				<li class="partition"></li>
+				<li class="tool-box">
+					<a title="ライトテーマ" data-theme="light"><i class="ri-sun-line"></i></a>
+					<a title="ダークテーマ" data-theme="dark"><i class="ri-moon-line"></i></a>
+					{% if actor %}
+					<div class="partition"></div>
+					<a href="entry/logout" title="ログアウト"><i class="ri-logout-circle-line"></i></a>
+					{% endif %}
+				</li>
+				<li class="credit"><small>2026 <a target="_blank" href="https://x.com/untroche_ar">untroche</a></small></li>
+			</menu>
+			{% if actor %}
+			<div id="user-data">
+				ログイン中: <span class="username">{{actor.name}}</span>
+			</div>
+			{% endif %}
+		</header>
+		<main>{% block content %}{% endblock %}</main>
+		<dialog id="help" closedby="any"></dialog>
+	</body>
+</html>

@@ -27,11 +27,9 @@ async fn main() -> Result<(), io::Error> {
 
 	let app_data = app_data::AppData::new(&db_url).await;
 
-	println!("portal-admin: {}", app_data.admin_key);
+	println!("erltod-admin: {}", app_data.admin_key);
 
 	let server = HttpServer::new(move || {
-		// memo: AppData側にAppの生成関数を組み込まない(組み込めない)のは、App<T>のTが特定困難または不定であるため
-		// その辺り暗黙でよしなにできるんだったらやりたいが、仮にできたとしてもapp_dataが持たない設定の所在に困る
 		let app_data = app_data.clone();
 		let session = SessionMiddleware::builder(storage::CookieSessionStore::default(), app_data.session_key)
 			.cookie_secure(false)

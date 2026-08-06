@@ -30,8 +30,8 @@ http {
 		# strings.localhost		strings;
 		# charadie.localhost	charadie;
 		# colllus.localhost		colllus;
-		erltod.localhost		erltod;
-		# ondyst.localhost		ondyst;
+		# erltod.localhost		erltod;
+		ondyst.localhost		ondyst;
 	}
 	map $host $app_port {
 		localhost				8000;
@@ -39,8 +39,8 @@ http {
 		# strings.localhost		8002;
 		# charadie.localhost	8003;
 		# colllus.localhost		8004;
-		erltod.localhost		8005;
-		# ondyst.localhost		8006;
+		# erltod.localhost		8005;
+		ondyst.localhost		8006;
 	}
 
 	server {
@@ -56,8 +56,8 @@ http {
 			# strings.localhost
 			# charadie.localhost
 			# colllus.localhost
-			erltod.localhost
-			# ondyst.localhost
+			# erltod.localhost
+			ondyst.localhost
 			localhost;
 
 		root /app/app/$app_name;
@@ -69,25 +69,22 @@ http {
 			access_log off;
 			log_not_found off;
 		}
+		location /.well-known/ {
+			alias /app/app/common/resource/.well-known/;
+			access_log off;
+			log_not_found off;
+		}
 
 		location /image/ {
 			try_files $uri =404;
 			access_log off;
 			log_not_found off;
 		}
-
-		location /.well-known/ {
-			try_files $uri =404;
-			access_log off;
-			log_not_found off;
-		}
-
 		location ~ ^/(script|style)/(.+)$ {
 			try_files /$1${ASSET_SUFFIX}/$2 =404;
 			access_log off;
 			log_not_found off;
 		}
-
 		location = /favicon.ico {
 			try_files /image/favicon.ico =404;
 			access_log off;

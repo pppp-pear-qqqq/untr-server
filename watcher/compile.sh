@@ -1,4 +1,6 @@
 #!/bin/sh
+set -e
+
 filepath=$1
 
 if [ ! -s "$filepath" ]; then

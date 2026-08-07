@@ -40,19 +40,16 @@ async fn actor(actor: web::Path<i32>, id: Option<Identity>, pool: web::Data<Sqli
 	struct Actor {
 		name: String,
 		profile: String,
-		portraits: String,
+		portrait_list: String,
 	}
 
 	let target_id = actor.into_inner();
 
 	let pool = pool.as_ref();
-	let record = sqlx::query_as!(Actor, "SELECT name,profile,portraits FROM actor WHERE id=?", target_id).fetch_one(pool).await?;
+	let record = sqlx::query_as!(Actor, "SELECT name,profile,portrait_list FROM actor WHERE id=?", target_id).fetch_one(pool).await?;
 
 	let mut ctx = tera::Context::new();
 	ctx.insert("target", &record);
-	let body = Page::default()
-		.title(&format!("{} - untroche.portal", record.name))
-		.actor_data_opt(ActorData::load_opt(&id, &pool).await?)
-		.render_with_ctx("actor.html", &tmpl, ctx)?;
+	let body = Page::default().title(&format!("{} - untroche.portal", record.name)).actor_data_opt(ActorData::load_opt(&id, &pool).await?).render_with_ctx("actor.html", &tmpl, ctx)?;
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }

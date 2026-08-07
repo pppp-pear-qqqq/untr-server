@@ -1,0 +1,27 @@
+{% extends "template.html" %}
+{% block head %}
+<link rel="stylesheet" href="style/form.css">
+<style>
+	#login {
+		margin: 1dvw;
+	}
+</style>
+{% endblock %}
+{% block content %}
+<form id="login" method="post" action="entry/login">
+	<h3>ログイン</h3>
+	<label>
+		<i class="ri-user-line"></i>
+		<input type="text" name="username" placeholder="ユーザー名">
+	</label>
+	<label>
+		<i class="ri-lock-line"></i>
+		<input type="password" name="password" placeholder="パスワード">
+		<button type="button" class="toggle-visible">
+			<i class="on ri-eye-line"></i>
+			<i class="off ri-eye-off-line"></i>
+		</button>
+	</label>
+	<button type="submit">ログイン</button>
+</form>
+{% endblock %}

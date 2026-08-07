@@ -25,9 +25,9 @@ async fn index(id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: web::Dat
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }
 
-/// ログイン画面の表示
+/// 最小化したログイン画面の表示
 async fn view_login(tmpl: web::Data<tera::Tera>) -> common::Result<impl Responder> {
-	let body = Page::default().min().render("entry.html", &tmpl)?;
+	let body = Page::default().min().render("login.html", &tmpl)?;
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }
 

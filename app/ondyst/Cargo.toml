@@ -17,6 +17,7 @@ common.workspace = true
 dotenv = { workspace = true, optional = true }
 env_logger.workspace = true
 html-codec.workspace = true
+reqwest.workspace = true
 rkyv.workspace = true
 serde.workspace = true
 serde_json.workspace = true

@@ -7,6 +7,6 @@ authors.workspace = true
 [dependencies]
 actix-session.workspace = true
 actix-web.workspace = true
+minify-html.workspace = true
 serde.workspace = true
 tera.workspace = true
-minify-html.workspace = true

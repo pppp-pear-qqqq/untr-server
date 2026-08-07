@@ -5,7 +5,6 @@ x-rust-base: &rust-base
     volumes:
         - ./Cargo.toml:/app/Cargo.toml:ro
         - ./Cargo.lock:/app/Cargo.lock
-        - ./.ignore:/app/.ignore:ro
         - ./app:/app/app
         - ./lib:/app/lib
         - target:/app/target
@@ -45,6 +44,7 @@ services:
             - ./app:/app/app
             - ./watcher/tsconfig.json:/app/tsconfig.json:ro
             - ./watcher/compile.sh:/app/compile.sh:ro
+            - ./watcher/compile_all.sh:/app/compile_all.sh:ro
 
     portal:
         <<: *rust-base

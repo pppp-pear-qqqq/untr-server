@@ -21,7 +21,7 @@
 	<body>
 		{% if type != "min" %}
 		<header>
-			<button type="button" aria-controls="main-menu" aria-expanded="false" onclick="this.setAttribute('aria-expanded', this.getAttribute('aria-expanded') !== 'true')//後でファイル分ける">
+			<button type="button" aria-controls="main-menu" aria-expanded="false">
 				<span></span>
 			</button>
 			<menu id="main-menu">
@@ -47,10 +47,10 @@
 			</div>
 			{% endif %}
 		</header>
-		{% endif %}
 		<main>{% block content %}{% endblock %}</main>
-		{% if type != "min" %}
 		<dialog id="help" closedby="any"></dialog>
+		{% else %}
+		{% block content %}{% endblock %}
 		{% endif %}
 	</body>
 </html>

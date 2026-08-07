@@ -33,26 +33,12 @@ async fn main() -> Result<(), io::Error> {
 		// memo: AppData側にAppの生成関数を組み込まない(組み込めない)のは、App<T>のTが特定困難または不定であるため
 		// その辺り暗黙でよしなにできるんだったらやりたいが、仮にできたとしてもapp_dataが持たない設定の所在に困る
 		let app_data = app_data.clone();
-		let session = SessionMiddleware::builder(storage::CookieSessionStore::default(), app_data.session_key)
-			.cookie_secure(false)
-			.session_lifecycle(PersistentSession::default().session_ttl(cookie::time::Duration::days(14)))
-			.build();
-		let app = App::new()
-			.wrap(middleware::Logger::default())
-			.wrap(middleware::NormalizePath::trim())
-			.wrap(session)
-			.wrap(middleware::from_fn(common::mw_err_format::<utils::Page>))
-			.default_service(web::to(|| HttpResponse::NotFound()))
-			.app_data(app_data.state)
-			.app_data(app_data.pool)
-			.app_data(app_data.tera)
-			.configure(domain::cfg);
+		let session = SessionMiddleware::builder(storage::CookieSessionStore::default(), app_data.session_key).cookie_secure(false).session_lifecycle(PersistentSession::default().session_ttl(cookie::time::Duration::days(14))).build();
+		let app = App::new().wrap(middleware::Logger::default()).wrap(middleware::NormalizePath::trim()).wrap(session).wrap(middleware::from_fn(common::mw_err_format::<utils::Page>)).default_service(web::to(|| HttpResponse::NotFound())).app_data(app_data.state).app_data(app_data.pool).app_data(app_data.tera).configure(domain::cfg);
 		#[cfg(feature = "test")]
 		let app = {
 			use actix_files::Files;
-			app.service(Files::new("/script", utils::resource("script/")).prefer_utf8(true))
-				.service(Files::new("/style", utils::resource("style/")).prefer_utf8(true))
-				.service(Files::new("/image", utils::resource("image/")).prefer_utf8(true))
+			app.service(Files::new("/script", utils::resource("script/")).prefer_utf8(true)).service(Files::new("/style", utils::resource("style/")).prefer_utf8(true)).service(Files::new("/image", utils::resource("image/")).prefer_utf8(true))
 		};
 		app
 	});

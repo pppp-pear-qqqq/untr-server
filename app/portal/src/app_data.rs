@@ -52,12 +52,6 @@ impl AppData {
 			}
 		};
 
-		AppData {
-			state: StateHandle::new(state),
-			pool: web::Data::new(pool),
-			tera: web::Data::new(tera),
-			session_key,
-			admin_key,
-		}
+		AppData { state: StateHandle::new(state), pool: web::Data::new(pool), tera: web::Data::new(tera), session_key, admin_key }
 	}
 }

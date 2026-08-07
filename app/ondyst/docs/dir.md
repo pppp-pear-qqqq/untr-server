@@ -1,0 +1,34 @@
+- / : トップページ ログイン・新規登録フォーム 利用規約
+	- GET
+- /entry
+	- /login
+		- POST
+	- /registration
+		- POST
+- /home : キャラクターホーム お気に入り人の発言 お気に入りロケーションでの発言 設定画面へのリンク
+	- GET
+	- /actor : プロフィール等設定
+		- GET
+		- PATCH
+	- /setting : システム面画面
+		- GET
+		- PATCH
+	- /notice : 通知
+		- GET(document) : html
+		- GET(empty) : json
+- /actor : キャラクターリスト
+	- GET(document) : html
+	- GET(empty) : json
+	- /{id} : キャラクタープロフィール
+- /location : ロケーション一覧
+	- GET
+	- /{key} : ロケーション閲覧
+		- GET
+		- POST
+		- /stream : SSE接続
+		- /item
+			- GET(empty) : アイテム一覧(json)
+			- GET?{id}(empty) : アイテム使用時テキスト取得
+- /info
+	- GET(document) : html
+	- GET(empty) : 未読通知？

@@ -22,10 +22,10 @@ table actor
 	name text
 	comment text default('')
 	profile text default('')
-	icons text default('')
-	portraits text default('')
-	icon text expr(SUBSTR(icons||char(10),1,INSTR(icons||char(10),char(10))-1))
-	portrait text expr(SUBSTR(portraits||char(10),1,INSTR(portraits||char(10),char(10))-1))
+	icon_list text default('')
+	portrait_list text default('')
+	icon text expr(SUBSTR(icon_list||char(10),1,INSTR(icon_list||char(10),char(10))-1))
+	portrait text expr(SUBSTR(portrait_list||char(10),1,INSTR(portrait_list||char(10),char(10))-1))
 
 # キャラクター操作ログ
 table log

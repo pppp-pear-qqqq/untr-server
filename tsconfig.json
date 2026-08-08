@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "target": "esnext",
+        "module": "esnext",
+        "moduleResolution": "bundler",
+        "baseUrl": ".",
+        "paths": {
+            "/common/script/*": ["app/common/resource/ts/*"]
+        },
+
+        // "allowJs": true,
+
+        "removeComments": true,
+
+        "forceConsistentCasingInFileNames": true,
+
+        "strict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+
+        "skipLibCheck": true
+    }
+}

@@ -42,7 +42,7 @@ services:
             - MINIFY=true
         volumes:
             - ./app:/app/app
-            - ./watcher/tsconfig.json:/app/tsconfig.json:ro
+            - ./tsconfig.json:/app/tsconfig.json:ro
             - ./watcher/compile.sh:/app/compile.sh:ro
             - ./watcher/compile_all.sh:/app/compile_all.sh:ro
 

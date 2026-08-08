@@ -2,6 +2,7 @@ use std::str::FromStr;
 
 use actix_web::{HttpResponse, Responder, error::ErrorUnauthorized, http::header, web};
 use sqlx::SqlitePool;
+use tera::Tera;
 use uuid::Uuid;
 
 use crate::utils::Identity;
@@ -11,7 +12,7 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 }
 
 /// 一時認証コードを発行
-async fn get(id: Option<Identity>, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+async fn get(id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
 	const AUTH_EXPIRY: i64 = 300;
 	let now = chrono::Utc::now().timestamp();
 
@@ -23,7 +24,10 @@ async fn get(id: Option<Identity>, pool: web::Data<SqlitePool>) -> common::Resul
 			let code_slice = code.as_bytes().as_slice();
 			let timestamp = now + AUTH_EXPIRY;
 			sqlx::query!("INSERT INTO auth(code,timestamp,user) VALUES(?,?,?)", code_slice, timestamp, *id).execute(pool).await?;
-			Ok(HttpResponse::Ok().content_type(header::ContentType::plaintext()).body(code.to_string()))
+			let mut ctx = tera::Context::new();
+			ctx.insert("message", &code.to_string());
+			let body = tmpl.render("popup_res_message.min.html", &ctx)?;
+			Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 		}
 		Some(_) => Err(ErrorUnauthorized("ログインセッションが無効です").into()),
 		None => Ok(HttpResponse::SeeOther().insert_header((header::LOCATION, "/entry/login")).finish()),

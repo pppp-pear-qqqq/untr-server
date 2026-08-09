@@ -30,7 +30,7 @@ async fn list(web::Form(pagination): web::Form<common::Pagination>, req_type: Re
 
 async fn user(user: web::Path<String>, id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
 	#[derive(serde::Serialize)]
-	struct User {
+	struct Record {
 		name: String,
 		profile: String,
 	}
@@ -38,13 +38,10 @@ async fn user(user: web::Path<String>, id: Option<Identity>, pool: web::Data<Sql
 	let name = user.into_inner();
 
 	let pool = pool.as_ref();
-	let record = sqlx::query_as!(User, "SELECT name,profile FROM user WHERE name=?", name).fetch_one(pool).await?;
+	let record = sqlx::query_as!(Record, "SELECT name,profile FROM user WHERE name=?", name).fetch_one(pool).await?;
 
 	let mut ctx = tera::Context::new();
 	ctx.insert("target", &record);
-	let body = Page::default()
-		.title(&format!("{} - untroche.portal", record.name))
-		.user_data_opt(UserData::load_opt(&id, &pool).await?)
-		.render_with_ctx("user.html", &tmpl, ctx)?;
+	let body = Page::default().title(&format!("{} - untroche.portal", record.name)).user_data_opt(UserData::load_opt(&id, &pool).await?).render_with_ctx("user.html", &tmpl, ctx)?;
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }

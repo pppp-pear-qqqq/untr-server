@@ -1,5 +1,6 @@
 mod actor;
 mod entry;
+mod location;
 
 use actix_web::{HttpResponse, Responder, http::header, web};
 use common::PageRender;
@@ -12,6 +13,7 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.route("/", web::get().to(index));
 	cfg.service(web::scope("entry").configure(entry::cfg));
 	cfg.service(web::scope("actor").configure(actor::cfg));
+	cfg.service(web::scope("location").configure(location::cfg));
 	cfg.route("info", web::get().to(info));
 }
 

@@ -12,7 +12,7 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 
 async fn list(web::Form(pagination): web::Form<common::Pagination>, req_type: ReqType, id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
 	#[derive(serde::Serialize)]
-	struct Actor {
+	struct Record {
 		name: String,
 		comment: String,
 		icon: String,
@@ -22,7 +22,7 @@ async fn list(web::Form(pagination): web::Form<common::Pagination>, req_type: Re
 	let limit = pagination.limit as i64;
 
 	let pool = pool.as_ref();
-	let records = sqlx::query_as!(Actor, "SELECT name,comment,icon FROM actor LIMIT ?,?", offset, limit).fetch_all(pool).await?;
+	let records = sqlx::query_as!(Record, "SELECT name,comment,icon FROM actor LIMIT ?,?", offset, limit).fetch_all(pool).await?;
 
 	match req_type {
 		ReqType::Empty => Ok(HttpResponse::Ok().json(records)),
@@ -37,7 +37,7 @@ async fn list(web::Form(pagination): web::Form<common::Pagination>, req_type: Re
 
 async fn actor(actor: web::Path<i32>, id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
 	#[derive(serde::Serialize)]
-	struct Actor {
+	struct Record {
 		name: String,
 		profile: String,
 		portrait_list: String,
@@ -46,7 +46,7 @@ async fn actor(actor: web::Path<i32>, id: Option<Identity>, pool: web::Data<Sqli
 	let target_id = actor.into_inner();
 
 	let pool = pool.as_ref();
-	let record = sqlx::query_as!(Actor, "SELECT name,profile,portrait_list FROM actor WHERE id=?", target_id).fetch_one(pool).await?;
+	let record = sqlx::query_as!(Record, "SELECT name,profile,portrait_list FROM actor WHERE id=?", target_id).fetch_one(pool).await?;
 
 	let mut ctx = tera::Context::new();
 	ctx.insert("target", &record);

@@ -1,6 +1,7 @@
 //! アプリケーション全体で使用するような汎用構造体・関数
 mod page;
 mod state;
+pub mod tag_parse;
 
 pub use page::{ActorData, Page};
 pub use state::State;

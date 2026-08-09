@@ -17,6 +17,7 @@ common.workspace = true
 dotenv = { workspace = true, optional = true }
 env_logger.workspace = true
 html-codec.workspace = true
+rand = "0.10.2"
 reqwest.workspace = true
 rkyv.workspace = true
 serde.workspace = true

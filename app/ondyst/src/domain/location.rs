@@ -1,9 +1,9 @@
 use actix_web::{HttpResponse, Responder, error::*, http::header, web};
-use common::PageRender;
+use common::{PageRender, ReqType, html_codec::*};
 use sqlx::SqlitePool;
 use tera::Tera;
 
-use crate::utils::{ActorData, Identity, Page};
+use crate::utils::{ActorData, Identity, Page, tag_parse as tag};
 
 /// リソース
 pub fn cfg(cfg: &mut web::ServiceConfig) {
@@ -28,7 +28,16 @@ async fn location_list(id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: 
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }
 
-async fn location(key: web::Path<String>, id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
+async fn location(key: web::Path<String>, web::Query(page): web::Query<common::Pagination>, req_type: ReqType, id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
+	#[derive(serde::Serialize)]
+	struct Chat {
+		id: i64,
+		timestamp: chrono::DateTime<chrono::Utc>,
+		actor: Option<i64>,
+		name: String,
+		icon: String,
+		body: String,
+	}
 	#[derive(serde::Serialize)]
 	struct Location {
 		name: String,
@@ -42,9 +51,12 @@ async fn location(key: web::Path<String>, id: Option<Identity>, pool: web::Data<
 	}
 
 	let key = key.into_inner();
+	let offset = page.offset as i64;
+	let limit = page.limit as i64;
 
 	let pool = pool.as_ref();
 	let location = sqlx::query_as!(Location, "SELECT name,lore FROM location WHERE key=?", key).fetch_one(pool).await?;
+	let chat_list = sqlx::query!("SELECT id,timestamp,actor,name,icon,body FROM chat WHERE location=? LIMIT ?,?", location.name, offset, limit).fetch_all(pool).await?.into_iter().map(|r| Chat { id: r.id, timestamp: chrono::DateTime::from_timestamp_secs(r.timestamp).unwrap(), actor: r.actor, name: r.name, icon: r.icon, body: r.body }).collect::<Vec<_>>();
 	let item_list = sqlx::query_as!(Item, "SELECT id,name,lore FROM item WHERE location=?", key).fetch_all(pool).await?;
 
 	let mut ctx = tera::Context::new();
@@ -64,7 +76,8 @@ struct Chat {
 async fn post_chat(web::Form(chat): web::Form<Chat>, id: Identity, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
 	let timestamp = chrono::Utc::now().timestamp();
 	let id = *id;
-	let body = chat.body; // TODO タグ処理
+	let body = chat.body.tag(tag::Ondyst);
+	let body = body.escape(false);
 
 	let pool = pool.as_ref();
 	sqlx::query!("INSERT INTO chat (timestamp,location,actor,name,icon,body) VALUES (?,?,?,?,?,?)", timestamp, chat.location, id, chat.name, chat.icon, body).execute(pool).await?;

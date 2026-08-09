@@ -15,6 +15,7 @@ dotenv = "0.15.0"
 env_logger = "0.11.11"
 html-codec.path = "lib/html-codec"
 minify-html = "0.18.1"
+regex = "1.13.1"
 reqwest = { version = "0.13.4", features = ["json"] }
 rkyv = { version = "0.8.17", features = ["unaligned"] }
 serde = { version = "1.0.229", features = ["derive"] }

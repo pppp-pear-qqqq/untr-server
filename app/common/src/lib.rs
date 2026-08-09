@@ -1,4 +1,5 @@
 mod error;
+pub mod html_codec;
 mod identity;
 mod page_render;
 mod pagination;

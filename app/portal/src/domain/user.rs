@@ -10,9 +10,9 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.route("{user}", web::get().to(user));
 }
 
-async fn list(web::Form(pagination): web::Form<common::Pagination>, req_type: ReqType, id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
-	let offset = pagination.offset as i64;
-	let limit = pagination.limit as i64;
+async fn list(web::Query(page): web::Query<common::Pagination>, req_type: ReqType, id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
+	let offset = page.offset as i64;
+	let limit = page.limit as i64;
 
 	let pool = pool.as_ref();
 	let records = sqlx::query_scalar!("SELECT name FROM user LIMIT ?,?", offset, limit).fetch_all(pool).await?;

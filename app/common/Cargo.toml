@@ -8,5 +8,6 @@ authors.workspace = true
 actix-session.workspace = true
 actix-web.workspace = true
 minify-html.workspace = true
+regex.workspace = true
 serde.workspace = true
 tera.workspace = true

@@ -42,8 +42,10 @@
 				<li class="credit"><small>2026 <a target="_blank" href="https://x.com/untroche_ar">untroche</a></small></li>
 			</menu>
 			{% if actor %}
-			<div id="user-data">
-				ログイン中: <span class="username">{{actor.name}}</span>
+			<div id="actor-data">
+				<img class="icon" src="{{actor.icon|urlencode}}">
+				<span class="id">id: {{actor.id}}</span>
+				<span class="name">{{actor.name}}</span>
 			</div>
 			{% endif %}
 		</header>

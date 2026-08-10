@@ -1,9 +1,10 @@
 use actix_web::{HttpResponse, Responder, http::header, web};
-use common::{PageRender, ReqType};
+use common::{PageRender, ReqType, html_codec::*};
+use rand::seq::IteratorRandom;
 use sqlx::SqlitePool;
 use tera::Tera;
 
-use crate::utils::{ActorData, Identity, Page};
+use crate::utils::{ActorData, Identity, Page, tag_parse as tag};
 
 pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.route("", web::get().to(list));
@@ -13,6 +14,7 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 async fn list(web::Query(page): web::Query<common::Pagination>, req_type: ReqType, id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
 	#[derive(serde::Serialize)]
 	struct Record {
+		id: i64,
 		name: String,
 		comment: String,
 		icon: String,
@@ -22,13 +24,13 @@ async fn list(web::Query(page): web::Query<common::Pagination>, req_type: ReqTyp
 	let limit = page.limit as i64;
 
 	let pool = pool.as_ref();
-	let records = sqlx::query_as!(Record, "SELECT name,comment,icon FROM actor LIMIT ?,?", offset, limit).fetch_all(pool).await?;
+	let records = sqlx::query_as!(Record, "SELECT id,name,comment,icon FROM actor LIMIT ?,?", offset, limit).fetch_all(pool).await?;
 
 	match req_type {
 		ReqType::Empty => Ok(HttpResponse::Ok().json(records)),
 		_ => {
 			let mut ctx = tera::Context::new();
-			ctx.insert("list", &records);
+			ctx.insert("actor_list", &records);
 			let body = Page::default().actor_data_opt(ActorData::load_opt(&id, &pool).await?).render_with_ctx("actor_list.html", &tmpl, ctx)?;
 			Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 		}
@@ -42,14 +44,39 @@ async fn actor(actor: web::Path<i32>, id: Option<Identity>, pool: web::Data<Sqli
 		profile: String,
 		portrait_list: String,
 	}
+	#[derive(serde::Serialize)]
+	struct Section<'a> {
+		title: Option<&'a str>,
+		content: &'a str,
+	}
 
 	let target_id = actor.into_inner();
 
 	let pool = pool.as_ref();
 	let record = sqlx::query_as!(Record, "SELECT name,profile,portrait_list FROM actor WHERE id=?", target_id).fetch_one(pool).await?;
 
+	let profile = record.profile.escape(false).br();
+	let profile = profile.tag(tag::Ondyst);
+	let mut section_iter = profile.split("<br># ");
+	let mut sections = Vec::new();
+	if let Some(section) = section_iter.next() {
+		if let Some(section) = section.strip_prefix("# ") {
+			let (title, content) = section.split_once("<br>").unwrap_or((section, ""));
+			sections.push(Section { title: Some(title), content });
+		} else {
+			sections.push(Section { title: None, content: section });
+		}
+	}
+	for section in section_iter {
+		let (title, content) = section.split_once("<br>").unwrap_or((section, ""));
+		sections.push(Section { title: Some(title), content });
+	}
+	let portrait = record.portrait_list.lines().choose(&mut rand::rng());
+
 	let mut ctx = tera::Context::new();
-	ctx.insert("target", &record);
+	ctx.insert("name", &record.name);
+	ctx.insert("profile", &sections);
+	ctx.insert("portrait", &portrait);
 	let body = Page::default().title(&format!("{} - untroche.portal", record.name)).actor_data_opt(ActorData::load_opt(&id, &pool).await?).render_with_ctx("actor.html", &tmpl, ctx)?;
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }

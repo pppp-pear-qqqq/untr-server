@@ -1,0 +1,14 @@
+{% extends "template.html" %}
+{% block head %}
+{% endblock %}
+{% block content %}
+{% for actor in actor_list %}
+<div class="actor">
+	<a href="/actor/{{actor.id}}">
+		<img class="icon" src="{{actor.icon|urlencode}}">
+		<span class="name">{{actor.name}}</span>
+	</a>
+	<span class="comment">{{actor.comment}}</span>
+</div>
+{% endfor %}
+{% endblock %}

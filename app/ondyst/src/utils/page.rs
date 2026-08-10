@@ -10,6 +10,7 @@ pub struct Page {
 }
 #[derive(serde::Serialize)]
 pub struct ActorData {
+	id: i64,
 	name: String,
 	icon: String,
 }
@@ -17,10 +18,7 @@ pub struct ActorData {
 impl common::PageRender for Page {}
 impl Default for Page {
 	fn default() -> Self {
-		Self {
-			title: "untroche.portal".into(),
-			actor_data: None,
-		}
+		Self { title: "untroche.portal".into(), actor_data: None }
 	}
 }
 impl Page {
@@ -39,7 +37,7 @@ impl ActorData {
 	pub async fn load(id: &super::Identity, pool: &SqlitePool) -> Result<Self, sqlx::Error> {
 		let id = id.deref();
 		let r = sqlx::query!("SELECT name,icon FROM actor WHERE id=?", id).fetch_one(pool).await?;
-		Ok(Self { name: r.name, icon: r.icon })
+		Ok(Self { id: *id, name: r.name, icon: r.icon })
 	}
 	pub async fn load_opt(id: &Option<super::Identity>, pool: &SqlitePool) -> Result<Option<Self>, sqlx::Error> {
 		match id {

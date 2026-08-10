@@ -1,0 +1,18 @@
+{% extends "template.html" %}
+{% block head %}
+<link rel="stylesheet" href="style/note.css">
+{% endblock %}
+{% block content %}
+<article>
+	<h2 class="name">{{name}}</h2>
+	{% if portrait %}
+	<img class="portrait" src="{{portrait|urlencode}}">
+	{% endif %}
+	{% for section in profile %}
+	<section>
+		<h3>{{section.title|default(value='Profile')|safe}}</h3>
+		<p>{{section.content|safe}}</p>
+	</section>
+	{% endfor %}
+</article>
+{% endblock %}

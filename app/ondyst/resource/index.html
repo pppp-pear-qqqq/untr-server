@@ -12,22 +12,11 @@
 	<label role="button">ログイン<input type="radio" name="show" checked hidden></label>
 	<form id="login" method="post" action="entry/login" data-encode="form">
 		<input type="hidden" name="code">
-		<label>
-			<i class="ri-user-line"></i>
-			<input type="number" name="id" placeholder="ID">
-		</label>
 		<button type="submit">ログイン</button>
 	</form>
 	<label role="button">新規登録<input type="radio" name="show" hidden></label>
 	<form id="register" method="post" action="entry/register" data-encode="form" autocomplete="off">
 		<input type="hidden" name="code">
-		<label>
-			キャラクター名
-			<i role="button" class="help ri-question-line">
-				ゲーム中で表示される名前です。後から変更可能。
-			</i>
-			<input type="text" name="name" min="1" max="24" placeholder="1~24文字">
-		</label>
 		<span>新規登録を押した時点で<a href="#tos">利用規約</a>に同意したものと見なします</span>
 		<button type="submit">新規登録</button>
 	</form>

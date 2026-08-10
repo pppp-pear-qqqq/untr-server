@@ -77,6 +77,6 @@ async fn actor(actor: web::Path<i32>, id: Option<Identity>, pool: web::Data<Sqli
 	ctx.insert("name", &record.name);
 	ctx.insert("profile", &sections);
 	ctx.insert("portrait", &portrait);
-	let body = Page::default().title(&format!("{} - untroche.portal", record.name)).actor_data_opt(ActorData::load_opt(&id, &pool).await?).render_with_ctx("actor.html", &tmpl, ctx)?;
+	let body = Page::default().title(&format!("{} - one day's' talk", record.name)).actor_data_opt(ActorData::load_opt(&id, &pool).await?).render_with_ctx("actor.html", &tmpl, ctx)?;
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }

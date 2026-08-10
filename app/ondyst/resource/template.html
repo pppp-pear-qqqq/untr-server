@@ -42,9 +42,11 @@
 			</menu>
 			{% if actor %}
 			<div id="actor-data">
-				<img class="icon" src="{{actor.icon|urlencode}}">
-				<span class="id">id: {{actor.id}}</span>
-				<span class="name">{{actor.name}}</span>
+				<a href="home">
+					<img class="icon" src="{{actor.icon|urlencode}}">
+					<span class="id">id: {{actor.id}}</span>
+					<span class="name">{{actor.name}}</span>
+				</a>
 			</div>
 			{% endif %}
 		</header>

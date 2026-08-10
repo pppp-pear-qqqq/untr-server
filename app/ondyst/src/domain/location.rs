@@ -31,6 +31,11 @@ async fn location_list(id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: 
 
 async fn location(key: web::Path<String>, web::Query(page): web::Query<common::Pagination>, req_type: ReqType, id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
 	#[derive(serde::Serialize)]
+	struct Location {
+		name: String,
+		lore: String,
+	}
+	#[derive(serde::Serialize)]
 	struct Chat {
 		id: i64,
 		timestamp: chrono::DateTime<chrono::Utc>,
@@ -38,11 +43,6 @@ async fn location(key: web::Path<String>, web::Query(page): web::Query<common::P
 		name: String,
 		icon: String,
 		body: String,
-	}
-	#[derive(serde::Serialize)]
-	struct Location {
-		name: String,
-		lore: String,
 	}
 	#[derive(serde::Serialize)]
 	struct Item {

@@ -1,0 +1,11 @@
+{% extends "template.html" %}
+{% block head %}
+{% endblock %}
+{% block content %}
+{% for location in location_list %}
+<div class="location">
+	<a href="/location/{{location.key}}">{{location.name}}</a>
+	<span class="lore">{{location.lore}}</span>
+</div>
+{% endfor %}
+{% endblock %}

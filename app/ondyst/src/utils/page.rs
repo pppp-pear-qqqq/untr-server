@@ -18,7 +18,7 @@ pub struct ActorData {
 impl common::PageRender for Page {}
 impl Default for Page {
 	fn default() -> Self {
-		Self { title: "untroche.portal".into(), actor_data: None }
+		Self { title: "one day's' talk".into(), actor_data: None }
 	}
 }
 impl Page {

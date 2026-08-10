@@ -15,6 +15,7 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.service(web::scope("actor").configure(actor::cfg));
 	cfg.service(web::scope("location").configure(location::cfg));
 	cfg.route("info", web::get().to(info));
+	cfg.route("guide", web::get().to(guide));
 }
 
 async fn index(id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
@@ -24,5 +25,9 @@ async fn index(id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: web::Dat
 
 async fn info(id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
 	let body = Page::default().actor_data_opt(ActorData::load_opt(&id, &pool).await?).render("info.html", &tmpl)?;
+	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
+}
+async fn guide(id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
+	let body = Page::default().actor_data_opt(ActorData::load_opt(&id, &pool).await?).render("guide.html", &tmpl)?;
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }

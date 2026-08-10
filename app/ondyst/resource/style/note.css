@@ -56,3 +56,6 @@ section {
 		margin-top: 0.4lh;
 	}
 }
+* + article {
+	margin-top: 0.8lh;
+}

@@ -83,11 +83,13 @@ button,
 	}
 }
 
-i {
+/* アイコン */
+ic {
+	display: inline block;
 	font-size: 1.2em;
 	line-height: 1;
 }
-i.help {
+ic.help {
 	font-size: 0;
 	user-select: none;
 

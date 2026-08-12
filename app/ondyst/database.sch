@@ -7,13 +7,15 @@ table location
 	key text pk
 	name text
 	lore text
+	@init(master/location.csv)
 # アイテム
 table item
 	id int pk
 	name text
 	lore text
-	location ref(location.key).update(cascade).delete(cascade) index(item_location)
+	location ref(location.key)?.update(cascade).delete(cascade) index(item_location)
 	message text
+	@init(master/item.csv)
 
 # キャラクター
 table actor

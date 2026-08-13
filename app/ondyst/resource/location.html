@@ -1,18 +1,22 @@
 {% extends "template.html" %}
 {% block head %}
+<link rel="stylesheet" href="style/note.css">
 {% endblock %}
 {% block content %}
 <article id="location">
 	<h2 class="name">{{location.name}}</h2>
-	<p class="name">{{location.lore}}</p>
-	<div id="item_list">
+	<p class="name">{{location.lore|safe}}</p>
+	{% if item_list %}
+	<section id="item_list">
+		<h3>アイテム</h3>
 		{% for item in item_list %}
 		<div class="item" data-id="{{item.id}}" data-message="{{item.message}}">
 			<span>{{item.name}}</span>
-			<span>{{item.lore}}</span>
+			<span>{{item.lore|safe}}</span>
 		</div>
 		{% endfor %}
-	</div>
+	</section>
+	{% endif %}
 </article>
 <div id="chat_list">
 	{% for chat in chat_list %}

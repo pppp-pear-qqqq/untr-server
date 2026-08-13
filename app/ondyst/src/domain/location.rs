@@ -1,9 +1,4 @@
-use actix_web::{HttpResponse, Responder, error::*, http::header, web};
-use common::{PageRender, ReqType, html_codec::*};
-use sqlx::SqlitePool;
-use tera::Tera;
-
-use crate::utils::{ActorData, Identity, Page, tag_parse as tag};
+use super::*;
 
 /// リソース
 pub fn cfg(cfg: &mut web::ServiceConfig) {
@@ -29,7 +24,7 @@ async fn location_list(id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: 
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }
 
-async fn location(key: web::Path<String>, web::Query(page): web::Query<common::Pagination>, req_type: ReqType, id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
+async fn location(key: web::Path<String>, web::Query(page): web::Query<Pagination>, req_type: ReqType, id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
 	#[derive(serde::Serialize)]
 	struct Location {
 		name: String,
@@ -79,21 +74,26 @@ async fn location(key: web::Path<String>, web::Query(page): web::Query<common::P
 	}
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, validator::Validate)]
 struct Chat {
+	#[validate(length(max = 16))]
 	location: String,
+	#[validate(length(max = 16))]
 	name: String,
+	#[validate(length(max = 255))]
 	icon: String,
+	#[validate(length(max = 500))]
 	body: String,
 }
-async fn post_chat(web::Form(chat): web::Form<Chat>, id: Identity, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+async fn post_chat(web::Form(info): web::Form<Chat>, id: Identity, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+	info.validate()?;
+
 	let timestamp = chrono::Utc::now().timestamp();
 	let id = *id;
-	let body = chat.body.escape(false).br();
-	let body = body.tag(tag::Ondyst);
+	let body = info.body.escape(false).br().tag(tag::Ondyst);
 
 	let pool = pool.as_ref();
-	sqlx::query!("INSERT INTO chat(timestamp,location,actor,name,icon,body) VALUES(?,?,?,?,?,?)", timestamp, chat.location, id, chat.name, chat.icon, body).execute(pool).await?;
+	sqlx::query!("INSERT INTO chat(timestamp,location,actor,name,icon,body) VALUES(?,?,?,?,?,?)", timestamp, info.location, id, info.name, info.icon, body).execute(pool).await?;
 
 	Ok(HttpResponse::NoContent().finish())
 }

@@ -1,12 +1,9 @@
+use super::*;
+
 use std::str::FromStr;
 
 use actix_session::Session;
-use actix_web::{HttpResponse, Responder, error::*, http::header, web};
 use rand::{RngExt, seq::IteratorRandom};
-use sqlx::SqlitePool;
-use uuid::Uuid;
-
-use crate::utils::Identity;
 
 /// リソース
 pub fn cfg(cfg: &mut web::ServiceConfig) {
@@ -15,8 +12,9 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.route("logout", web::to(logout));
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Validate)]
 struct Auth {
+	#[validate(length(max = 40))]
 	code: String,
 }
 
@@ -29,6 +27,7 @@ async fn auth(code: String) -> common::Result<Uuid> {
 }
 
 async fn register(web::Form(info): web::Form<Auth>, session: Session, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+	info.validate()?;
 	let user = auth(info.code).await?;
 
 	println!("user_id: {user}");
@@ -44,6 +43,7 @@ async fn register(web::Form(info): web::Form<Auth>, session: Session, pool: web:
 }
 
 async fn login(web::Form(info): web::Form<Auth>, session: Session, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+	info.validate()?;
 	let user = auth(info.code).await?;
 
 	println!("user_id: {user}");

@@ -2,34 +2,54 @@ use std::{borrow::Cow, sync::OnceLock};
 
 use regex::Regex;
 
-pub trait HTMLEncode {
-	fn br(&self) -> String;
-	fn escape(&self, quot: bool) -> Cow<'_, str>;
-	fn escape_and_link(&self) -> Cow<'_, str>;
-	fn tag<T: TagFormat>(&self, format: T) -> Cow<'_, str>;
+pub trait HTMLEncode<'a> {
+	fn br(self) -> Cow<'a, str>;
+	fn escape(self, quot: bool) -> Cow<'a, str>;
+	fn escape_and_link(self) -> Cow<'a, str>;
+	fn tag<T: TagFormat>(self, format: T) -> Cow<'a, str>;
 }
-impl HTMLEncode for str {
-	fn br(&self) -> String {
+impl<'a, T: Into<Cow<'a, str>>> HTMLEncode<'a> for T {
+	fn br(self) -> Cow<'a, str> {
+		let text = self.into();
 		const BR: &str = "<br>";
-		let mut result = String::with_capacity(self.len() + 32);
-		let mut chars = self.chars().peekable();
-		while let Some(c) = chars.next() {
-			match c {
-				'\r' => {
-					if chars.peek() == Some(&'\n') {
-						chars.next();
+
+		let bytes = text.as_bytes();
+		for i in 0..bytes.len() {
+			if bytes[i] == b'\n' || bytes[i] == b'\r' {
+				let mut owned = String::with_capacity(text.len() + 32);
+				owned.push_str(&text[..i]);
+				let mut p = i;
+				while p < bytes.len() {
+					match bytes[p] {
+						b'\n' => {
+							owned.push_str(BR);
+							p += 1;
+						}
+						b'\r' => {
+							owned.push_str(BR);
+							p += 1;
+							if p < bytes.len() && bytes[p] == b'\n' {
+								p += 1;
+							}
+						}
+						_ => {
+							let start = p;
+							while p < bytes.len() && bytes[p] != b'\r' && bytes[p] != b'\n' {
+								p += 1;
+							}
+							owned.push_str(&text[start..p]);
+						}
 					}
-					result.push_str(BR);
 				}
-				'\n' => {
-					result.push_str(BR);
-				}
-				_ => result.push(c),
+				owned.push_str(&text[p..]);
+				return Cow::Owned(owned);
 			}
 		}
-		result
+		text
 	}
-	fn escape(&self, quot: bool) -> Cow<'_, str> {
+
+	fn escape(self, quot: bool) -> Cow<'a, str> {
+		let text = self.into();
 		let repl = |b: u8| match b {
 			b'<' => Some("&lt;"),
 			b'>' => Some("&gt;"),
@@ -38,93 +58,107 @@ impl HTMLEncode for str {
 			b'\'' if quot => Some("&apos;"),
 			_ => None,
 		};
-		let bytes = self.as_bytes();
-		for (i, &b) in bytes.iter().enumerate() {
-			if let Some(r) = repl(b) {
-				let mut owned = String::with_capacity(self.len() + 32);
-				owned.push_str(&self[..i]);
+
+		let bytes = text.as_bytes();
+		for i in 0..bytes.len() {
+			if let Some(r) = repl(bytes[i]) {
+				let mut owned = String::with_capacity(text.len() + 32);
+				owned.push_str(&text[..i]);
 				owned.push_str(r);
 				let mut p = i + 1;
-				for (i, &b) in bytes.iter().enumerate().skip(p) {
-					if let Some(r) = repl(b) {
-						owned.push_str(&self[p..i]);
+				for j in p..bytes.len() {
+					if let Some(r) = repl(bytes[j]) {
+						owned.push_str(&text[p..j]);
 						owned.push_str(r);
-						p = i + 1;
+						p = j + 1;
 					}
 				}
-				owned.push_str(&self[p..]);
+				owned.push_str(&text[p..]);
 				return Cow::Owned(owned);
 			}
 		}
-		Cow::Borrowed(self)
+		text
 	}
-	fn escape_and_link(&self) -> Cow<'_, str> {
+
+	fn escape_and_link(self) -> Cow<'a, str> {
+		let text = self.into();
 		static RE: OnceLock<Regex> = OnceLock::new();
 		let re = RE.get_or_init(|| {
-			let regs = [
-				r#"(?<url>https?://[^\s<>"']+)"#,
-				r"(?<misskey>@[\w_\-]+@[\w_\-]+(?:\.[\w_\-]+)+)",
-				r"(?<bsky>@[\w_\-]+(?:\.[\w_\-]+)+)",
-				r"(?<twitter>@[\w_\-]{4,15})",
-			];
+			let regs = [r#"(?<url>https?://[^\s<>"']+)"#, r"(?<misskey>@[\w_\-]+@[\w_\-]+(?:\.[\w_\-]+)+)", r"(?<bsky>@[\w_\-]+(?:\.[\w_\-]+)+)", r"(?<twitter>@[\w_\-]{4,15})"];
 			Regex::new(&format!(r"(^|\s)(?:{})", regs.join("|"))).unwrap()
 		});
-		let mut out = String::with_capacity(self.len() * 2);
+
+		// Regexでのマッチがなければ、単純に escape して返す（アロケーション回避）
+		if !re.is_match(&text) {
+			return text.escape(false);
+		}
+
+		let mut out = String::with_capacity(text.len() * 2);
 		let mut end = 0;
-		for caps in re.captures_iter(self) {
+		for caps in re.captures_iter(&text) {
 			let m = caps.get(0).unwrap();
-			out.push_str(&self[end..m.start()].escape(false));
-			out.push_str(&caps[1]);
+			out.push_str(&text[end..m.start()].escape(false));
+
+			// `(^|\s)` でキャプチャされる可能性のある先頭の空白部分を保持
+			if let Some(space) = caps.get(1) {
+				out.push_str(space.as_str());
+			}
+
 			end = m.end();
 			let (href, body) = if let Some(m) = caps.name("url") {
-				let m = m.as_str();
-				(m.replace('"', "%22"), m.escape(false))
+				let m_str = m.as_str();
+				(m_str.replace('"', "%22"), m_str.escape(false))
 			} else if let Some(m) = caps.name("misskey") {
-				let m = m.as_str();
-				let (user, domain) = m.rsplit_once('@').unwrap();
-				(format!("https://{domain}/{user}"), m.escape(false))
+				let m_str = m.as_str();
+				let (user, domain) = m_str.rsplit_once('@').unwrap();
+				(format!("https://{domain}/{user}"), m_str.escape(false))
 			} else if let Some(m) = caps.name("bsky") {
-				let m = m.as_str();
-				(format!("https://bsky.app/profile/{}", &m[1..]), m.escape(false))
+				let m_str = m.as_str();
+				(format!("https://bsky.app/profile/{}", &m_str[1..]), m_str.escape(false))
 			} else if let Some(m) = caps.name("twitter") {
-				let m = m.as_str();
-				(format!("https://x.com/{}", &m[1..]), m.escape(false))
+				let m_str = m.as_str();
+				(format!("https://x.com/{}", &m_str[1..]), m_str.escape(false))
 			} else {
-				out.push_str(&m.as_str().escape(false));
-				continue;
+				unreachable!();
 			};
 			out.push_str(&format!("<a target=\"_blank\" href=\"{href}\">{body}</a>"));
 		}
+
 		if end > 0 {
-			out.push_str(&self[end..]);
+			out.push_str(&text[end..].escape(false));
 			Cow::Owned(out)
 		} else {
-			self.escape(false)
+			text.escape(false)
 		}
 	}
-	fn tag<T: TagFormat>(&self, format: T) -> Cow<'_, str> {
-		format.parse(&self)
+
+	fn tag<F: TagFormat>(self, format: F) -> Cow<'a, str> {
+		match self.into() {
+			Cow::Borrowed(s) => format.parse(s),
+			Cow::Owned(s) => Cow::Owned(format.parse(&s).into_owned()),
+		}
 	}
 }
 
-pub trait HTMLDecode {
-	fn unescape(&self) -> Cow<'_, str>;
-	fn rm_br(&self) -> String;
+pub trait HTMLDecode<'a> {
+	fn unescape(self) -> Cow<'a, str>;
+	fn rm_br(self) -> Cow<'a, str>;
 }
-impl HTMLDecode for str {
-	fn unescape(&self) -> Cow<'_, str> {
+impl<'a, T: Into<Cow<'a, str>>> HTMLDecode<'a> for T {
+	fn unescape(self) -> Cow<'a, str> {
+		let text = self.into();
 		static SPECIALS: [(&str, char); 7] = [("&lt;", '<'), ("&gt;", '>'), ("&amp;", '&'), ("&quot;", '"'), ("&apos;", '\''), ("&#39;", '\''), ("&nbsp;", ' ')];
-		if !self.contains('&') {
-			return Cow::Borrowed(self);
+
+		if !text.contains('&') {
+			return text;
 		}
-		let mut result = String::with_capacity(self.len());
+
+		let mut result = String::with_capacity(text.len());
 		let mut i = 0;
-		let s_bytes = self.as_bytes();
-		while i < self.len() {
+		let s_bytes = text.as_bytes();
+		while i < text.len() {
 			if s_bytes[i] == b'&' {
-				// エンティティの候補を探す
-				let rest = &self[i..];
-				// 代表的なエンティティとのマッチング
+				let rest = &text[i..];
 				let mut b: Option<(char, usize)> = None;
 				for (ent, repl) in SPECIALS {
 					if rest.starts_with(ent) {
@@ -136,26 +170,25 @@ impl HTMLDecode for str {
 					result.push(repl);
 					i += skip;
 				} else {
-					// 有効なエンティティでなければ、ただの '&' として扱う
 					result.push('&');
 					i += 1;
 				}
 			} else {
-				// & 以外の文字はそのまま追加
-				// 安全のため、ここでもスライスを使って次の & まで一気に飛ばすとより高速
-				let next_amp = self[i..].find('&').unwrap_or(self.len() - i);
-				result.push_str(&self[i..i + next_amp]);
+				let next_amp = text[i..].find('&').unwrap_or(text.len() - i);
+				result.push_str(&text[i..i + next_amp]);
 				i += next_amp;
 			}
 		}
 		Cow::Owned(result)
 	}
-	fn rm_br(&self) -> String {
-		self.replace(&['\n', '\r'], "")
+
+	fn rm_br(self) -> Cow<'a, str> {
+		let text = self.into();
+		if text.contains('\n') || text.contains('\r') { Cow::Owned(text.replace(&['\n', '\r'][..], "")) } else { text }
 	}
 }
 
-/// # 実装例
+/// # Example
 /// ```
 /// #[derive(Clone, Copy)]
 /// pub struct CommonTag;
@@ -278,5 +311,5 @@ impl HTMLDecode for str {
 /// }
 /// ```
 pub trait TagFormat {
-	fn parse(self, raw: &str) -> Cow<'_, str>;
+	fn parse<'a>(self, raw: &'a str) -> Cow<'a, str>;
 }

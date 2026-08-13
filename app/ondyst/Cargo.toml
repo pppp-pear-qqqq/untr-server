@@ -16,8 +16,7 @@ chrono.workspace = true
 common.workspace = true
 dotenv = { workspace = true, optional = true }
 env_logger.workspace = true
-html-codec.workspace = true
-rand = "0.10.2"
+rand.workspace = true
 reqwest.workspace = true
 rkyv.workspace = true
 serde.workspace = true
@@ -25,3 +24,4 @@ serde_json.workspace = true
 sqlx.workspace = true
 tera.workspace = true
 uuid.workspace = true
+validator.workspace = true

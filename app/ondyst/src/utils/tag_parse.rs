@@ -8,37 +8,6 @@ use rand::seq::IndexedRandom as _;
 pub struct Ondyst;
 impl TagFormat for Ondyst {
 	fn parse(self, raw: &str) -> Cow<'_, str> {
-		// パイプ区切りのパラメータを分割して取得する関数
-		fn part(value: &str, limit: usize) -> Vec<&str> {
-			let mut parts = Vec::new();
-			let mut nest: usize = 0;
-			let mut bytes = value.bytes().enumerate().peekable();
-			while let Some((idx, b)) = bytes.next() {
-				match b {
-					b'[' => nest += 1,
-					b']' if nest > 0 => nest -= 1,
-					b'|' if nest == 0 => {
-						parts.push(idx);
-						if limit != 0 && limit <= parts.len() {
-							break;
-						}
-					}
-					b'\\' => {
-						bytes.next_if(|(_, b)| matches!(b, b'[' | b']' | b'|' | b'\\'));
-					}
-					_ => (),
-				}
-			}
-			let mut start = 0;
-			let mut params = Vec::with_capacity(parts.len() + 1);
-			for end in parts {
-				params.push(&value[start..end]);
-				start = end + 1;
-			}
-			params.push(&value[start..]);
-			params
-		}
-
 		// 必要な変数の宣言
 		let mut out = String::with_capacity(raw.len() * 2);
 		let mut rng = rand::rng();
@@ -133,4 +102,35 @@ impl TagFormat for Ondyst {
 			Cow::Borrowed(raw)
 		}
 	}
+}
+
+/// パイプ区切りのパラメータを分割して取得する
+fn part(value: &str, limit: usize) -> Vec<&str> {
+	let mut parts = Vec::new();
+	let mut nest: usize = 0;
+	let mut bytes = value.bytes().enumerate().peekable();
+	while let Some((idx, b)) = bytes.next() {
+		match b {
+			b'[' => nest += 1,
+			b']' if nest > 0 => nest -= 1,
+			b'|' if nest == 0 => {
+				parts.push(idx);
+				if limit != 0 && limit <= parts.len() {
+					break;
+				}
+			}
+			b'\\' => {
+				bytes.next_if(|(_, b)| matches!(b, b'[' | b']' | b'|' | b'\\'));
+			}
+			_ => (),
+		}
+	}
+	let mut start = 0;
+	let mut params = Vec::with_capacity(parts.len() + 1);
+	for end in parts {
+		params.push(&value[start..end]);
+		start = end + 1;
+	}
+	params.push(&value[start..]);
+	params
 }

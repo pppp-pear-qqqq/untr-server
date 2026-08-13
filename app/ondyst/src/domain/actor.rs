@@ -1,17 +1,13 @@
-use actix_web::{HttpResponse, Responder, error::ErrorBadRequest, http::header, web};
-use common::{PageRender, ReqType, html_codec::*};
-use rand::seq::IteratorRandom;
-use sqlx::SqlitePool;
-use tera::Tera;
+use super::*;
 
-use crate::utils::{ActorData, Identity, Page, tag_parse as tag};
+use rand::seq::IteratorRandom;
 
 pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.route("", web::get().to(list));
 	cfg.route("{actor}", web::get().to(actor));
 }
 
-async fn list(web::Query(page): web::Query<common::Pagination>, req_type: ReqType, id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
+async fn list(web::Query(page): web::Query<Pagination>, req_type: ReqType, id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
 	#[derive(serde::Serialize)]
 	struct Record {
 		id: i64,
@@ -59,8 +55,7 @@ async fn actor(actor: web::Path<i32>, id: Option<Identity>, pool: web::Data<Sqli
 		Err(err) => return Err(err.into()),
 	};
 
-	let profile = record.profile.escape(false).br();
-	let profile = profile.tag(tag::Ondyst);
+	let profile = record.profile.escape(false).br().tag(tag::Ondyst);
 	let mut section_iter = profile.split("<br># ");
 	let mut sections = Vec::new();
 	if let Some(section) = section_iter.next() {

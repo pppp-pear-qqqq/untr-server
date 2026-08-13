@@ -2,34 +2,23 @@ mod actor;
 mod entry;
 mod home;
 mod location;
+mod pages;
 
-use actix_web::{HttpResponse, Responder, http::header, web};
-use common::PageRender;
+use actix_web::{HttpResponse, Responder, error::*, http::header, web};
+use common::{PageRender, Pagination, ReqType, html_codec::*};
 use sqlx::SqlitePool;
 use tera::Tera;
+use uuid::Uuid;
+use validator::Validate;
 
-use crate::utils::{ActorData, Identity, Page};
+use crate::utils::{ActorData, Identity, Page, tag_parse as tag};
 
 pub fn cfg(cfg: &mut web::ServiceConfig) {
-	cfg.route("/", web::get().to(index));
+	cfg.route("/", web::to(pages::index));
+	cfg.route("info", web::to(pages::info));
+	cfg.route("guide", web::to(pages::guide));
 	cfg.service(web::scope("entry").configure(entry::cfg));
 	cfg.service(web::scope("actor").configure(actor::cfg));
 	cfg.service(web::scope("location").configure(location::cfg));
 	cfg.service(web::scope("home").configure(home::cfg));
-	cfg.route("info", web::get().to(info));
-	cfg.route("guide", web::get().to(guide));
-}
-
-async fn index(id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
-	let body = Page::default().actor_data_opt(ActorData::load_opt(&id, &pool).await?).render("index.html", &tmpl)?;
-	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
-}
-
-async fn info(id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
-	let body = Page::default().actor_data_opt(ActorData::load_opt(&id, &pool).await?).render("info.html", &tmpl)?;
-	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
-}
-async fn guide(id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
-	let body = Page::default().actor_data_opt(ActorData::load_opt(&id, &pool).await?).render("guide.html", &tmpl)?;
-	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }

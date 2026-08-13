@@ -6,7 +6,6 @@ x-rust-base: &rust-base
         - ./Cargo.toml:/app/Cargo.toml:ro
         - ./Cargo.lock:/app/Cargo.lock
         - ./app:/app/app
-        - ./lib:/app/lib
         - target:/app/target
         - cargo-cache:/usr/local/cargo/registry
     networks:

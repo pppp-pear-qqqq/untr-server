@@ -1,11 +1,19 @@
 {% extends "template.html" %}
 {% block head %}
+<link rel="stylesheet" href="style/note.css">
+<link rel="stylesheet" href="style/location_list.css">
 {% endblock %}
 {% block content %}
-{% for location in location_list %}
-<div class="location">
-	<a href="/location/{{location.key}}">{{location.name}}</a>
-	<span class="lore">{{location.lore}}</span>
+<div id="map">
+	<!--ここにマップ画像-->
 </div>
-{% endfor %}
+<article>
+	<h2>ロケーション一覧</h2>
+	{% for location in location_list %}
+	<section>
+		<h3 class="name"><a href="/location/{{location.key}}">{{location.name}}</a></h3>
+		<p class="lore">{{location.lore|safe}}</p>
+	</section>
+	{% endfor %}
+</article>
 {% endblock %}

@@ -1,9 +1,10 @@
 use std::fmt;
 
 use actix_web::{
-	HttpResponse,
+	FromRequest, HttpResponse,
 	body::{BoxBody, MessageBody},
 	dev,
+	error::ErrorInternalServerError,
 	http::{StatusCode, header},
 	middleware, web,
 };
@@ -37,10 +38,7 @@ where
 			let status = actix_err.as_response_error().status_code();
 			Self { status, cause: boxed }
 		} else {
-			Self {
-				status: StatusCode::INTERNAL_SERVER_ERROR,
-				cause: boxed,
-			}
+			Self { status: StatusCode::INTERNAL_SERVER_ERROR, cause: boxed }
 		}
 	}
 }
@@ -60,26 +58,22 @@ impl actix_web::ResponseError for Error {
 	}
 }
 
-pub async fn mw_err_format<Page: Default + crate::PageRender>(
-	req: dev::ServiceRequest,
-	next: middleware::Next<impl MessageBody + 'static>,
-) -> std::result::Result<dev::ServiceResponse<BoxBody>, actix_web::Error> {
+pub async fn mw_err_format<Page: Default + crate::PageRender>(req: dev::ServiceRequest, next: middleware::Next<impl MessageBody + 'static>) -> std::result::Result<dev::ServiceResponse<BoxBody>, actix_web::Error> {
 	// 実行
 	let res = next.call(req).await?.map_into_boxed_body();
 	let (req, res) = res.into_parts();
 
 	// エラー整形
 	if let Some(err) = res.error() {
-		let req_type = req.app_data::<crate::ReqType>().copied().unwrap_or(crate::ReqType::Empty);
+		let mut payload = dev::Payload::None;
+		let req_type = crate::ReqType::from_request(&req, &mut payload).await?;
 		if req_type == crate::ReqType::Document {
-			if let Some(tmpl) = req.app_data::<web::Data<Tera>>() {
-				let mut ctx = tera::Context::new();
-				ctx.insert("body", &err.to_string());
-				if let Ok(body) = Page::default().render_with_ctx("error.html", &tmpl, ctx) {
-					let res = HttpResponse::build(res.status()).content_type(header::ContentType::html()).body(body);
-					return Ok(dev::ServiceResponse::new(req, res));
-				}
-			}
+			let tmpl = req.app_data::<web::Data<Tera>>().ok_or(ErrorInternalServerError("Failed get template"))?;
+			let mut ctx = tera::Context::new();
+			ctx.insert("message", &err.to_string());
+			let body = Page::default().render_with_ctx("error.html", &tmpl, ctx).map_err(ErrorInternalServerError)?;
+			let res = HttpResponse::build(res.status()).content_type(header::ContentType::html()).body(body);
+			return Ok(dev::ServiceResponse::new(req, res));
 		}
 	}
 	Ok(dev::ServiceResponse::new(req, res))

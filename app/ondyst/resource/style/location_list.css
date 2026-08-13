@@ -1,0 +1,16 @@
+.list {
+	display: flex;
+	flex-direction: column;
+
+	gap: 0.4lh;
+}
+
+.location {
+	display: flex;
+	flex-direction: column;
+	flex-wrap: wrap;
+
+	>*{
+		width: 100%;
+	}
+}

@@ -1,4 +1,4 @@
-use actix_web::{HttpResponse, Responder, http::header, web};
+use actix_web::{HttpResponse, Responder, error::ErrorBadRequest, http::header, web};
 use common::{PageRender, ReqType, html_codec::*};
 use rand::seq::IteratorRandom;
 use sqlx::SqlitePool;
@@ -53,7 +53,11 @@ async fn actor(actor: web::Path<i32>, id: Option<Identity>, pool: web::Data<Sqli
 	let target_id = actor.into_inner();
 
 	let pool = pool.as_ref();
-	let record = sqlx::query_as!(Record, "SELECT name,profile,portrait_list FROM actor WHERE id=?", target_id).fetch_one(pool).await?;
+	let record = match sqlx::query_as!(Record, "SELECT name,profile,portrait_list FROM actor WHERE id=?", target_id).fetch_one(pool).await {
+		Ok(r) => r,
+		Err(sqlx::Error::RowNotFound) => return Err(ErrorBadRequest("対象のキャラクターは存在しません").into()),
+		Err(err) => return Err(err.into()),
+	};
 
 	let profile = record.profile.escape(false).br();
 	let profile = profile.tag(tag::Ondyst);

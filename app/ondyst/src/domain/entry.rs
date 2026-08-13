@@ -12,7 +12,7 @@ use crate::utils::Identity;
 pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.service(web::resource("register").route(web::post().to(register)));
 	cfg.service(web::resource("login").route(web::post().to(login)));
-	cfg.service(web::resource("logout").route(web::post().to(logout)));
+	cfg.route("logout", web::to(logout));
 }
 
 #[derive(serde::Serialize, serde::Deserialize)]

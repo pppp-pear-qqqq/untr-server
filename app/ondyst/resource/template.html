@@ -21,26 +21,24 @@
 	<body>
 		<header>
 			<button type="button" aria-controls="main-menu" aria-expanded="false"><span></span></button>
-			<menu id="main-menu">
+			<nav id="main-menu">
 				{% if actor %}
-				<li><a href="home"><ic class="ri-home-line"></ic>ホーム</a></li>
+				<a href="home"><ic class="ri-home-line"></ic>ホーム</a>
 				{% endif %}
-				<li><a href="location"><ic class="ri-road-map-line"></ic>町を歩く</a></li>
-				<li><a href="actor"><ic class="ri-people-line"></ic>人々を見る</a></li>
-				<li><a href="info"><ic class="ri-information-line"></ic>お知らせ</a></li>
-				<li><a href="guide"><ic class="ri-booklet-line"></ic>ガイドブック</a></li>
-				<li class="partition"></li>
-				<li><a href=""><ic class="ri-global-line"></ic>トップページ</a></li>
-				<li class="tool-box">
+				<a href="location"><ic class="ri-road-map-line"></ic>町を歩く</a>
+				<a href="actor"><ic class="ri-group-3-line"></ic>人々を見る</a>
+				<a href="info"><ic class="ri-information-line"></ic>お知らせ</a>
+				<a href="guide"><ic class="ri-booklet-line"></ic>ガイドブック</a>
+				<div class="partition"></div>
+				<a href=""><ic class="ri-global-line"></ic>トップページ</a>
+				<div class="tool-box">
 					<a title="ライトテーマ" data-theme="light"><ic class="ri-sun-line"></ic></a>
 					<a title="ダークテーマ" data-theme="dark"><ic class="ri-moon-line"></ic></a>
-					{% if actor %}
 					<div class="partition"></div>
 					<a href="entry/logout" title="ログアウト"><ic class="ri-logout-circle-line"></ic></a>
-					{% endif %}
-				</li>
-				<li class="credit"><small>2026 <a target="_blank" href="https://x.com/untroche_ar">untroche</a></small></li>
-			</menu>
+				</div>
+				<small class="credit">2026 <a target="_blank" href="https://x.com/untroche_ar">untroche</a></small>
+			</nav>
 			{% if actor %}
 			<div id="actor-data">
 				<a href="home">

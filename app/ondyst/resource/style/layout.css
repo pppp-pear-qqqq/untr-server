@@ -48,6 +48,7 @@ main {
 	min-width: 20dvw;
 	height: 100dvh;
 	padding: 80px 2dvw 2dvh 1dvw;
+	gap: 0.2rlh;
 	overflow-y: auto;
 	/* 装飾 */
 	border-left: 1px solid var(--border-color);
@@ -61,16 +62,11 @@ main {
 		translate 0.2s;
 	view-transition-name: main-menu;
 
-	> li > a {
-		/* ボックスモデル */
-		display: block flex;
-		gap: 0.2rem;
-		align-items: baseline;
-		/* タイポグラフィ */
+	> a,
+	> .tool-box > a {
 		color: var(--link-color);
 		font-size: 1.3rem;
 		text-decoration: none;
-		/* アニメーション・その他 */
 		cursor: pointer;
 		transition: color 0.2s;
 
@@ -79,14 +75,19 @@ main {
 		}
 	}
 
-	> li.tool-box {
+	> a {
+		/* ボックスモデル */
+		display: block flex;
+		gap: 0.2rem;
+		align-items: baseline;
+	}
+
+	> .tool-box {
 		/* ボックスモデル */
 		display: block flex;
 		flex-wrap: wrap;
 		gap: 0.2rem;
 		align-items: center;
-		/* タイポグラフィ */
-		font-size: 1.3rem;
 	}
 
 	body:has([aria-controls="main-menu"][aria-expanded="true"]) & {

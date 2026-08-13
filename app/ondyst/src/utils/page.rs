@@ -25,11 +25,11 @@ impl Page {
 	pub fn title(self, title: &str) -> Self {
 		Self { title: title.into(), ..self }
 	}
-	pub fn actor_data(self, user_data: ActorData) -> Self {
-		Self { actor_data: Some(user_data), ..self }
+	pub fn actor_data(self, data: ActorData) -> Self {
+		Self { actor_data: Some(data), ..self }
 	}
-	pub fn actor_data_opt(self, user_data: Option<ActorData>) -> Self {
-		Self { actor_data: user_data, ..self }
+	pub fn actor_data_opt(self, data: Option<ActorData>) -> Self {
+		Self { actor_data: data, ..self }
 	}
 }
 

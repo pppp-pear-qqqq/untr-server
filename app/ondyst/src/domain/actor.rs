@@ -1,6 +1,6 @@
-use super::*;
-
 use rand::seq::IteratorRandom;
+
+use super::*;
 
 pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.route("", web::get().to(list));
@@ -55,7 +55,7 @@ async fn actor(actor: web::Path<i32>, id: Option<Identity>, pool: web::Data<Sqli
 		Err(err) => return Err(err.into()),
 	};
 
-	let profile = record.profile.escape(false).br().tag(tag::Ondyst);
+	let profile = record.profile.escape(false).tag(tag::Ondyst).br();
 	let mut section_iter = profile.split("<br># ");
 	let mut sections = Vec::new();
 	if let Some(section) = section_iter.next() {

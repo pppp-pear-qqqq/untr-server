@@ -1,3 +1,8 @@
+use std::sync::OnceLock;
+
+use fxhash::FxHashSet as HashSet;
+use regex::Regex;
+
 use super::*;
 
 /// リソース
@@ -86,14 +91,54 @@ struct Chat {
 	body: String,
 }
 async fn post_chat(web::Form(info): web::Form<Chat>, id: Identity, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+	let timestamp = chrono::Utc::now().timestamp();
 	info.validate()?;
 
-	let timestamp = chrono::Utc::now().timestamp();
+	// 入力のパース
 	let id = *id;
-	let body = info.body.escape(false).br().tag(tag::Ondyst);
+	let body = info.body.escape(false).tag(tag::Ondyst).br();
 
+	// メンション・アンカーの処理
+	static RE: OnceLock<Regex> = OnceLock::new();
+	let re = RE.get_or_init(|| Regex::new(r"@(?<mention>\d+)|&gt;&gt;(?<anchor>\d+)").unwrap());
+	let mut mentions = HashSet::<i64>::default();
+	let mut anchors = HashSet::<i64>::default();
+	let body = re.replace_all(&body, |caps: &regex::Captures| {
+		if let Some(m) = caps.name("mention") {
+			if let Ok(v) = m.as_str().parse::<i64>() {
+				mentions.insert(v);
+				return format!("<a data-mention=\"{0}\">@{0}</a>", v);
+			}
+		} else if let Some(m) = caps.name("anchor") {
+			if let Ok(v) = m.as_str().parse::<i64>() {
+				anchors.insert(v);
+				return format!("<a data-anchor=\"{0}\">&gt;&gt;{0}</a>", v);
+			}
+		}
+		caps[0].to_string()
+	});
+
+	// 発言の投稿
 	let pool = pool.as_ref();
 	sqlx::query!("INSERT INTO chat(timestamp,location,actor,name,icon,body) VALUES(?,?,?,?,?,?)", timestamp, info.location, id, info.name, info.icon, body).execute(pool).await?;
+
+	// 通知
+	if !mentions.is_empty() || !anchors.is_empty() {
+		// アンカーの対象追跡
+		if !anchors.is_empty() {
+			let mut builder = sqlx::QueryBuilder::new("SELECT actor FROM chat WHERE id IN (");
+			let mut sep = builder.separated(',');
+			for anchor in anchors.into_iter().take(64) {
+				sep.push_bind(anchor);
+			}
+			builder.push(")");
+			mentions.extend(builder.build_query_scalar::<Option<i64>>().fetch_all(pool).await?.into_iter().flatten());
+		}
+
+		mentions.remove(&id);
+
+		// TODO メンションの通知
+	}
 
 	Ok(HttpResponse::NoContent().finish())
 }

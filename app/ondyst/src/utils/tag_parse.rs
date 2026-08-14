@@ -6,6 +6,7 @@ use rand::seq::IndexedRandom as _;
 
 #[derive(Clone, Copy)]
 pub struct Ondyst;
+
 impl TagFormat for Ondyst {
 	fn parse(self, raw: &str) -> Cow<'_, str> {
 		// 必要な変数の宣言

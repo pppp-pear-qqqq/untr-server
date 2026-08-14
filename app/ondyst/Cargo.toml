@@ -16,7 +16,9 @@ chrono.workspace = true
 common.workspace = true
 dotenv = { workspace = true, optional = true }
 env_logger.workspace = true
+fxhash.workspace = true
 rand.workspace = true
+regex.workspace = true
 reqwest.workspace = true
 rkyv.workspace = true
 serde.workspace = true

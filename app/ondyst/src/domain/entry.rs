@@ -1,9 +1,9 @@
-use super::*;
-
 use std::str::FromStr;
 
 use actix_session::Session;
 use rand::{RngExt, seq::IteratorRandom};
+
+use super::*;
 
 /// リソース
 pub fn cfg(cfg: &mut web::ServiceConfig) {

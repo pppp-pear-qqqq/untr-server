@@ -74,15 +74,15 @@ async fn location(key: web::Path<String>, web::Query(page): web::Query<Paginatio
 	}
 }
 
-#[derive(serde::Deserialize, validator::Validate)]
+#[derive(serde::Deserialize, Validate)]
 struct Chat {
-	#[validate(length(max = 16))]
+	#[validate(length(max = 16, message = "発言場所は16文字以内で入力してください"))]
 	location: String,
-	#[validate(length(max = 16))]
+	#[validate(length(max = 16, message = "キャラクター名は16文字以内で入力してください"))]
 	name: String,
-	#[validate(length(max = 255))]
+	#[validate(length(max = 255, message = "アイコンURLは255文字以内で入力してください"))]
 	icon: String,
-	#[validate(length(max = 500))]
+	#[validate(length(max = 500, message = "本文は500文字以内で入力してください"))]
 	body: String,
 }
 async fn post_chat(web::Form(info): web::Form<Chat>, id: Identity, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {

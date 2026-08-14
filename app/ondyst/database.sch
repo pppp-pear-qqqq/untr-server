@@ -20,7 +20,7 @@ table item
 # キャラクター
 table actor
 	id int pk.auto
-	user uuid
+	user uuid unique
 	name text
 	comment text default('')
 	profile text default('')

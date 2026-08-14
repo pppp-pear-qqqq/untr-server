@@ -30,13 +30,15 @@ async fn register(web::Form(info): web::Form<Auth>, session: Session, pool: web:
 	info.validate()?;
 	let user = auth(info.code).await?;
 
-	println!("user_id: {user}");
-
 	let user = user.to_bytes_le().to_vec();
 	let name = generate_random_unicode(0x30a0..=0x30ff, 2..=8);
 
 	let pool = pool.as_ref();
-	let actor_id = sqlx::query_scalar!("INSERT INTO actor(user,name) VALUES(?,?) RETURNING id", user, name).fetch_one(pool).await?;
+	let actor_id = match sqlx::query_scalar!("INSERT INTO actor(user,name) VALUES(?,?) RETURNING id", user, name).fetch_one(pool).await {
+		Ok(r) => r,
+		Err(sqlx::Error::Database(err)) if err.is_unique_violation() => return Err(ErrorBadRequest("そのユーザーは既に登録されています").into()),
+		Err(err) => return Err(err.into()),
+	};
 	Identity::set(&session, actor_id)?;
 
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(actor_id.to_string()))
@@ -45,8 +47,6 @@ async fn register(web::Form(info): web::Form<Auth>, session: Session, pool: web:
 async fn login(web::Form(info): web::Form<Auth>, session: Session, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
 	info.validate()?;
 	let user = auth(info.code).await?;
-
-	println!("user_id: {user}");
 
 	let user = user.to_bytes_le().to_vec();
 

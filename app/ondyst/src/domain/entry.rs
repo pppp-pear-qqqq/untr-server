@@ -3,6 +3,8 @@ use std::str::FromStr;
 use actix_session::Session;
 use rand::{RngExt, seq::IteratorRandom};
 
+use crate::utils::client;
+
 use super::*;
 
 /// リソース
@@ -19,9 +21,8 @@ struct Auth {
 }
 
 async fn auth(code: String) -> common::Result<Uuid> {
-	let client = reqwest::Client::new();
 	// dockerなしの内部通信なら"http://localhost:8000/auth"
-	let res = client.post("http://portal:8000/auth").json(&Auth { code }).send().await.and_then(|r| r.error_for_status())?;
+	let res = client().post("http://portal:8000/auth").json(&Auth { code }).send().await.and_then(|r| r.error_for_status())?;
 	let user_id = res.text().await?;
 	Ok(Uuid::from_str(&user_id)?)
 }

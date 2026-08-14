@@ -1,11 +1,6 @@
 use std::str::FromStr;
 
-use actix_web::{HttpResponse, Responder, error::ErrorUnauthorized, http::header, web};
-use sqlx::SqlitePool;
-use tera::Tera;
-use uuid::Uuid;
-
-use crate::utils::Identity;
+use super::*;
 
 pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.service(web::resource("").get(get).post(post));

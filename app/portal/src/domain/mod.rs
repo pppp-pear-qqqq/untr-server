@@ -1,30 +1,24 @@
 mod auth;
 mod entry;
 mod home;
+mod pages;
 mod user;
+mod webhook;
 
-use actix_web::{HttpResponse, Responder, http::header, web};
-use common::PageRender;
+use actix_web::{HttpResponse, Responder, error::*, http::header, web};
+use common::{PageRender, ReqType};
 use sqlx::SqlitePool;
 use tera::Tera;
+use uuid::Uuid;
 
 use crate::utils::{Identity, Page, UserData};
 
 pub fn cfg(cfg: &mut web::ServiceConfig) {
-	cfg.route("/", web::get().to(index));
+	cfg.route("/", web::get().to(pages::index));
+	cfg.route("info", web::get().to(pages::info));
 	cfg.service(web::scope("entry").configure(entry::cfg));
 	cfg.service(web::scope("auth").configure(auth::cfg));
 	cfg.service(web::scope("home").configure(home::cfg));
 	cfg.service(web::scope("user").configure(user::cfg));
-	cfg.route("info", web::get().to(info));
-}
-
-async fn index(id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
-	let body = Page::default().user_data_opt(UserData::load_opt(&id, &pool).await?).render("index.html", &tmpl)?;
-	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
-}
-
-async fn info(id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
-	let body = Page::default().user_data_opt(UserData::load_opt(&id, &pool).await?).render("info.html", &tmpl)?;
-	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
+	cfg.service(web::scope("webhook").configure(webhook::cfg));
 }

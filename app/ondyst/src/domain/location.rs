@@ -3,6 +3,8 @@ use std::sync::OnceLock;
 use fxhash::FxHashSet as HashSet;
 use regex::Regex;
 
+use crate::utils::{APP_URL, Webhook};
+
 use super::*;
 
 /// リソース
@@ -96,6 +98,7 @@ async fn post_chat(web::Form(info): web::Form<Chat>, id: Identity, pool: web::Da
 
 	// 入力のパース
 	let id = *id;
+	let raw_body = info.body.clone();
 	let body = info.body.escape(false).tag(tag::Ondyst).br();
 
 	// メンション・アンカーの処理
@@ -120,24 +123,49 @@ async fn post_chat(web::Form(info): web::Form<Chat>, id: Identity, pool: web::Da
 
 	// 発言の投稿
 	let pool = pool.as_ref();
-	sqlx::query!("INSERT INTO chat(timestamp,location,actor,name,icon,body) VALUES(?,?,?,?,?,?)", timestamp, info.location, id, info.name, info.icon, body).execute(pool).await?;
-
-	// 通知
-	if !mentions.is_empty() || !anchors.is_empty() {
-		// アンカーの対象追跡
-		if !anchors.is_empty() {
-			let mut builder = sqlx::QueryBuilder::new("SELECT actor FROM chat WHERE id IN (");
-			let mut sep = builder.separated(',');
-			for anchor in anchors.into_iter().take(64) {
-				sep.push_bind(anchor);
-			}
-			builder.push(")");
-			mentions.extend(builder.build_query_scalar::<Option<i64>>().fetch_all(pool).await?.into_iter().flatten());
+	let mut tx = pool.begin().await?;
+	let chat_id = sqlx::query_scalar!("INSERT INTO chat(timestamp,location,actor,name,icon,body) VALUES(?,?,?,?,?,?) RETURNING id", timestamp, info.location, id, info.name, info.icon, body).fetch_one(&mut *tx).await?;
+	// メンション
+	if !mentions.is_empty() {
+		let mut builder = sqlx::QueryBuilder::new("INSERT INTO chat_mention(source,target) VALUES");
+		let mut sep = builder.separated(',');
+		for t in &mentions {
+			sep.push('(').push_bind_unseparated(chat_id).push_bind(t).push_unseparated(')');
 		}
+		builder.build().execute(&mut *tx).await?;
+	}
+	// アンカー
+	if !anchors.is_empty() {
+		let mut builder = sqlx::QueryBuilder::new("INSERT INTO chat_anchor(source,target) VALUES");
+		let mut sep = builder.separated(',');
+		for t in &anchors {
+			sep.push('(').push_bind_unseparated(chat_id).push_bind(t).push_unseparated(')');
+		}
+		builder.build().execute(&mut *tx).await?;
+	}
+	tx.commit().await?;
 
-		mentions.remove(&id);
-
-		// TODO メンションの通知
+	// アンカーの対象追跡
+	if !anchors.is_empty() {
+		let mut builder = sqlx::QueryBuilder::new("SELECT actor FROM chat WHERE id IN (");
+		let mut sep = builder.separated(',');
+		for anchor in anchors {
+			sep.push_bind(anchor);
+		}
+		builder.push(")");
+		mentions.extend(builder.build_query_scalar::<Option<i64>>().fetch_all(pool).await?.into_iter().flatten());
+	}
+	// 通知
+	mentions.remove(&id); // 自分対象を除外
+	if !mentions.is_empty() {
+		let preview = raw_body.char_indices().nth(48).map(|(idx, _)| &raw_body[..idx]).unwrap_or(&raw_body);
+		let webhook = Webhook::new(format!("{}\n\n{}", preview, APP_URL)).username(format!("{} (one day's' talk)", info.name)).avatar_url(info.icon);
+		let target = mentions.into_iter().collect();
+		tokio::spawn(async move {
+			if let Err(err) = webhook.send(target).await {
+				eprintln!("{:?}", err);
+			}
+		});
 	}
 
 	Ok(HttpResponse::NoContent().finish())

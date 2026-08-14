@@ -1,15 +1,10 @@
 use actix_session::Session;
-use actix_web::{HttpResponse, Responder, error::*, http::header, web};
 use argon2::{
 	Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
 	password_hash::{SaltString, rand_core::OsRng},
 };
-use common::PageRender;
-use rkyv::rancor;
-use sqlx::SqlitePool;
-use uuid::Uuid;
 
-use crate::utils::{Identity, Page, UserData};
+use super::*;
 
 /// リソース
 pub fn cfg(cfg: &mut web::ServiceConfig) {
@@ -59,7 +54,7 @@ async fn register(web::Form(info): web::Form<Register>, session: Session, pool: 
 	let id = Uuid::new_v4();
 	let id = id.as_bytes().as_slice();
 	let hashed = Argon2::default().hash_password(info.password.as_bytes(), &SaltString::generate(&mut OsRng))?.to_string();
-	let mutes = rkyv::to_bytes::<rancor::Error>(&Vec::<String>::new())?;
+	let mutes = rkyv::to_bytes::<rkyv::rancor::Error>(&Vec::<String>::new())?;
 	let mutes = mutes.as_slice();
 
 	let pool = pool.as_ref();

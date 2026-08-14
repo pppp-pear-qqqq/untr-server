@@ -1,9 +1,4 @@
-use actix_web::{HttpResponse, Responder, http::header, web};
-use common::{PageRender, ReqType};
-use sqlx::SqlitePool;
-use tera::Tera;
-
-use crate::utils::{Identity, Page, UserData};
+use super::*;
 
 pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.route("", web::get().to(list));

@@ -45,11 +45,11 @@ table chat
 	name text
 	icon text
 	body text
-table chat_anchor
-	source ref(chat.id).update(cascade).delete(cascade)
-	target ref(chat.id).update(cascade).delete(cascade) index(chat_anchor_target)
-	@pk(source, target)
 table chat_mention
 	source ref(chat.id).update(cascade).delete(cascade)
 	target ref(actor.id).update(cascade).delete(cascade) index(chat_mention_target)
+	@pk(source, target)
+table chat_anchor
+	source ref(chat.id).update(cascade).delete(cascade)
+	target ref(chat.id).update(cascade).delete(cascade) index(chat_anchor_target)
 	@pk(source, target)

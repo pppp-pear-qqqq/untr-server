@@ -1,7 +1,9 @@
 //! アプリケーション全体で使用するような汎用構造体・関数
+mod client;
 mod page;
 mod state;
 
+pub use client::client;
 pub use page::{Page, UserData};
 pub use state::State;
 

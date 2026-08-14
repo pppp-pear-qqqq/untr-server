@@ -42,10 +42,7 @@ impl Page {
 		}
 	}
 	pub fn user_data_opt(self, user_data: Option<UserData>) -> Self {
-		Self {
-			page_type: PageType::Standard { user_data },
-			..self
-		}
+		Self { page_type: PageType::Standard { user_data }, ..self }
 	}
 	pub fn min(self) -> Self {
 		Self { page_type: PageType::Min, ..self }

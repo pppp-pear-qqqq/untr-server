@@ -3,7 +3,7 @@ use std::str::FromStr;
 use super::*;
 
 pub fn cfg(cfg: &mut web::ServiceConfig) {
-	cfg.service(web::resource("").get(get).post(post));
+	cfg.service(web::resource("").route(web::get().to(get)).route(web::post().guard(guard::fn_guard(is_internal)).to(post)));
 }
 
 /// 一時認証コードを発行

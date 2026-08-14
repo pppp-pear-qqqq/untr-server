@@ -27,7 +27,7 @@ async fn main() -> Result<(), io::Error> {
 
 	let app_data = app_data::AppData::new(&db_url).await;
 
-	println!("erltod-admin: {}", app_data.admin_key);
+	println!("ondyst-admin: {}", app_data.admin_key);
 
 	let server = HttpServer::new(move || {
 		let app_data = app_data.clone();

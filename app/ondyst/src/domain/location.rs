@@ -64,7 +64,19 @@ async fn location(key: web::Path<String>, web::Query(page): web::Query<Paginatio
 		Err(sqlx::Error::RowNotFound) => return Err(ErrorNotFound("指定された場所は存在しません").into()),
 		Err(err) => return Err(err.into()),
 	};
-	let chat_list = sqlx::query!("SELECT id,timestamp,actor,name,icon,body FROM chat WHERE location=? LIMIT ?,?", location.name, offset, limit).fetch_all(pool).await?.into_iter().map(|r| Chat { id: r.id, timestamp: chrono::DateTime::from_timestamp_secs(r.timestamp).unwrap(), actor: r.actor, name: r.name, icon: r.icon, body: r.body }).collect::<Vec<_>>();
+	let chat_list = sqlx::query!("SELECT id,timestamp,actor,name,icon,body FROM chat WHERE location=? LIMIT ?,?", location.name, offset, limit)
+		.fetch_all(pool)
+		.await?
+		.into_iter()
+		.map(|r| Chat {
+			id: r.id,
+			timestamp: chrono::DateTime::from_timestamp_secs(r.timestamp).unwrap(),
+			actor: r.actor,
+			name: r.name,
+			icon: r.icon,
+			body: r.body,
+		})
+		.collect::<Vec<_>>();
 
 	match req_type {
 		ReqType::Empty => Ok(HttpResponse::Ok().json(chat_list)),
@@ -124,7 +136,9 @@ async fn post_chat(web::Form(info): web::Form<Chat>, id: Identity, pool: web::Da
 	// 発言の投稿
 	let pool = pool.as_ref();
 	let mut tx = pool.begin().await?;
-	let chat_id = sqlx::query_scalar!("INSERT INTO chat(timestamp,location,actor,name,icon,body) VALUES(?,?,?,?,?,?) RETURNING id", timestamp, info.location, id, info.name, info.icon, body).fetch_one(&mut *tx).await?;
+	let chat_id = sqlx::query_scalar!("INSERT INTO chat(timestamp,location,actor,name,icon,body) VALUES(?,?,?,?,?,?) RETURNING id", timestamp, info.location, id, info.name, info.icon, body)
+		.fetch_one(&mut *tx)
+		.await?;
 	// メンション
 	if !mentions.is_empty() {
 		let mut builder = sqlx::QueryBuilder::new("INSERT INTO chat_mention(source,target) VALUES");

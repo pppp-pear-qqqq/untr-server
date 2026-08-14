@@ -25,3 +25,4 @@ sqlx.workspace = true
 tera.workspace = true
 tokio.workspace = true
 uuid.workspace = true
+validator.workspace = true

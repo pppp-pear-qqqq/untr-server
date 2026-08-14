@@ -26,13 +26,17 @@ async fn view_login(tmpl: web::Data<tera::Tera>) -> common::Result<impl Responde
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Validate)]
 struct Login {
+	#[validate(length(max = 64, message = "ユーザー名は64文字以内で入力してください"))]
 	username: String,
+	#[validate(length(max = 128, message = "パスワードは128文字以内で入力してください"))]
 	password: String,
 }
+
 /// ログイン処理
 async fn login(web::Form(info): web::Form<Login>, session: Session, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+	info.validate()?;
 	let pool = pool.as_ref();
 	let record = sqlx::query!("SELECT id,password FROM user WHERE name=?", info.username).fetch_one(pool).await?;
 	let parsed_hash = PasswordHash::new(&record.password)?;
@@ -44,13 +48,9 @@ async fn login(web::Form(info): web::Form<Login>, session: Session, pool: web::D
 	}
 }
 
-#[derive(serde::Deserialize)]
-struct Register {
-	username: String,
-	password: String,
-}
 /// 新規登録処理
-async fn register(web::Form(info): web::Form<Register>, session: Session, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+async fn register(web::Form(info): web::Form<Login>, session: Session, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+	info.validate()?;
 	let id = Uuid::new_v4();
 	let id = id.as_bytes().as_slice();
 	let hashed = Argon2::default().hash_password(info.password.as_bytes(), &SaltString::generate(&mut OsRng))?.to_string();

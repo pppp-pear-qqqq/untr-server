@@ -34,9 +34,9 @@ struct Setting {
 	comment: Option<String>,
 	#[validate(length(max = 8192, message = "プロフィールは8192文字以内で入力してください"))]
 	profile: Option<String>,
-	#[validate(length(max = 4096, message = "アイコンは4096文字以内で入力してください"))]
+	#[validate(length(max = 8192, message = "アイコンURLは合計8192文字以内にしてください"))]
 	icon_list: Option<String>,
-	#[validate(length(max = 4096, message = "ポートレートは4096文字以内で入力してください"))]
+	#[validate(length(max = 4096, message = "ポートレートURLは合計4096文字以内にしてください"))]
 	portrait_list: Option<String>,
 }
 async fn patch_setting(web::Json(info): web::Json<Setting>, id: Identity, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
@@ -69,7 +69,7 @@ async fn patch_setting(web::Json(info): web::Json<Setting>, id: Identity, pool: 
 
 	let pool = pool.as_ref();
 	builder.build().execute(pool).await?;
-	Ok("")
+	Ok(HttpResponse::NoContent().finish())
 }
 
 fn any_some(v: &Setting) -> Result<(), validator::ValidationError> {

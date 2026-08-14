@@ -11,6 +11,14 @@ form {
 		> input:where(:not([type]), [type="text"], [type="password"], [type="number"]) {
 			flex-grow: 1;
 		}
+
+		&:has(>textarea){
+			flex-wrap: wrap;
+		}
+		>textarea {
+			width: 100%;
+			resize: vertical;
+		}
 	}
 
 	.toggle-visible {

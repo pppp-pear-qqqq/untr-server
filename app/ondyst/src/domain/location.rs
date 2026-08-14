@@ -99,7 +99,7 @@ struct Chat {
 	location: String,
 	#[validate(length(max = 16, message = "キャラクター名は16文字以内で入力してください"))]
 	name: String,
-	#[validate(length(max = 255, message = "アイコンURLは255文字以内で入力してください"))]
+	#[validate(length(max = 256, message = "アイコンURLは256文字以内にしてください"))]
 	icon: String,
 	#[validate(length(max = 500, message = "本文は500文字以内で入力してください"))]
 	body: String,

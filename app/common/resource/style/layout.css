@@ -61,11 +61,8 @@ main {
 		translate 0.2s;
 	view-transition-name: main-menu;
 
-	> li > a {
-		/* ボックスモデル */
-		display: block flex;
-		gap: 0.2rem;
-		align-items: baseline;
+	> a,
+	> .tool-box > a {
 		/* タイポグラフィ */
 		color: var(--link-color);
 		font-size: 1.3rem;
@@ -79,7 +76,14 @@ main {
 		}
 	}
 
-	> li.tool-box {
+	> a {
+		/* ボックスモデル */
+		display: block flex;
+		gap: 0.2rem;
+		align-items: baseline;
+	}
+
+	> .tool-box {
 		/* ボックスモデル */
 		display: block flex;
 		flex-wrap: wrap;
@@ -110,6 +114,15 @@ dialog {
 	overflow-y: auto;
 	scrollbar-width: thin;
 	scrollbar-color: var(--border-color) transparent;
+}
+
+#background {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100dvw;
+	height: 100dvh;
+	z-index: -1;
 }
 
 /* ビュー遷移 */

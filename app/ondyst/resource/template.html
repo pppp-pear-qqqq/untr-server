@@ -16,6 +16,7 @@
 		<link rel="stylesheet" href="style/component.css">
 		<script>document.documentElement.dataset.theme = localStorage.getItem('theme') ?? document.documentElement.dataset.theme</script>
 		<script defer src="script/common.js"></script>
+		<script defer src="script/background.js"></script>
 		{% block head %}{% endblock %}
 	</head>
 	<body>
@@ -51,5 +52,6 @@
 		</header>
 		<main>{% block content %}{% endblock %}</main>
 		<dialog id="help" closedby="any"></dialog>
+		<canvas id="background"></canvas>
 	</body>
 </html>

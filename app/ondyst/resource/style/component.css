@@ -1,5 +1,9 @@
 /* アプリ毎に定義する再利用可能なパーツ */
 
+#background {
+	opacity: 0.2;
+}
+
 /* フォーム要素 */
 input,
 textarea,

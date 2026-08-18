@@ -42,7 +42,7 @@ async fn register(web::Form(info): web::Form<Auth>, session: Session, pool: web:
 	};
 	Identity::set(&session, actor_id)?;
 
-	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(actor_id.to_string()))
+	Ok(HttpResponse::Ok().content_type(header::ContentType::plaintext()).body(actor_id.to_string()))
 }
 
 async fn login(web::Form(info): web::Form<Auth>, session: Session, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
@@ -55,7 +55,7 @@ async fn login(web::Form(info): web::Form<Auth>, session: Session, pool: web::Da
 	match sqlx::query_scalar!("SELECT id FROM actor WHERE user=?", user).fetch_one(pool).await {
 		Ok(id) => {
 			Identity::set(&session, id)?;
-			Ok(HttpResponse::NoContent().finish())
+			Ok(HttpResponse::Ok().content_type(header::ContentType::plaintext()).body(id.to_string()))
 		}
 		Err(sqlx::Error::RowNotFound) => Err(ErrorUnauthorized("idが違う、またはキャラクターを未登録です").into()),
 		Err(err) => Err(err.into()),

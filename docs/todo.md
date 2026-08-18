@@ -39,6 +39,7 @@
 # 全体
 - [ ] SSL(https)対応
 - [ ] 電気通信事業者届出
+- [ ] 最終的にはlayout.cssとかは個別にした方が良い backgroundの扱いで困ったので あとdialog
 
 # 本当にどうでもいいこと
 portalにAd Shooterを作って広告収入を得る（本当にそんなことが可能なのか？）

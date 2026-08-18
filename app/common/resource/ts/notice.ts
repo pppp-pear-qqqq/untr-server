@@ -18,6 +18,7 @@ export class Toast {
 	private default_options: Options;
 
 	constructor({ hor = 'right', ver = 'bottom' }: ToastConstructor, default_options?: Options) {
+		if (Toast.types == undefined) throw new Error('Toast.types is not defined');
 		// メソッド定義
 		for (const [name, options] of Object.entries(Toast.types)) {
 			(this as any)[name] = (c: string | Node, ops?: Options) => this.new(name, c, merge(options, ops));
@@ -137,7 +138,7 @@ class ToastElement extends HTMLElement {
 		if (value instanceof HTMLImageElement || value instanceof SVGImageElement) {
 			e = value;
 		} else {
-			e = document.createElement('i');
+			e = document.createElement('ic');
 			e.className = value;
 		}
 		e.classList.add('icon');

@@ -66,7 +66,6 @@ function drawBackground() {
 async function init() {
     await loadTexture();
     drawBackground();
-    window.addEventListener('resize', drawBackground);
 }
 
 init();

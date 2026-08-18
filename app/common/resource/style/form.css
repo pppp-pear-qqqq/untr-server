@@ -12,10 +12,10 @@ form {
 			flex-grow: 1;
 		}
 
-		&:has(>textarea){
+		&:has(> textarea) {
 			flex-wrap: wrap;
 		}
-		>textarea {
+		> textarea {
 			width: 100%;
 			resize: vertical;
 		}

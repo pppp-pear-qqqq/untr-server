@@ -1,0 +1,9 @@
+#forms {
+	width: fit-content;
+	margin: 2lh auto;
+	text-align: center;
+
+	form {
+		padding: 0.3lh 0;
+	}
+}

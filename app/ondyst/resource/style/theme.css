@@ -4,7 +4,7 @@
 	font-size: min(1em, calc(98dvw / 30));
 
 	&[data-theme="light"] {
-		--surface-color: #eee;
+		--surface-color: #ffffffd0;
 		--content-color: #222;
 		--accent-color: #ffcd1b;
 		--border-color: #767676;

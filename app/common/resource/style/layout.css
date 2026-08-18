@@ -48,6 +48,7 @@ main {
 	min-width: 20dvw;
 	height: 100dvh;
 	padding: 80px 2dvw 2dvh 1dvw;
+	gap: 0.1rlh;
 	overflow-y: auto;
 	/* 装飾 */
 	border-left: 1px solid var(--border-color);

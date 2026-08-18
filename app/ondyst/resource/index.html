@@ -1,25 +1,33 @@
 {% extends "template.html" %}
 {% block head %}
+<link href="https://fonts.googleapis.com/css2?family=Darumadrop+One&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="common/style/note.css">
 <link rel="stylesheet" href="common/style/form.css">
-<link rel="stylesheet" href="style/entry.css">
+<link rel="stylesheet" href="style/index.css">
 <link rel="stylesheet" href="style/title.css">
 <script type="module" src="script/entry.js"></script>
 {% endblock %}
 {% block content %}
-<h1>one day's' talk</h1>
+<h1>
+	<!--時計盤を配置 JSで実際の時刻に合わせて針を描画する-->
+	one day's' talk
+</h1>
 <div id="forms">
-	<label role="button">ログイン<input type="radio" name="show" checked hidden></label>
+	{% if actor %}
+	<p>ログイン済み <a href="home"><ic class="ri-home-line"></ic>ホームへ</a></p>
+	<p>または <a id="logout" href="entry/logout"><ic class="ri-logout-circle-line"></ic>ログアウト</a></p>
+	{% else %}
 	<form id="login" method="post" action="entry/login" data-encode="form">
 		<input type="hidden" name="code">
 		<button type="submit">ログイン</button>
 	</form>
-	<label role="button">新規登録<input type="radio" name="show" hidden></label>
+	または
 	<form id="register" method="post" action="entry/register" data-encode="form" autocomplete="off">
 		<input type="hidden" name="code">
-		<span>新規登録を押した時点で<a href="#tos">利用規約</a>に同意したものと見なします</span>
 		<button type="submit">新規登録</button>
+		<span>新規登録を押した時点で<a href="#tos">利用規約</a>に同意したものと見なします</span>
 	</form>
+	{% endif %}
 </div>
 {% include "tos.html" %}
 {% endblock %}

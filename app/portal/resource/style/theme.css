@@ -1,6 +1,8 @@
 /* 色やタイポグラフィ */
 
 :root {
+	font-size: min(1em, calc(98dvw / 30));
+
 	&[data-theme="light"] {
 		--surface-color: #eee;
 		--content-color: #222;
@@ -31,10 +33,6 @@ button {
 	font-style: normal;
 	font-weight: 400;
 	line-height: 1.5;
-}
-
-html {
-	font-size: min(1em, calc(98dvw / 30));
 }
 
 input,

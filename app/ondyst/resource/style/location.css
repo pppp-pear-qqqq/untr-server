@@ -1,0 +1,85 @@
+#chat_list {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.5rlh;
+
+	> article {
+		content-visibility: auto;
+		contain-intrinsic-size: auto 96px;
+	}
+}
+
+#post_form {
+	justify-self: center;
+	margin-top: 0.5rlh;
+
+	input,
+	textarea {
+		padding: 0;
+		border: none;
+		resize: none;
+		border-radius: 0;
+		border-bottom: 1px dotted var(--border-color);
+
+		&:focus-visible {
+			outline: none;
+			border-bottom: 1px solid var(--accent-color);
+		}
+	}
+
+	textarea {
+		field-sizing: content;
+		min-height: 2lh;
+	}
+
+	button[type="submit"] {
+		width: 3rem;
+		padding-left: 3px;
+		border: 1px var(--border-color);
+		border-style: none dotted;
+		border-radius: 0;
+	}
+}
+
+#chat_list > article,
+#post_form {
+	display: grid;
+	width: fit-content;
+	grid-template: "ic nm id" auto "ic bd bd" 1fr "ic ut ut" auto / auto 1fr auto;
+	column-gap: 4px;
+	padding-right: 4px;
+	border-radius: 4px;
+	box-shadow: 0 0 2px var(--border-color);
+
+	> .name {
+		grid-area: nm;
+		font-weight: 500;
+	}
+	> .id {
+		grid-area: id;
+	}
+	> .icon {
+		grid-area: ic;
+		width: 2rlh;
+		max-height: 4rlh;
+	}
+	> .body {
+		grid-area: bd;
+		width: 30rem;
+		border-bottom: 1px dotted var(--border-color);
+	}
+	> .util {
+		grid-area: ut;
+		display: flex;
+		margin-bottom: -2px;
+		> button {
+			font-size: 1rem;
+			border: none;
+		}
+	}
+	time {
+		font-size: 0.8rem;
+		color: var(--border-color);
+	}
+}

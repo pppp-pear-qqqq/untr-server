@@ -1,7 +1,7 @@
 /* 色やタイポグラフィ */
 
 :root {
-	font-size: min(1em, calc(98dvw / 30));
+	font-size: min(16px, calc(98dvw / 30));
 
 	&[data-theme="light"] {
 		--surface-color: #eee;

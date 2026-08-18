@@ -34,6 +34,7 @@ async fn location_list(id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: 
 async fn location(key: web::Path<String>, web::Query(page): web::Query<Pagination>, req_type: ReqType, id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
 	#[derive(serde::Serialize)]
 	struct Location {
+		key: String,
 		name: String,
 		lore: String,
 	}
@@ -59,7 +60,7 @@ async fn location(key: web::Path<String>, web::Query(page): web::Query<Paginatio
 	let limit = page.limit as i64;
 
 	let pool = pool.as_ref();
-	let location = match sqlx::query_as!(Location, "SELECT name,lore FROM location WHERE key=?", key).fetch_one(pool).await {
+	let location = match sqlx::query_as!(Location, "SELECT key,name,lore FROM location WHERE key=?", key).fetch_one(pool).await {
 		Ok(r) => r,
 		Err(sqlx::Error::RowNotFound) => return Err(ErrorNotFound("指定された場所は存在しません").into()),
 		Err(err) => return Err(err.into()),
@@ -82,8 +83,12 @@ async fn location(key: web::Path<String>, web::Query(page): web::Query<Paginatio
 		ReqType::Empty => Ok(HttpResponse::Ok().json(chat_list)),
 		_ => {
 			let item_list = sqlx::query_as!(Item, "SELECT id,name,lore,message FROM item WHERE location=?", key).fetch_all(pool).await?;
-
 			let mut ctx = tera::Context::new();
+			if let Some(id) = &id {
+				let icon_list = sqlx::query_scalar!("SELECT icon_list FROM actor WHERE id=?", **id).fetch_one(pool).await?;
+				let icon_list: Vec<_> = icon_list.lines().collect();
+				ctx.insert("icon_list", &icon_list);
+			}
 			ctx.insert("location", &location);
 			ctx.insert("chat_list", &chat_list);
 			ctx.insert("item_list", &item_list);

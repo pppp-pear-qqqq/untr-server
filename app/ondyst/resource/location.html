@@ -1,6 +1,6 @@
 {% extends "template.html" %}
 {% block head %}
-<link rel="stylesheet" href="common/style/note.css">
+<link rel="stylesheet" href="style/location.css">
 {% endblock %}
 {% block content %}
 <article id="location">
@@ -23,17 +23,41 @@
 	{% for chat in chat_list %}
 	<article class="chat" data-id="{{chat.id}}">
 		<img class="icon" src="{{chat.icon|urlencode}}">
-		<header>
-			<span class="name">{{chat.name}}</span>
-			{% if chat.actor %}
-			<span class="actor">id:{{chat.actor}}</span>
-			{% endif %}
-		</header>
+		<span class="name">{{chat.name}}</span>
+		{% if chat.actor %}
+		<span class="id">id:{{chat.actor}}</span>
+		{% endif %}
 		<p class="body">{{chat.body|safe}}</p>
-		<footer>
+		<footer class="util">
 			<time class="timestamp">{{chat.timestamp}}</time>
 		</footer>
 	</article>
 	{% endfor %}
 </div>
+{% if actor %}
+<form id="post_form" action="location/{{location.key}}" method="post" data-encode="form">
+	<input type="hidden" name="location" value="{{location.name}}">
+	{% if icon_list %}
+	<dialog closedby="any">
+		<fieldset>
+			{% for icon in icon_list %}
+			<label>
+				<input type="radio" name="icon" value="{{icon|urlencode}}">
+				<img class="icon" src="{{icon|urlencode}}">
+			</label>
+			{% endfor %}
+		</fieldset>
+	</dialog>
+	<button class="icon" type="button"><img src="{{actor.icon|urlencode}}"></button>
+	{% else %}
+	<input type="hidden" name="icon" value="">
+	{% endif %}
+	<input class="name" type="text" name="name" placeholder="名前" value="{{actor.name}}">
+	<span class="id">ID: {{actor.id}}</span>
+	<textarea class="body" name="body" placeholder="本文"></textarea>
+	<footer class="util">
+		<button type="submit"><ic class="ri-send-line"></ic></button>
+	</footer>
+</form>
+{% endif %}
 {% endblock %}

@@ -10,7 +10,7 @@
 <article>
 	<h2>ロケーション一覧</h2>
 	{% for location in location_list %}
-	<section>
+	<section class="location">
 		<h3 class="name"><a href="/location/{{location.key}}">{{location.name}}</a></h3>
 		<p class="lore">{{location.lore|safe}}</p>
 	</section>

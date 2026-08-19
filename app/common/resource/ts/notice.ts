@@ -85,7 +85,6 @@ function merge<T extends object>(lhs: T, rhs?: T) {
 class ToastElement extends HTMLElement {
 	private _callback?: Function;
 	private _dismiss_handle?: number;
-	private _icon?: Element;
 
 	rect?: DOMRect;
 
@@ -113,25 +112,20 @@ class ToastElement extends HTMLElement {
 	}
 
 	set content(value: string | Node) {
-		const e = this.children.namedItem('content');
-		let content;
+		let e;
 		if (typeof value === 'string') {
-			if (e instanceof HTMLDivElement) {
-				e.innerHTML = value;
-				return;
-			} else {
-				content = document.createElement('div');
-				content.innerHTML = value;
-			}
+			e = document.createElement('div');
+			e.innerText = value;
 		} else if (value instanceof Element) {
-			content = value;
+			e = value;
 		} else {
-			content = document.createElement('div');
-			content.append(value);
+			e = document.createElement('div');
+			e.append(value);
 		}
-		content.id = 'content';
-		if (e) e.replaceWith(content);
-		else this.appendChild(content);
+		e.classList.add('content');
+		const old = this.querySelector(':scope>.content');
+		if (old) old.replaceWith(e);
+		else this.appendChild(e);
 	}
 	set icon(value: string | HTMLOrSVGImageElement) {
 		let e;
@@ -139,12 +133,12 @@ class ToastElement extends HTMLElement {
 			e = value;
 		} else {
 			e = document.createElement('ic');
-			e.className = value;
+			e.classList.add(value);
 		}
 		e.classList.add('icon');
-		if (this._icon) this._icon.replaceWith(e);
+		const old = this.querySelector(':scope>.icon');
+		if (old) old.replaceWith(e);
 		else this.insertBefore(e, null);
-		this._icon = e;
 	}
 	set callback(value: Function) {
 		this._callback = value;

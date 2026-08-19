@@ -9,6 +9,7 @@ use actix_web::{
 	middleware, web,
 };
 use tera::Tera;
+use validator::{ValidationErrors, ValidationErrorsKind};
 
 #[derive(Debug)]
 pub struct Error {
@@ -27,6 +28,15 @@ impl Error {
 	}
 }
 
+#[derive(Debug)]
+struct StringError(String);
+impl fmt::Display for StringError {
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		self.0.fmt(f)
+	}
+}
+impl std::error::Error for StringError {}
+
 impl<E> From<E> for Error
 where
 	E: std::error::Error + 'static,
@@ -37,8 +47,30 @@ where
 		if let Some(actix_err) = boxed.downcast_ref::<actix_web::Error>() {
 			let status = actix_err.as_response_error().status_code();
 			Self { status, cause: boxed }
+		} else if let Some(validator_err) = boxed.downcast_ref::<ValidationErrors>() {
+			let mut messages = Vec::new();
+			for (field, kind) in validator_err.errors() {
+				if let ValidationErrorsKind::Field(errors) = kind {
+					for err in errors {
+						if let Some(msg) = &err.message {
+							if *field == "__all__" {
+								messages.push(msg.to_string());
+							} else {
+								messages.push(format!("{}: {}", field, msg));
+							}
+						}
+					}
+				}
+			}
+			Self {
+				status: StatusCode::BAD_REQUEST,
+				cause: Box::new(StringError(messages.join("\n"))),
+			}
 		} else {
-			Self { status: StatusCode::INTERNAL_SERVER_ERROR, cause: boxed }
+			Self {
+				status: StatusCode::INTERNAL_SERVER_ERROR,
+				cause: boxed,
+			}
 		}
 	}
 }

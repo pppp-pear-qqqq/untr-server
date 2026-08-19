@@ -14,7 +14,7 @@ async fn index(id: Identity, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>)
 	ctx.insert("profile", &record.profile);
 	ctx.insert("webhook", &record.webhook);
 
-	let body = Page::default().user_data(UserData::load(&id, pool).await?).render("home.html", &tmpl)?;
+	let body = Page::default().user_data(UserData::load(&id, pool).await?).render_with_ctx("home.html", &tmpl, ctx)?;
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }
 
@@ -26,9 +26,9 @@ async fn view_setting(id: Identity, pool: web::Data<SqlitePool>, tmpl: web::Data
 #[derive(serde::Deserialize, Validate)]
 #[validate(schema(function = "any_some"))]
 struct Setting {
-	#[validate(length(max = 4096, message = "プロフィールは4096文字以内で入力してください"))]
+	#[validate(length(max = 4096, message = "4096文字以内で入力してください"))]
 	profile: Option<String>,
-	#[validate(length(max = 256, message = "ウェブフックURLはそんなに長くないと思います"))]
+	#[validate(length(max = 256, message = "そんなに長くないと思います"))]
 	webhook: Option<String>,
 }
 async fn update_setting(web::Json(info): web::Json<Setting>, id: Identity, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
@@ -42,7 +42,11 @@ async fn update_setting(web::Json(info): web::Json<Setting>, id: Identity, pool:
 	}
 	if let Some(webhook) = &info.webhook {
 		sep.push("webhook=");
-		sep.push_bind_unseparated(webhook);
+		if webhook.is_empty() {
+			sep.push_unseparated("NULL");
+		} else {
+			sep.push_bind_unseparated(webhook);
+		}
 	}
 	builder.push(" WHERE id=");
 	builder.push_bind(id.deref());

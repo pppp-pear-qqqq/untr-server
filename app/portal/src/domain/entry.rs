@@ -28,9 +28,9 @@ async fn view_login(tmpl: web::Data<tera::Tera>) -> common::Result<impl Responde
 
 #[derive(serde::Deserialize, Validate)]
 struct Login {
-	#[validate(length(max = 64, message = "ユーザー名は64文字以内で入力してください"))]
+	#[validate(length(max = 64, message = "64文字以内で入力してください"))]
 	username: String,
-	#[validate(length(max = 128, message = "パスワードは128文字以内で入力してください"))]
+	#[validate(length(max = 128, message = "128文字以内で入力してください"))]
 	password: String,
 }
 

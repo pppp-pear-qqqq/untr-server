@@ -28,15 +28,15 @@ async fn view_setting(id: Identity, pool: web::Data<SqlitePool>, tmpl: web::Data
 #[derive(serde::Deserialize, Validate)]
 #[validate(schema(function = "any_some"))]
 struct Setting {
-	#[validate(length(max = 16, message = "名前は16文字以内で入力してください"))]
+	#[validate(length(max = 16, message = "16文字以内で入力してください"))]
 	name: Option<String>,
-	#[validate(length(max = 48, message = "コメントは48文字以内で入力してください"))]
+	#[validate(length(max = 48, message = "48文字以内で入力してください"))]
 	comment: Option<String>,
-	#[validate(length(max = 8192, message = "プロフィールは8192文字以内で入力してください"))]
+	#[validate(length(max = 8192, message = "8192文字以内で入力してください"))]
 	profile: Option<String>,
-	#[validate(length(max = 8192, message = "アイコンURLは合計8192文字以内にしてください"))]
+	#[validate(length(max = 8192, message = "合計8192文字以内にしてください"))]
 	icon_list: Option<String>,
-	#[validate(length(max = 4096, message = "ポートレートURLは合計4096文字以内にしてください"))]
+	#[validate(length(max = 4096, message = "合計4096文字以内にしてください"))]
 	portrait_list: Option<String>,
 }
 async fn patch_setting(web::Json(info): web::Json<Setting>, id: Identity, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {

@@ -11,3 +11,4 @@ minify-html.workspace = true
 regex.workspace = true
 serde.workspace = true
 tera.workspace = true
+validator.workspace = true

@@ -74,6 +74,11 @@ http {
 			access_log off;
 			log_not_found off;
 		}
+		location /.well-known/ {
+			alias /app/app/common/.well-known;
+			access_log off;
+			log_not_found off;
+		}
 
 		location /image/ {
 			access_log off;

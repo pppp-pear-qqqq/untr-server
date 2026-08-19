@@ -50,3 +50,7 @@ export function bake_tpl(tpl: HTMLElement | HTMLTemplateElement, data: Record<st
 	}
 	return e;
 }
+
+export async function sleep(ms: number) {
+	return new Promise(resolve => setTimeout(resolve, ms));
+}

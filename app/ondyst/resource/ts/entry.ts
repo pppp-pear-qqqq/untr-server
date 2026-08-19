@@ -1,5 +1,6 @@
 import { Ajax } from '/common/script/ajax.js';
-import { toast, sleep } from './import.js';
+import { sleep } from '/common/script/funcs.js';
+import { toast } from './import.js';
 
 const portal = 'http://localhost:8080';
 

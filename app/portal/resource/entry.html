@@ -3,11 +3,15 @@
 <link rel="stylesheet" href="common/style/note.css">
 <link rel="stylesheet" href="common/style/form.css">
 <link rel="stylesheet" href="style/entry.css">
+<script type="module" src="script/entry.js"></script>
 {% endblock %}
 {% block content %}
+{% if user %}
+<p>ログイン中です。<a href="home"><ic class="ri-home-line"></ic>ホームへ</a></p>
+{% else %}
 <div id="forms">
 	<label role="button">ログイン<input type="radio" name="show" checked hidden></label>
-	<form id="login" method="post" action="entry/login">
+	<form id="login" method="post" action="entry/login" data-encode="form">
 		<label>
 			<ic class="ri-user-line"></ic>
 			<input type="text" name="username" placeholder="ユーザー名">
@@ -23,7 +27,7 @@
 		<button type="submit">ログイン</button>
 	</form>
 	<label role="button">新規登録<input type="radio" name="show" hidden></label>
-	<form id="register" method="post" action="entry/register" autocomplete="off">
+	<form id="register" method="post" action="entry/register" data-encode="form" autocomplete="off">
 		<label>
 			ユーザー名
 			<ic role="button" class="help ri-question-line">
@@ -56,5 +60,6 @@
 		<button type="submit">新規登録</button>
 	</form>
 </div>
+{% endif %}
 {% include "tos.html" %}
 {% endblock %}

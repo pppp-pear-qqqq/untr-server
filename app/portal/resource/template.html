@@ -12,6 +12,7 @@
 		<base href="/">
 		<link rel="stylesheet" href="style/theme.css">
 		<link rel="stylesheet" href="common/style/base.css">
+		<link rel="stylesheet" href="common/style/notice.css">
 		<link rel="stylesheet" href="common/style/layout.css">
 		<link rel="stylesheet" href="style/component.css">
 		<script>document.documentElement.dataset.theme = localStorage.getItem('theme') ?? document.documentElement.dataset.theme</script>
@@ -24,23 +25,19 @@
 			<button type="button" aria-controls="main-menu" aria-expanded="false">
 				<span></span>
 			</button>
-			<menu id="main-menu">
-				<li><a href=""><ic class="ri-global-line"></ic>Top</a></li>
+			<nav id="main-menu">
+				<a href=""><ic class="ri-global-line"></ic>Top</a>
 				{% if user %}
-				<li><a href="home"><ic class="ri-home-line"></ic>Home</a></li>
+				<a href="home"><ic class="ri-home-line"></ic>Home</a>
 				{% endif %}
-				<li><a href="entry"><ic class="ri-login-circle-line"></ic>Entry</a></li>
-				<li class="partition"></li>
-				<li class="tool-box">
+				<a href="entry"><ic class="ri-login-circle-line"></ic>Entry</a>
+				<div class="partition"></div>
+				<div class="tool-box">
 					<a title="ライトテーマ" data-theme="light"><ic class="ri-sun-line"></ic></a>
 					<a title="ダークテーマ" data-theme="dark"><ic class="ri-moon-line"></ic></a>
-					{% if user %}
-					<div class="partition"></div>
-					<a href="entry/logout" title="ログアウト"><ic class="ri-logout-circle-line"></ic></a>
-					{% endif %}
-				</li>
-				<li class="credit"><small>2026 <a target="_blank" href="https://x.com/untroche_ar">untroche</a></small></li>
-			</menu>
+				</div>
+				<small class="credit">2026 <a target="_blank" href="https://x.com/untroche_ar">untroche</a></small>
+			</nav>
 			{% if user %}
 			<div id="user-data">
 				ログイン中: <span class="username">{{user.name}}</span>

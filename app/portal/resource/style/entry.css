@@ -48,3 +48,8 @@
 		margin-top: 0.5lh;
 	}
 }
+
+main>p{
+	text-align: center;
+	margin: 2lh 0;
+}

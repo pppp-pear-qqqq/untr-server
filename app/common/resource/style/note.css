@@ -1,5 +1,6 @@
 article,
-section {
+section,
+form {
 	border-bottom: 1px solid var(--border-color);
 
 	h1,
@@ -49,7 +50,8 @@ article {
 		margin-top: 0.6lh;
 	}
 }
-section {
+section,
+form {
 	padding-bottom: 0.4lh;
 
 	> *:not(h1, h2, h3, h4, h5, h6) + * {

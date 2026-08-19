@@ -55,7 +55,7 @@ async fn actor(actor: web::Path<i32>, id: Option<Identity>, pool: web::Data<Sqli
 		Err(err) => return Err(err.into()),
 	};
 
-	let profile = record.profile.escape(false).tag(tag::Ondyst).br();
+	let profile = record.profile.escape_and_link().tag(tag::Ondyst).br();
 	let mut section_iter = profile.split("<br># ");
 	let mut sections = Vec::new();
 	if let Some(section) = section_iter.next() {

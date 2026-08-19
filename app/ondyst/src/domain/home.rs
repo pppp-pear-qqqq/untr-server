@@ -17,11 +17,15 @@ async fn index(id: Identity, pool: web::Data<SqlitePool>, tmpl: web::Data<tera::
 
 async fn view_setting(id: Identity, pool: web::Data<SqlitePool>, tmpl: web::Data<tera::Tera>) -> common::Result<impl Responder> {
 	let pool = pool.as_ref();
+	let record = sqlx::query!("SELECT comment,profile,icon_list,portrait_list FROM actor WHERE id=?", *id).fetch_one(pool).await?;
 
-	// id,user,name,comment,profile,icon_list,portrait_list
-	// webhookはportalへのリンクを設置する
+	let mut ctx = tera::Context::new();
+	ctx.insert("comment", &record.comment);
+	ctx.insert("profile", &record.profile);
+	ctx.insert("icon_list", &record.icon_list);
+	ctx.insert("portrait_list", &record.portrait_list);
 
-	let body = Page::default().actor_data(ActorData::load(&id, pool).await?).render("setting.html", &tmpl)?;
+	let body = Page::default().actor_data(ActorData::load(&id, pool).await?).render_with_ctx("setting.html", &tmpl, ctx)?;
 	Ok(HttpResponse::Ok().body(body))
 }
 
@@ -57,10 +61,12 @@ async fn patch_setting(web::Json(info): web::Json<Setting>, id: Identity, pool: 
 		sep.push_bind_unseparated(v);
 	}
 	if let Some(v) = &info.icon_list {
+		let v = format_list(v);
 		sep.push("icon_list=");
 		sep.push_bind_unseparated(v);
 	}
 	if let Some(v) = &info.portrait_list {
+		let v = format_list(v);
 		sep.push("portrait_list=");
 		sep.push_bind_unseparated(v);
 	}
@@ -80,4 +86,14 @@ fn any_some(v: &Setting) -> Result<(), validator::ValidationError> {
 		err.message = Some(std::borrow::Cow::Borrowed("少なくとも1つの項目を変更してください"));
 		Err(err)
 	}
+}
+
+fn format_list(v: &str) -> String {
+	v.lines()
+		.filter_map(|l| {
+			let l = l.trim();
+			if !l.is_empty() { Some(l) } else { None }
+		})
+		.collect::<Vec<_>>()
+		.join("\n")
 }

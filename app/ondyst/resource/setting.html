@@ -1,6 +1,43 @@
 {% extends "template.html" %}
 {% block head %}
 <link rel="stylesheet" href="common/style/note.css">
+<link rel="stylesheet" href="common/style/form.css">
+<script type="module" src="script/setting.js"></script>
 {% endblock %}
 {% block content %}
+<form id="profile" action="home/setting" autocomplete="off">
+	<h2>設定<span>(ID: {{actor.id}} {{actor.name}})</span></h2>
+	<label>コメント<input type="text" name="comment" value="{{comment}}"></label>
+	<label for="input_profile">
+		プロフィール
+		<label class="auto_resize"><input type="checkbox" checked>自動リサイズ</label>
+		<textarea id="input_profile" name="profile">{{profile}}</textarea>
+	</label>
+	<label for="input_icon_list">アイコン
+		<label class="auto_resize"><input type="checkbox">自動リサイズ</label>
+		<textarea id="input_icon_list" name="icon_list">{{icon_list}}</textarea>
+	</label>
+	<div class="icon_list">
+		{% if icon_list %}
+		{% for line in icon_list|split(pat="\n") %}
+		<img class="icon" src="{{line}}">
+		{% endfor %}
+		{% endif %}
+	</div>
+	<label for="input_portrait_list">
+		プロフィール画像
+		<label class="auto_resize"><input type="checkbox">自動リサイズ</label>
+		<textarea id="input_portrait_list" name="portrait_list">{{portrait_list}}</textarea>
+	</label>
+	<div class="portrait_list">
+		{% if portrait_list %}
+		{% for line in portrait_list|split(pat="\n") %}
+		<img class="portrait" src="{{line}}">
+		{% endfor %}
+		{% endif %}
+	</div>
+	<p>Webhook設定は<a target="_blank" href="http://localhost:8080/home">ポータルサイト</a>側にて行ってください</p>
+	<p><a target="_blank" href="actor/{{actor.id}}">プロフィール閲覧</a></p>
+	<button type="submit">更新</button>
+</form>
 {% endblock %}

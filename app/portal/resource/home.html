@@ -2,15 +2,13 @@
 {% block head %}
 <link rel="stylesheet" href="common/style/note.css">
 <link rel="stylesheet" href="common/style/form.css">
-<script type="module" src="script/home.js"></script>
+<script type="module" src="script/setting.js"></script>
 {% endblock %}
 {% block content %}
-<article>
+<form id="profile" action="home/setting" autocomplete="off">
 	<h2>設定</h2>
-	<form id="profile" method="post" action="home/setting" autocomplete="off">
-		<label>プロフィール<textarea name="profile">{{profile}}</textarea></label>
-		<label>Webhook URL<input type="text" name="webhook" value="{{webhook}}"></label>
-		<button type="submit">更新</button>
-	</form>
-</article>
+	<label>プロフィール<textarea name="profile">{{profile}}</textarea></label>
+	<label>Webhook URL<input type="text" name="webhook" value="{{webhook}}"></label>
+	<button type="submit">更新</button>
+</form>
 {% endblock %}

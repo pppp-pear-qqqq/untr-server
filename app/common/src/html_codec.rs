@@ -3,12 +3,20 @@ use std::{borrow::Cow, sync::OnceLock};
 use regex::Regex;
 
 pub trait HTMLEncode<'a> {
+	fn parse<T: TagFormat>(self, format: T, link_to_tag: bool) -> Cow<'a, str>;
+
 	fn br(self) -> Cow<'a, str>;
 	fn escape(self, quot: bool) -> Cow<'a, str>;
 	fn escape_and_link(self) -> Cow<'a, str>;
 	fn tag<T: TagFormat>(self, format: T) -> Cow<'a, str>;
 }
 impl<'a, T: Into<Cow<'a, str>>> HTMLEncode<'a> for T {
+	fn parse<F: TagFormat>(self, format: F, link_to_tag: bool) -> Cow<'a, str> {
+		let text = self.into();
+		// ここでエスケープ・タグ処理・リンク処理など全てまとめて実行する
+		todo!()
+	}
+
 	fn br(self) -> Cow<'a, str> {
 		let text = self.into();
 		const BR: &str = "<br>";

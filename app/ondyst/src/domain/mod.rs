@@ -5,7 +5,7 @@ mod location;
 mod pages;
 
 use actix_web::{HttpResponse, Responder, error::*, http::header, web};
-use common::{PageRender, Pagination, ReqType, html_codec::*};
+use common::{HTMLEncode, PageRender, Pagination, ReqType};
 use sqlx::SqlitePool;
 use tera::Tera;
 use uuid::Uuid;

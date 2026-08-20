@@ -3,7 +3,7 @@ use base64::prelude::*;
 use sqlx::SqlitePool;
 use tera::Tera;
 
-use crate::utils::{self, State, StateHandle};
+use crate::utils::{self, State, StateHandle, tag_parse as tag};
 
 // 定数
 const STATE: &str = "STATE";
@@ -45,7 +45,10 @@ impl AppData {
 		};
 		// teraコア生成
 		let tera = match Tera::new(&utils::resource("**/*.html")) {
-			Ok(t) => t,
+			Ok(mut t) => {
+				t.register_filter("html", common::html_filter::<tag::Ondyst>);
+				t
+			}
 			Err(e) => {
 				println!("Parsing error(s): {}", e);
 				std::process::exit(1);

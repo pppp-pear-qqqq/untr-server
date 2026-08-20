@@ -116,7 +116,7 @@ async fn post_chat(web::Form(info): web::Form<Chat>, id: Identity, pool: web::Da
 	// 入力のパース
 	let id = *id;
 	let raw_body = info.body.clone();
-	let body = info.body.escape(false).tag(tag::Ondyst).br();
+	let body = info.body.to_html(&tag::Ondyst, false);
 
 	// メンション・アンカーの処理
 	static RE: OnceLock<Regex> = OnceLock::new();

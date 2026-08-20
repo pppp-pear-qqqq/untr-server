@@ -55,19 +55,18 @@ async fn actor(actor: web::Path<i32>, id: Option<Identity>, pool: web::Data<Sqli
 		Err(err) => return Err(err.into()),
 	};
 
-	let profile = record.profile.escape_and_link().tag(tag::Ondyst).br();
-	let mut section_iter = profile.split("<br># ");
+	let mut section_iter = record.profile.split("\n# ");
 	let mut sections = Vec::new();
 	if let Some(section) = section_iter.next() {
 		if let Some(section) = section.strip_prefix("# ") {
-			let (title, content) = section.split_once("<br>").unwrap_or((section, ""));
+			let (title, content) = section.split_once("\n").unwrap_or((section, ""));
 			sections.push(Section { title: Some(title), content });
 		} else {
 			sections.push(Section { title: None, content: section });
 		}
 	}
 	for section in section_iter {
-		let (title, content) = section.split_once("<br>").unwrap_or((section, ""));
+		let (title, content) = section.split_once("\n").unwrap_or((section, ""));
 		sections.push(Section { title: Some(title), content });
 	}
 	let portrait = record.portrait_list.lines().choose(&mut rand::rng());

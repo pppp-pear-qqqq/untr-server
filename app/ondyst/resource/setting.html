@@ -1,7 +1,7 @@
 {% extends "template.html" %}
 {% block head %}
-<link rel="stylesheet" href="common/style/note.css">
-<link rel="stylesheet" href="common/style/form.css">
+<link rel="stylesheet" href="style/note.css">
+<link rel="stylesheet" href="style/form.css">
 <script type="module" src="script/setting.js"></script>
 {% endblock %}
 {% block content %}
@@ -11,7 +11,39 @@
 	<label for="input_profile">
 		プロフィール
 		<label class="auto_resize"><input type="checkbox" checked>自動リサイズ</label>
-		<textarea id="input_profile" name="profile">{{profile}}</textarea>
+		<textarea id="input_profile" name="profile" class="insert_tag">{{profile}}</textarea>
+		<div class="tool-box">
+			<button type="button" title="太字" onclick="insert_tag('[b/', '/b]')">
+				<ic class="ri-bold"></ic>
+			</button>
+			<button type="button" title="斜体" onclick="insert_tag('[i/', '/i]')">
+				<ic class="ri-italic"></ic>
+			</button>
+			<button type="button" title="下線" onclick="insert_tag('[u/', '/u]')">
+				<ic class="ri-underline"></ic>
+			</button>
+			<button type="button" title="取消線" onclick="insert_tag('[s/', '/s]')">
+				<ic class="ri-strikethrough"></ic>
+			</button>
+			<button type="button" title="小文字" onclick="insert_tag('[small/', '/small]')">
+				<ic class="ri-subtract-line"></ic>
+			</button>
+			<button type="button" title="大文字" onclick="insert_tag('[large/', '/large]')">
+				<ic class="ri-add-line"></ic>
+			</button>
+			<button type="button" title="圏点" onclick="insert_tag('[em/', '/em]')">
+				<ic class="ri-emphasis"></ic>
+			</button>
+			<button type="button" title="ルビ" onclick="insert_tag('[ruby/', '|ルビ/ruby]')">
+				<ic class="ri-emphasis-cn"></ic>
+			</button>
+			<button type="button" title="虹色" onclick="insert_tag('[rainbow/', '/rainbow]')">
+				<ic class="ri-rainbow-fill"></ic>
+			</button>
+			<button type="button" title="画像挿入" onclick="insert_tag('[image/', '/image]')">
+				<ic class="ri-image-line"></ic>
+			</button>
+		</div>
 	</label>
 	<label for="input_icon_list">アイコン
 		<label class="auto_resize"><input type="checkbox">自動リサイズ</label>

@@ -85,7 +85,7 @@ http {
 			log_not_found off;
 		}
 		location ~ ^/(script|style)/(.+)$ {
-			try_files /$1${ASSET_SUFFIX}/$2 =404;
+			try_files /$1${ASSET_SUFFIX}/$2 /common/$1${ASSET_SUFFIX}/$2;
 			access_log off;
 			log_not_found off;
 		}

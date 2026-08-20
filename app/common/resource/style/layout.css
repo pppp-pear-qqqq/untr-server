@@ -86,12 +86,7 @@ main {
 
 	> .tool-box {
 		/* ボックスモデル */
-		display: block flex;
 		flex-wrap: wrap;
-		gap: 0.2rem;
-		align-items: center;
-		/* タイポグラフィ */
-		font-size: 1.3rem;
 	}
 
 	body:has([aria-controls="main-menu"][aria-expanded="true"]) & {

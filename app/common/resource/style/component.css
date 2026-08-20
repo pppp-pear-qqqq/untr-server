@@ -1,5 +1,9 @@
 /* アプリ毎に定義する再利用可能なパーツ */
 
+#background {
+	opacity: 0.2;
+}
+
 /* フォーム要素 */
 input,
 textarea,
@@ -10,7 +14,18 @@ button {
 	border: 1px var(--border-color);
 	border-style: solid;
 	border-radius: 3px;
-	background: none;
+	background-color: var(--form-back-color);
+}
+
+/* コンテナ要素 */
+.tool-box {
+	display: flex;
+	align-items: center;
+	gap: 0.1em;
+
+	> button {
+		border: none;
+	}
 }
 
 /* ボタン汎用 */
@@ -36,6 +51,7 @@ button,
 	height: 2rem;
 	/* 装飾 */
 	border: none;
+	background: none;
 	/* アニメーション */
 	transition: color 0.2s;
 

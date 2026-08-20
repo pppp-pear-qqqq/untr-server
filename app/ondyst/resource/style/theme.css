@@ -5,20 +5,22 @@
 
 	&[data-theme="light"] {
 		--surface-color: #ffffffd0;
+		--form-back-color: #f0f0f080;
 		--content-color: #202020;
 		--accent-color: #ffcd1b;
 		--border-color: #767676;
-		--link-color: #80a0ff;
-		--link-visited-color: #80a0ff;
+		--link-color: #2a4db4;
+		--link-visited-color: #2a4db4;
 		--rainbow-color: #b00000;
 	}
 	&[data-theme="dark"] {
 		--surface-color: #202020d0;
+		--form-back-color: #40404080;
 		--content-color: #d0d0d0;
 		--accent-color: #ffcd1b;
 		--border-color: #767676;
-		--link-color: #007bff;
-		--link-visited-color: #007bff;
+		--link-color: #cee6ff;
+		--link-visited-color: #cee6ff;
 		--rainbow-color: #ff6060;
 	}
 }

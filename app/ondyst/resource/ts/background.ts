@@ -8,8 +8,6 @@ let textureImg: HTMLImageElement;
 async function loadTexture() {
     return new Promise((resolve) => {
         textureImg = new Image();
-        // ここにベースとなるテクスチャ画像のURLを指定します
-        // 今回はデモ用に、ざらざらしたコンクリートテクスチャを生成して使用します
         textureImg.src = 'image/back.png'; // (生成した画像のData URIをセット)
         textureImg.onload = resolve;
     });

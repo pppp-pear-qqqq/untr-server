@@ -14,10 +14,13 @@ button {
 	border: 1px var(--border-color);
 	border-style: solid;
 	border-radius: 3px;
-	background-color: var(--form-back-color);
+	background-color: var(--weak-surface-color);
 }
 
 /* コンテナ要素 */
+article {
+	backdrop-filter: blur(4px);
+}
 .tool-box {
 	display: flex;
 	align-items: center;

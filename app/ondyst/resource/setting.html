@@ -5,72 +5,50 @@
 <script type="module" src="script/setting.js"></script>
 {% endblock %}
 {% block content %}
-<form id="profile" action="home/setting" autocomplete="off">
-	<h2>設定<span>(ID: {{actor.id}} {{actor.name}})</span></h2>
+<form action="home/setting" autocomplete="off">
+	<h2>設定<span>(id: {{actor.id}} {{actor.name}})</span></h2>
 	<label>コメント<input type="text" name="comment" value="{{comment}}"></label>
-	<label for="input_profile">
+	<label for="profile">
 		プロフィール
 		<label class="auto-resize"><input type="checkbox" checked>自動リサイズ</label>
-		<textarea id="input_profile" name="profile" class="insert-tag">{{profile}}</textarea>
+		<textarea id="profile" name="profile" class="insert-tag">{{profile}}</textarea>
 		<div class="tool-box">
-			<button type="button" title="太字" onclick="insert_tag('[b/', '/b]')">
-				<ic class="ri-bold"></ic>
-			</button>
-			<button type="button" title="斜体" onclick="insert_tag('[i/', '/i]')">
-				<ic class="ri-italic"></ic>
-			</button>
-			<button type="button" title="下線" onclick="insert_tag('[u/', '/u]')">
-				<ic class="ri-underline"></ic>
-			</button>
-			<button type="button" title="取消線" onclick="insert_tag('[s/', '/s]')">
-				<ic class="ri-strikethrough"></ic>
-			</button>
-			<button type="button" title="小文字" onclick="insert_tag('[small/', '/small]')">
-				<ic class="ri-subtract-line"></ic>
-			</button>
-			<button type="button" title="大文字" onclick="insert_tag('[large/', '/large]')">
-				<ic class="ri-add-line"></ic>
-			</button>
-			<button type="button" title="圏点" onclick="insert_tag('[em/', '/em]')">
-				<ic class="ri-emphasis"></ic>
-			</button>
-			<button type="button" title="ルビ" onclick="insert_tag('[ruby/', '|ルビ/ruby]')">
-				<ic class="ri-emphasis-cn"></ic>
-			</button>
-			<button type="button" title="虹色" onclick="insert_tag('[rainbow/', '/rainbow]')">
-				<ic class="ri-rainbow-fill"></ic>
-			</button>
-			<button type="button" title="画像挿入" onclick="insert_tag('[image/', '/image]')">
-				<ic class="ri-image-line"></ic>
-			</button>
-			<button type="button" title="見出し" onclick="insert_tag('\n# ', '')">
-				<ic class="ri-heading"></ic>
-			</button>
+			<button type="button" title="太字" onclick="insert_tag('[b/', '/b]')"><ic class="ri-bold"></ic></button>
+			<button type="button" title="斜体" onclick="insert_tag('[i/', '/i]')"><ic class="ri-italic"></ic></button>
+			<button type="button" title="下線" onclick="insert_tag('[u/', '/u]')"><ic class="ri-underline"></ic></button>
+			<button type="button" title="取消線" onclick="insert_tag('[s/', '/s]')"><ic class="ri-strikethrough"></ic></button>
+			<button type="button" title="小文字" onclick="insert_tag('[small/', '/small]')"><ic class="ri-subtract-line"></ic></button>
+			<button type="button" title="大文字" onclick="insert_tag('[large/', '/large]')"><ic class="ri-add-line"></ic></button>
+			<button type="button" title="圏点" onclick="insert_tag('[em/', '/em]')"><ic class="ri-emphasis"></ic></button>
+			<button type="button" title="ルビ" onclick="insert_tag('[ruby/', '|ルビ/ruby]')"><ic class="ri-emphasis-cn"></ic></button>
+			<button type="button" title="虹色" onclick="insert_tag('[rainbow/', '/rainbow]')"><ic class="ri-rainbow-fill"></ic></button>
+			<button type="button" title="画像挿入" onclick="insert_tag('[image/', '/image]')"><ic class="ri-image-line"></ic></button>
+			<button type="button" title="見出し" onclick="insert_tag('\n# ', '')"><ic class="ri-heading"></ic></button>
 		</div>
 	</label>
-	<label for="input_icon_list">アイコン
+	<label for="icon_list">アイコン
 		<label class="auto-resize"><input type="checkbox">自動リサイズ</label>
-		<textarea id="input_icon_list" name="icon_list" placeholder="改行区切り">{{icon_list}}</textarea>
+		<textarea id="icon_list" name="icon_list" placeholder="改行区切り">{{icon_list}}</textarea>
+		<div class="icon_list">
+			{% if icon_list %}
+			{% for line in icon_list|split(pat="\n") %}
+			<img class="icon" src="{{line}}" width="48">
+			{% endfor %}
+			{% endif %}
+		</div>
 	</label>
-	<div class="icon_list">
-		{% if icon_list %}
-		{% for line in icon_list|split(pat="\n") %}
-		<img class="icon" src="{{line}}">
-		{% endfor %}
-		{% endif %}
-	</div>
-	<label for="input_portrait_list">
+	<label for="portrait_list">
 		プロフィール画像
 		<label class="auto-resize"><input type="checkbox">自動リサイズ</label>
-		<textarea id="input_portrait_list" name="portrait_list" placeholder="改行区切り">{{portrait_list}}</textarea>
+		<textarea id="portrait_list" name="portrait_list" placeholder="改行区切り">{{portrait_list}}</textarea>
+		<div class="portrait_list">
+			{% if portrait_list %}
+			{% for line in portrait_list|split(pat="\n") %}
+			<img class="portrait" src="{{line}}" width="384">
+			{% endfor %}
+			{% endif %}
+		</div>
 	</label>
-	<div class="portrait_list">
-		{% if portrait_list %}
-		{% for line in portrait_list|split(pat="\n") %}
-		<img class="portrait" src="{{line}}">
-		{% endfor %}
-		{% endif %}
-	</div>
 	<p>Webhook設定は<a target="_blank" href="http://localhost:8080/home">ポータルサイト</a>側にて行ってください</p>
 	<p><a target="_blank" href="actor/{{actor.id}}">プロフィール閲覧</a></p>
 	<button type="submit">更新</button>

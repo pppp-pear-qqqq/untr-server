@@ -22,14 +22,16 @@
 <div id="chat_list">
 	{% for chat in chat_list %}
 	<article class="chat" data-id="{{chat.id}}">
-		<img class="icon" src="{{chat.icon|urlencode}}">
+		<img class="icon" src="{{chat.icon}}">
 		<span class="name">{{chat.name}}</span>
 		{% if chat.actor %}
-		<span class="id">id:{{chat.actor}}</span>
+		<span class="id">id: {{chat.actor}}</span>
 		{% endif %}
 		<p class="body">{{chat.body|safe}}</p>
 		<footer class="util">
 			<time class="timestamp">{{chat.timestamp}}</time>
+			<div class="partition"></div>
+			<button type="button" title="返信"><ic class="ri-reply-line"></ic></button>
 		</footer>
 	</article>
 	{% endfor %}
@@ -42,21 +44,32 @@
 		<fieldset>
 			{% for icon in icon_list %}
 			<label>
-				<input type="radio" name="icon" value="{{icon|urlencode}}">
-				<img class="icon" src="{{icon|urlencode}}">
+				<input type="radio" name="icon" value="{{icon}}">
+				<img class="icon" src="{{icon}}">
 			</label>
 			{% endfor %}
 		</fieldset>
 	</dialog>
-	<button class="icon" type="button"><img src="{{actor.icon|urlencode}}"></button>
+	<button class="icon" type="button"><img src="{{actor.icon}}"></button>
 	{% else %}
 	<input type="hidden" name="icon" value="">
 	{% endif %}
 	<input class="name" type="text" name="name" placeholder="名前" value="{{actor.name}}">
-	<span class="id">ID: {{actor.id}}</span>
+	<span class="id">id: {{actor.id}}</span>
 	<textarea class="body" name="body" placeholder="本文"></textarea>
 	<footer class="util">
-		<button type="submit"><ic class="ri-send-line"></ic></button>
+		<button type="button" title="太字" onclick="insert_tag('[b/', '/b]')"><ic class="ri-bold"></ic></button>
+		<button type="button" title="斜体" onclick="insert_tag('[i/', '/i]')"><ic class="ri-italic"></ic></button>
+		<button type="button" title="下線" onclick="insert_tag('[u/', '/u]')"><ic class="ri-underline"></ic></button>
+		<button type="button" title="取消線" onclick="insert_tag('[s/', '/s]')"><ic class="ri-strikethrough"></ic></button>
+		<button type="button" title="小文字" onclick="insert_tag('[small/', '/small]')"><ic class="ri-subtract-line"></ic></button>
+		<button type="button" title="大文字" onclick="insert_tag('[large/', '/large]')"><ic class="ri-add-line"></ic></button>
+		<button type="button" title="圏点" onclick="insert_tag('[em/', '/em]')"><ic class="ri-emphasis"></ic></button>
+		<button type="button" title="ルビ" onclick="insert_tag('[ruby/', '|ルビ/ruby]')"><ic class="ri-emphasis-cn"></ic></button>
+		<button type="button" title="虹色" onclick="insert_tag('[rainbow/', '/rainbow]')"><ic class="ri-rainbow-fill"></ic></button>
+		<button type="button" title="画像挿入" onclick="insert_tag('[image/', '/image]')"><ic class="ri-image-line"></ic></button>
+		<div class="partition"></div>
+		<button type="submit" title="発言投稿"><ic class="ri-send-plane-2-line"></ic></button>
 	</footer>
 </form>
 {% endif %}

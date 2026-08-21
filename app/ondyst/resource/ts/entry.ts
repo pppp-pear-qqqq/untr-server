@@ -24,7 +24,7 @@ window.addEventListener('message', ev => {
 	if (target == null) return;
 	target.querySelector<HTMLInputElement>('input[name="code"]')!.value = ev.data;
 	new Ajax(target).send('text').then(async ret => {
-		toast.success(`ID: ${ret}`);
+		toast.success(`id: ${ret}`);
 		await sleep(2000);
 		location.href = 'home';
 	}).catch(err => {

@@ -5,7 +5,7 @@
 
 	&[data-theme="light"] {
 		--surface-color: #eee;
-		--form-back-color: #f0f0f080;
+		--weak-surface-color: #f0f0f080;
 		--content-color: #222;
 		--accent-color: #ffcd1b;
 		--border-color: #767676;
@@ -15,7 +15,7 @@
 	}
 	&[data-theme="dark"] {
 		--surface-color: #222;
-		--form-back-color: #40404080;
+		--weak-surface-color: #40404080;
 		--content-color: #ddd;
 		--accent-color: #ffcd1b;
 		--border-color: #767676;

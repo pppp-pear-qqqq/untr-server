@@ -17,7 +17,7 @@
 		<link rel="stylesheet" href="style/component.css">
 		<script>document.documentElement.dataset.theme = localStorage.getItem('theme') ?? document.documentElement.dataset.theme</script>
 		<script defer src="script/common.js"></script>
-		<script defer src="script/background.js"></script>
+		<!--<script defer src="script/background.js"></script>-->
 		{% block head %}{% endblock %}
 	</head>
 	<body>
@@ -42,7 +42,7 @@
 			{% if actor %}
 			<div id="actor-data">
 				<a href="home">
-					<img class="icon" src="{{actor.icon|urlencode}}">
+					<img class="icon" src="{{actor.icon}}">
 					<span class="id">id: {{actor.id}}</span>
 					<span class="name">{{actor.name}}</span>
 				</a>

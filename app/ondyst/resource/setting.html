@@ -2,6 +2,7 @@
 {% block head %}
 <link rel="stylesheet" href="style/note.css">
 <link rel="stylesheet" href="style/form.css">
+<link rel="stylesheet" href="style/setting.css">
 <script type="module" src="script/setting.js"></script>
 {% endblock %}
 {% block content %}
@@ -32,7 +33,7 @@
 		<div class="icon_list">
 			{% if icon_list %}
 			{% for line in icon_list|split(pat="\n") %}
-			<img class="icon" src="{{line}}" width="48">
+			<img class="icon" src="{{line}}">
 			{% endfor %}
 			{% endif %}
 		</div>
@@ -44,7 +45,7 @@
 		<div class="portrait_list">
 			{% if portrait_list %}
 			{% for line in portrait_list|split(pat="\n") %}
-			<img class="portrait" src="{{line}}" width="384">
+			<img class="portrait" src="{{line}}">
 			{% endfor %}
 			{% endif %}
 		</div>

@@ -1,7 +1,36 @@
-#chat_list {
+main {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+#location {
+	width: 30rem;
+	/* TODO */
+
+	> .name {
+		position: sticky;
+		top: 0;
+	}
+}
+
+#timeline {
+	flex-grow: 1;
+	display: flex;
+	max-height: stretch;
+	padding: 0.4rlh;
+	flex-direction: column;
+	justify-content: space-between;
+	align-items: center;
+	gap: 1rlh;
+	overflow: hidden auto;
+	scrollbar-width: thin;
+}
+
+#chat_list,
+#post {
 	display: flex;
 	flex-direction: column;
-	align-items: center;
+	width: fit-content;
 	gap: 0.5rlh;
 
 	> article {
@@ -11,7 +40,7 @@
 }
 
 #chat_list > article,
-#post_form {
+#post > *:is(form, article) {
 	display: grid;
 	width: fit-content;
 	grid-template: "ic nm id" auto "ic bd bd" 1fr "ic ut ut" auto / auto 1fr max-content;
@@ -33,7 +62,15 @@
 	> .icon {
 		grid-area: ic;
 		width: 2rlh;
+		height: fit-content;
 		max-height: 4rlh;
+		padding: 0;
+		border: none;
+
+		> img {
+			display: block;
+			width: 100%;
+		}
 	}
 	> .body {
 		grid-area: bd;
@@ -59,28 +96,19 @@
 	}
 }
 
-#chat_list > article {
-	> .name {
-		color: var(--content-color);
-		text-decoration: none;
-		border-bottom-color: transparent;
+#chat_list > article > .name,
+#post > article > .name {
+	color: var(--content-color);
+	text-decoration: none;
+	border-bottom-color: transparent;
+	transition: color 0.2s;
+
+	&:hover {
+		color: var(--accent-color);
 	}
 }
 
-#post_form {
-	justify-self: center;
-	margin-top: 1rlh;
-
-	.icon {
-		height: fit-content;
-		padding: 0;
-		border: none;
-
-		> img {
-			display: block;
-		}
-	}
-
+#post > form {
 	input,
 	textarea {
 		padding: 0;
@@ -93,16 +121,31 @@
 			border-bottom: 1px solid var(--accent-color);
 		}
 	}
-
 	textarea {
 		field-sizing: content;
 		min-height: 2lh;
 	}
-
 	button:is(:not([type]), [type="submit"]) {
 		width: 3rem;
 		padding-left: 7px;
 		border: 1px var(--border-color);
 		border-style: none dotted;
+	}
+	dialog {
+		background-color: var(--surface-color);
+
+		fieldset {
+			display: grid;
+			gap: 0.2rem;
+			grid-template-columns: repeat(8, auto);
+			border: none;
+		}
+		input {
+			display: none;
+		}
+		img {
+			width: 2rlh;
+			max-height: 4rlh;
+		}
 	}
 }

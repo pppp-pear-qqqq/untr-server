@@ -18,9 +18,6 @@ button {
 }
 
 /* コンテナ要素 */
-article {
-	backdrop-filter: blur(4px);
-}
 .tool-box {
 	display: flex;
 	align-items: center;

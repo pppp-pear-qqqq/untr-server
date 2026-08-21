@@ -23,7 +23,7 @@
 	{% for chat in chat_list %}
 	<article class="chat" data-id="{{chat.id}}">
 		<img class="icon" src="{{chat.icon}}">
-		<span class="name">{{chat.name}}</span>
+		<a class="name" target="_blank" href="actor/{{chat.actor}}">{{chat.name}}</a>
 		{% if chat.actor %}
 		<span class="id">id: {{chat.actor}}</span>
 		{% endif %}

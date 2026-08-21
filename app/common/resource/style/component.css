@@ -130,8 +130,8 @@ em {
 	line-height: 1.6;
 }
 rainbow,
-:where(p, span).rainbow,
-.rainbow :where(p, span) {
+:is(p, span).rainbow,
+.rainbow :is(p, span) {
 	color: transparent;
 	background-image: linear-gradient(to right in hsl longer hue, var(--rainbow-color), var(--rainbow-color));
 	background-clip: text;

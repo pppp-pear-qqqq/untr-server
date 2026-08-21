@@ -4,7 +4,7 @@ form {
 		align-items: baseline;
 		gap: 4px;
 
-		> input:where(:not([type]), [type="text"], [type="password"], [type="number"]) {
+		> input:is(:not([type]), [type="text"], [type="password"], [type="number"]) {
 			flex-grow: 1;
 		}
 
@@ -36,7 +36,7 @@ form {
 	input[type="text"] + .toggle-visible > .off {
 		display: none;
 	}
-	button:where(:not([type]), [type="submit"]) {
+	button:is(:not([type]), [type="submit"]) {
 		display: block;
 		margin-left: auto;
 		padding: 0 1em;

@@ -22,10 +22,6 @@
 	box-shadow: 0 0 2px var(--border-color);
 	background-color: var(--weak-surface-color);
 
-	* {
-		background: none;
-	}
-
 	> .name {
 		grid-area: nm;
 		border-bottom: 1px dotted;
@@ -49,10 +45,13 @@
 		display: flex;
 		height: 1rlh;
 		margin-bottom: -2px;
+	}
 
-		> button {
-			border: none;
-		}
+	* {
+		background: none;
+	}
+	button {
+		border: none;
 	}
 	time {
 		font-size: 0.8rem;
@@ -62,6 +61,8 @@
 
 #chat_list > article {
 	> .name {
+		color: var(--content-color);
+		text-decoration: none;
 		border-bottom-color: transparent;
 	}
 }
@@ -69,6 +70,16 @@
 #post_form {
 	justify-self: center;
 	margin-top: 1rlh;
+
+	.icon {
+		height: fit-content;
+		padding: 0;
+		border: none;
+
+		> img {
+			display: block;
+		}
+	}
 
 	input,
 	textarea {
@@ -83,22 +94,15 @@
 		}
 	}
 
-	.icon {
-		height: fit-content;
-		padding: 0;
-		border: none;
-
-		> img {
-			display: block;
-		}
-	}
-
 	textarea {
 		field-sizing: content;
 		min-height: 2lh;
 	}
 
-	button:where(:not([type]), [type="submit"]) {
+	button:is(:not([type]), [type="submit"]) {
 		width: 3rem;
+		padding-left: 7px;
+		border: 1px var(--border-color);
+		border-style: none dotted;
 	}
 }

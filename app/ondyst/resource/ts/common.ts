@@ -32,7 +32,7 @@ document.querySelectorAll<HTMLElement>('input[type="password"]+.toggle-visible')
 }
 
 let insert_target_element: HTMLInputElement | HTMLTextAreaElement | undefined;
-document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('.insert_tag').forEach(e => e.addEventListener('focusin', () => insert_target_element = e));
+document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('.insert-tag').forEach(e => e.addEventListener('focusin', () => insert_target_element = e));
 function insert_tag(pre: string, suf: string, elem?: HTMLInputElement | HTMLTextAreaElement) {
 	if (elem ??= insert_target_element) {
 		const start = elem.selectionStart, end = elem.selectionEnd;

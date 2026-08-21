@@ -15,10 +15,10 @@ form {
 			width: 100%;
 			resize: vertical;
 		}
-		> .auto_resize {
+		> .auto-resize {
 			margin-left: auto;
 		}
-		> .auto_resize:has(> input[type="checkbox"]:checked) + textarea {
+		> .auto-resize:has(> input[type="checkbox"]:checked) + textarea {
 			height: unset !important;
 			min-height: 2lh;
 			field-sizing: content;

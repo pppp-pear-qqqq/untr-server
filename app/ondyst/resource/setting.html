@@ -10,8 +10,8 @@
 	<label>コメント<input type="text" name="comment" value="{{comment}}"></label>
 	<label for="input_profile">
 		プロフィール
-		<label class="auto_resize"><input type="checkbox" checked>自動リサイズ</label>
-		<textarea id="input_profile" name="profile" class="insert_tag">{{profile}}</textarea>
+		<label class="auto-resize"><input type="checkbox" checked>自動リサイズ</label>
+		<textarea id="input_profile" name="profile" class="insert-tag">{{profile}}</textarea>
 		<div class="tool-box">
 			<button type="button" title="太字" onclick="insert_tag('[b/', '/b]')">
 				<ic class="ri-bold"></ic>
@@ -43,11 +43,14 @@
 			<button type="button" title="画像挿入" onclick="insert_tag('[image/', '/image]')">
 				<ic class="ri-image-line"></ic>
 			</button>
+			<button type="button" title="見出し" onclick="insert_tag('\n# ', '')">
+				<ic class="ri-heading"></ic>
+			</button>
 		</div>
 	</label>
 	<label for="input_icon_list">アイコン
-		<label class="auto_resize"><input type="checkbox">自動リサイズ</label>
-		<textarea id="input_icon_list" name="icon_list">{{icon_list}}</textarea>
+		<label class="auto-resize"><input type="checkbox">自動リサイズ</label>
+		<textarea id="input_icon_list" name="icon_list" placeholder="改行区切り">{{icon_list}}</textarea>
 	</label>
 	<div class="icon_list">
 		{% if icon_list %}
@@ -58,8 +61,8 @@
 	</div>
 	<label for="input_portrait_list">
 		プロフィール画像
-		<label class="auto_resize"><input type="checkbox">自動リサイズ</label>
-		<textarea id="input_portrait_list" name="portrait_list">{{portrait_list}}</textarea>
+		<label class="auto-resize"><input type="checkbox">自動リサイズ</label>
+		<textarea id="input_portrait_list" name="portrait_list" placeholder="改行区切り">{{portrait_list}}</textarea>
 	</label>
 	<div class="portrait_list">
 		{% if portrait_list %}

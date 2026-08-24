@@ -8,8 +8,14 @@ x-rust-base: &rust-base
         - ./app:/app/app
         - target:/app/target
         - cargo-cache:/usr/local/cargo/registry
-    networks:
-        - untroche
+    networks: [untroche]
+
+x-sqlite-web-base: &sqlite-web-base
+    image: ghcr.io/coleifer/sqlite-web:latest
+    restart: always
+    # environment:
+    #     - SQLITE_WEB_PASSWORD=your_secret_password
+    command: /data/database.db -p 8080
 
 services:
     # --- Nginx (リバースプロキシ) ---
@@ -30,8 +36,7 @@ services:
             - portal
             # - erltod
             - ondyst
-        networks:
-            - untroche
+        networks: [untroche]
 
     watcher:
         build:
@@ -52,8 +57,7 @@ services:
             - SERVER_PORT=8000
             - DATABASE_URL=sqlite:app/portal/database.db
             - RUST_LOG=debug
-        networks:
-            - untroche
+        networks: [untroche]
 
     # erltod:
     #     <<: *rust-base
@@ -61,8 +65,7 @@ services:
     #         - APP_NAME=erltod
     #         - SERVER_PORT=8005
     #         - DATABASE_URL=sqlite:app/erltod/database.db
-    #     networks:
-    #         - untroche
+    #     networks: [untroche]
 
     ondyst:
         <<: *rust-base
@@ -70,8 +73,17 @@ services:
             - APP_NAME=ondyst
             - SERVER_PORT=8006
             - DATABASE_URL=sqlite:app/ondyst/database.db
-        networks:
-            - untroche
+        networks: [untroche]
+
+    sqlite-web-portal:
+        <<: *sqlite-web-base
+        ports: ["127.0.0.1:3300:8080"]
+        volumes: [./app/portal/database.db:/data/database.db]
+
+    sqlite-web-ondyst:
+        <<: *sqlite-web-base
+        ports: ["127.0.0.1:3306:8080"]
+        volumes: [./app/ondyst/database.db:/data/database.db]
 
 networks:
     untroche:

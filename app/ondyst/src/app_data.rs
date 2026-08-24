@@ -46,7 +46,8 @@ impl AppData {
 		// teraコア生成
 		let tera = match Tera::new(&utils::resource("**/*.html")) {
 			Ok(mut t) => {
-				t.register_filter("html", common::html_filter::<tag::Ondyst>);
+				t.register_filter("html", common::tera::html::<tag::Ondyst>);
+				t.register_filter("time", common::tera::make_timestamp_filter(chrono::Local));
 				t
 			}
 			Err(e) => {

@@ -44,7 +44,7 @@
 			{% endif %}
 			<p class="body">{{chat.body|safe}}</p>
 			<footer class="util">
-				<time class="timestamp">{{chat.timestamp}}</time>
+				<time class="timestamp">{{chat.timestamp|time}}</time>
 				<div class="partition"></div>
 				<button type="button" title="返信"><ic class="ri-reply-line"></ic></button>
 			</footer>

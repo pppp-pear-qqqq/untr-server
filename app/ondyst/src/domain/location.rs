@@ -41,7 +41,7 @@ async fn location(key: web::Path<String>, web::Query(page): web::Query<Paginatio
 	#[derive(serde::Serialize)]
 	struct Chat {
 		id: i64,
-		timestamp: chrono::DateTime<chrono::Utc>,
+		timestamp: i64,
 		actor: Option<i64>,
 		name: String,
 		icon: String,
@@ -65,19 +65,7 @@ async fn location(key: web::Path<String>, web::Query(page): web::Query<Paginatio
 		Err(sqlx::Error::RowNotFound) => return Err(ErrorNotFound("指定された場所は存在しません").into()),
 		Err(err) => return Err(err.into()),
 	};
-	let chat_list = sqlx::query!("SELECT id,timestamp,actor,name,icon,body FROM chat WHERE location=? LIMIT ?,?", location.name, offset, limit)
-		.fetch_all(pool)
-		.await?
-		.into_iter()
-		.map(|r| Chat {
-			id: r.id,
-			timestamp: chrono::DateTime::from_timestamp_secs(r.timestamp).unwrap(),
-			actor: r.actor,
-			name: r.name,
-			icon: r.icon,
-			body: r.body,
-		})
-		.collect::<Vec<_>>();
+	let chat_list = sqlx::query_as!(Chat, "SELECT id,timestamp,actor,name,icon,body FROM chat WHERE location=? LIMIT ?,?", location.name, offset, limit).fetch_all(pool).await?;
 
 	match req_type {
 		ReqType::Empty => Ok(HttpResponse::Ok().json(chat_list)),

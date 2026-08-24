@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use common::html_encode::*;
+use common::{HTMLEncode, Tag, TagFormat};
 use rand::seq::IndexedRandom as _;
 
 #[derive(Clone, Copy)]

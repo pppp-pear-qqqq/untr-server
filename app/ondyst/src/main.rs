@@ -2,6 +2,9 @@ mod app_data;
 mod domain;
 mod utils;
 
+#[cfg(test)]
+mod test;
+
 use std::io;
 
 use actix_session::{SessionMiddleware, config::PersistentSession, storage};

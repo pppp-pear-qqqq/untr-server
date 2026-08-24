@@ -28,12 +28,13 @@ pub trait TagFormat {
 		// `rest` の中から '/' を順番に探す
 		while let Some(idx) = rest[search_offset..].find('/') {
 			let pos = search_offset + idx;
-			let remaining = &rest[pos..];
+			let remaining = rest[pos..].as_bytes();
 
 			// remainingが "/name]" を含む十分な長さを持っているか
 			if remaining.len() > name.len() + 1 {
+				let end_idx = 1 + name.len();
 				// '/' の次からが name と一致し、その直後が ']' かどうかを直接判定
-				if &remaining[1..1 + name.len()] == name && remaining.as_bytes()[1 + name.len()] == b']' {
+				if &remaining[1..end_idx] == name.as_bytes() && remaining[end_idx] == b']' {
 					end_pos = pos;
 					found = true;
 					break;
@@ -207,12 +208,4 @@ fn escape_str(text: &str) -> String {
 	let mut out = String::with_capacity(text.len());
 	escape_and_br(text, &mut out);
 	out
-}
-
-pub fn html_filter<T: TagFormat>(value: &tera::Value, args: &HashMap<String, tera::Value>) -> tera::Result<tera::Value> {
-	let input = value.as_str().ok_or(tera::Error::msg("html filter can only be applied to strings"))?;
-	let tag_format = T::from_args(args);
-	let link = args.get("link").and_then(|v| v.as_bool()).unwrap_or(false);
-
-	Ok(tera::Value::String(input.to_html(&tag_format, link)))
 }

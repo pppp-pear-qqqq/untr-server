@@ -7,7 +7,7 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.service(web::resource("setting").get(view_setting).patch(update_setting));
 }
 
-async fn index(id: Identity, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
+async fn index(id: Identity, _: StateHandle, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
 	let pool = pool.as_ref();
 	let record = sqlx::query!("SELECT profile,webhook FROM user WHERE id=?", *id).fetch_one(pool).await?;
 	let mut ctx = tera::Context::new();
@@ -18,7 +18,7 @@ async fn index(id: Identity, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>)
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }
 
-async fn view_setting(id: Identity, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
+async fn view_setting(id: Identity, _: StateHandle, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
 	let body = Page::default().user_data(UserData::load(&id, &pool).await?).render("setting.html", &tmpl)?;
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }
@@ -31,7 +31,8 @@ struct Setting {
 	#[validate(length(max = 256, message = "そんなに長くないと思います"))]
 	webhook: Option<String>,
 }
-async fn update_setting(web::Json(info): web::Json<Setting>, id: Identity, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+async fn update_setting(web::Json(info): web::Json<Setting>, id: Identity, state: StateHandle, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+	state.get().only_active()?;
 	info.validate()?;
 	let mut builder = sqlx::query_builder::QueryBuilder::new("UPDATE user SET ");
 	let mut sep = builder.separated(',');

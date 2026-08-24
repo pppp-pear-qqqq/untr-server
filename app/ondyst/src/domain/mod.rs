@@ -11,7 +11,7 @@ use tera::Tera;
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::utils::{ActorData, Identity, Page, tag_parse as tag};
+use crate::utils::{ActorData, Identity, Page, StateHandle, tag_parse as tag};
 
 pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.route("/", web::to(pages::index));

@@ -6,7 +6,7 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.service(web::resource("setting").get(view_setting).patch(patch_setting));
 }
 
-async fn index(id: Identity, pool: web::Data<SqlitePool>, tmpl: web::Data<tera::Tera>) -> common::Result<impl Responder> {
+async fn index(id: Identity, _: StateHandle, pool: web::Data<SqlitePool>, tmpl: web::Data<tera::Tera>) -> common::Result<impl Responder> {
 	let pool = pool.as_ref();
 
 	// favはlocalStorageに持っているので、クライアント側で諸々のAPIを叩く　バックエンドではあんまり何もしない
@@ -15,7 +15,7 @@ async fn index(id: Identity, pool: web::Data<SqlitePool>, tmpl: web::Data<tera::
 	Ok(HttpResponse::Ok().body(body))
 }
 
-async fn view_setting(id: Identity, pool: web::Data<SqlitePool>, tmpl: web::Data<tera::Tera>) -> common::Result<impl Responder> {
+async fn view_setting(id: Identity, _: StateHandle, pool: web::Data<SqlitePool>, tmpl: web::Data<tera::Tera>) -> common::Result<impl Responder> {
 	let pool = pool.as_ref();
 	let record = sqlx::query!("SELECT comment,profile,icon_list,portrait_list FROM actor WHERE id=?", *id).fetch_one(pool).await?;
 
@@ -43,7 +43,8 @@ struct Setting {
 	#[validate(length(max = 4096, message = "合計4096文字以内にしてください"))]
 	portrait_list: Option<String>,
 }
-async fn patch_setting(web::Json(info): web::Json<Setting>, id: Identity, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+async fn patch_setting(web::Json(info): web::Json<Setting>, id: Identity, state: StateHandle, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+	state.get().only_open()?;
 	info.validate()?;
 	let mut builder = sqlx::QueryBuilder::new("UPDATE actor SET ");
 	let mut sep = builder.separated(',');

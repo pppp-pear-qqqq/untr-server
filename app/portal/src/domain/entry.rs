@@ -21,7 +21,8 @@ async fn index(id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: web::Dat
 }
 
 /// 最小化したログイン画面の表示
-async fn view_login(tmpl: web::Data<tera::Tera>) -> common::Result<impl Responder> {
+async fn view_login(state: StateHandle, tmpl: web::Data<tera::Tera>) -> common::Result<impl Responder> {
+	state.get().only_active()?;
 	let body = Page::default().min().render("login.html", &tmpl)?;
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }
@@ -35,7 +36,7 @@ struct Login {
 }
 
 /// ログイン処理
-async fn login(web::Form(info): web::Form<Login>, session: Session, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+async fn login(web::Form(info): web::Form<Login>, session: Session, _: StateHandle, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
 	info.validate()?;
 	let pool = pool.as_ref();
 	let record = sqlx::query!("SELECT id,password FROM user WHERE name=?", info.username).fetch_one(pool).await?;
@@ -49,7 +50,8 @@ async fn login(web::Form(info): web::Form<Login>, session: Session, pool: web::D
 }
 
 /// 新規登録処理
-async fn register(web::Form(info): web::Form<Login>, session: Session, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+async fn register(web::Form(info): web::Form<Login>, session: Session, state: StateHandle, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+	state.get().only_active()?;
 	info.validate()?;
 	let id = Uuid::new_v4();
 	let id = id.as_bytes().as_slice();

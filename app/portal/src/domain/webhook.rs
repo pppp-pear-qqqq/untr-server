@@ -19,7 +19,8 @@ struct Content {
 	username: Option<String>,
 	avatar_url: Option<String>,
 }
-async fn index(web::Json(info): web::Json<Webhook>, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+async fn index(web::Json(info): web::Json<Webhook>, state: StateHandle, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+	state.get().only_active()?;
 	if info.target.is_empty() {
 		return Ok(HttpResponse::NoContent().finish());
 	}

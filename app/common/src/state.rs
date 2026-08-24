@@ -1,18 +1,18 @@
 use std::{
-	future::{ready, Ready},
+	future::{Ready, ready},
 	sync::{Arc, RwLock},
 };
 
 use actix_web::FromRequest;
 
 pub trait IsMaintenance {
+	const MAINTENANCE_MESSAGE: &'static str = "メンテナンス中です";
 	fn is_maintenance(&self) -> bool;
 }
 
 #[derive(Clone)]
 pub struct StateHandle<T: Clone + IsMaintenance + 'static>(Arc<RwLock<T>>);
 
-#[allow(dead_code)]
 impl<T: Clone + IsMaintenance + 'static> StateHandle<T> {
 	pub fn new(state: T) -> Self {
 		Self(Arc::new(RwLock::new(state)))
@@ -34,10 +34,6 @@ impl<T: Clone + IsMaintenance + 'static> FromRequest for StateHandle<T> {
 			Some(data) => data.clone(),
 			None => return ready(Err(actix_web::error::ErrorInternalServerError("State is not configured"))),
 		};
-		if state.get().is_maintenance() {
-			ready(Err(actix_web::error::ErrorServiceUnavailable("メンテナンス中です")))
-		} else {
-			ready(Ok(state))
-		}
+		if state.get().is_maintenance() { ready(Err(actix_web::error::ErrorServiceUnavailable(T::MAINTENANCE_MESSAGE))) } else { ready(Ok(state)) }
 	}
 }

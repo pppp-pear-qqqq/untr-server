@@ -12,7 +12,7 @@ use tera::Tera;
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::utils::{Identity, Page, UserData, is_internal};
+use crate::utils::{Identity, Page, StateHandle, UserData, is_internal};
 
 pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.route("/", web::get().to(pages::index));

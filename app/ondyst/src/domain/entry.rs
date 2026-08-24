@@ -20,14 +20,8 @@ struct Auth {
 	code: String,
 }
 
-async fn auth(code: String) -> common::Result<Uuid> {
-	// dockerなしの内部通信なら"http://localhost:8000/auth"
-	let res = client().post("http://portal:8000/auth").json(&Auth { code }).send().await.and_then(|r| r.error_for_status())?;
-	let user_id = res.text().await?;
-	Ok(Uuid::from_str(&user_id)?)
-}
-
-async fn register(web::Form(info): web::Form<Auth>, session: Session, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+async fn register(web::Form(info): web::Form<Auth>, session: Session, state: StateHandle, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+	state.get().only_open()?;
 	info.validate()?;
 	let user = auth(info.code).await?;
 
@@ -45,7 +39,7 @@ async fn register(web::Form(info): web::Form<Auth>, session: Session, pool: web:
 	Ok(HttpResponse::Ok().content_type(header::ContentType::plaintext()).body(actor_id.to_string()))
 }
 
-async fn login(web::Form(info): web::Form<Auth>, session: Session, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+async fn login(web::Form(info): web::Form<Auth>, session: Session, _: StateHandle, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
 	info.validate()?;
 	let user = auth(info.code).await?;
 
@@ -60,6 +54,13 @@ async fn login(web::Form(info): web::Form<Auth>, session: Session, pool: web::Da
 		Err(sqlx::Error::RowNotFound) => Err(ErrorUnauthorized("idが違う、またはキャラクターを未登録です").into()),
 		Err(err) => Err(err.into()),
 	}
+}
+
+async fn auth(code: String) -> common::Result<Uuid> {
+	// dockerなしの内部通信なら"http://localhost:8000/auth"
+	let res = client().post("http://portal:8000/auth").json(&Auth { code }).send().await.and_then(|r| r.error_for_status())?;
+	let user_id = res.text().await?;
+	Ok(Uuid::from_str(&user_id)?)
 }
 
 async fn logout(session: Session) -> common::Result<impl Responder> {

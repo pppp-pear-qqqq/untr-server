@@ -32,3 +32,9 @@ impl FromStr for State {
 		}
 	}
 }
+
+impl State {
+	pub fn only_active(&self) -> Result<(), actix_web::Error> {
+		if self == &State::Active { Ok(()) } else { Err(actix_web::error::ErrorGone("当サイトの運営は終了しました")) }
+	}
+}

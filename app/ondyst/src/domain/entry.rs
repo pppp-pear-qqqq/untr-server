@@ -20,7 +20,7 @@ struct Auth {
 	code: String,
 }
 
-async fn register(web::Form(info): web::Form<Auth>, session: Session, state: StateHandle, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+async fn register(web::Form(info): web::Form<Auth>, session: Session, state: StateHandle, pool: web::Data<Pool>) -> common::Result<impl Responder> {
 	state.get().only_open()?;
 	info.validate()?;
 	let user = auth(info.code).await?;
@@ -39,7 +39,7 @@ async fn register(web::Form(info): web::Form<Auth>, session: Session, state: Sta
 	Ok(HttpResponse::Ok().content_type(header::ContentType::plaintext()).body(actor_id.to_string()))
 }
 
-async fn login(web::Form(info): web::Form<Auth>, session: Session, _: StateHandle, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+async fn login(web::Form(info): web::Form<Auth>, session: Session, _: StateHandle, pool: web::Data<Pool>) -> common::Result<impl Responder> {
 	info.validate()?;
 	let user = auth(info.code).await?;
 

@@ -1,3 +1,4 @@
+mod admin;
 mod auth;
 mod entry;
 mod home;
@@ -7,7 +8,7 @@ mod webhook;
 
 use actix_web::{HttpResponse, Responder, error::*, guard, http::header, web};
 use common::{PageRender, ReqType};
-use sqlx::SqlitePool;
+use sqlx::SqlitePool as Pool;
 use tera::Tera;
 use uuid::Uuid;
 use validator::Validate;
@@ -22,4 +23,5 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.service(web::scope("home").configure(home::cfg));
 	cfg.service(web::scope("user").configure(user::cfg));
 	cfg.service(web::scope("webhook").guard(guard::fn_guard(is_internal)).configure(webhook::cfg));
+	cfg.service(web::scope("admin").configure(admin::cfg));
 }

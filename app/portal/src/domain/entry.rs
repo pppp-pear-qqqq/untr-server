@@ -15,7 +15,7 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 }
 
 /// ログイン・登録画面の表示
-async fn index(id: Option<Identity>, pool: web::Data<SqlitePool>, tmpl: web::Data<tera::Tera>) -> common::Result<impl Responder> {
+async fn index(id: Option<Identity>, pool: web::Data<Pool>, tmpl: web::Data<tera::Tera>) -> common::Result<impl Responder> {
 	let body = Page::default().user_data_opt(UserData::load_opt(&id, &pool).await?).render("entry.html", &tmpl)?;
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }
@@ -36,7 +36,7 @@ struct Login {
 }
 
 /// ログイン処理
-async fn login(web::Form(info): web::Form<Login>, session: Session, _: StateHandle, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+async fn login(web::Form(info): web::Form<Login>, session: Session, _: StateHandle, pool: web::Data<Pool>) -> common::Result<impl Responder> {
 	info.validate()?;
 	let pool = pool.as_ref();
 	let record = sqlx::query!("SELECT id,password FROM user WHERE name=?", info.username).fetch_one(pool).await?;
@@ -50,7 +50,7 @@ async fn login(web::Form(info): web::Form<Login>, session: Session, _: StateHand
 }
 
 /// 新規登録処理
-async fn register(web::Form(info): web::Form<Login>, session: Session, state: StateHandle, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+async fn register(web::Form(info): web::Form<Login>, session: Session, state: StateHandle, pool: web::Data<Pool>) -> common::Result<impl Responder> {
 	state.get().only_active()?;
 	info.validate()?;
 	let id = Uuid::new_v4();

@@ -1,0 +1,16 @@
+{% extends "template.html" %}
+{% block head %}
+<link rel="stylesheet" href="style/note.css">
+{% endblock %}
+{% block content %}
+<h2>admin</h2>
+<section>
+	<h3>State</h3>
+	<p>now: {{state}}</p>
+	<p>
+		<a href="admin?state=active">Active</a><br>
+		<a href="admin?state=closed">Closed</a><br>
+		<a href="admin?state=maintenance">Maintenance</a>
+	</p>
+</section>
+{% endblock %}

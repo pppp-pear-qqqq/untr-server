@@ -7,7 +7,7 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 }
 
 /// 一時認証コードを発行
-async fn get(id: Option<Identity>, state: StateHandle, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
+async fn get(id: Option<Identity>, state: StateHandle, pool: web::Data<Pool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
 	state.get().only_active()?;
 
 	const AUTH_EXPIRY: i64 = 300;
@@ -36,7 +36,7 @@ struct Post {
 	code: String,
 }
 /// 送られてきた認証コードを検証して良ければユーザーIDを返す
-async fn post(web::Json(info): web::Json<Post>, state: StateHandle, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+async fn post(web::Json(info): web::Json<Post>, state: StateHandle, pool: web::Data<Pool>) -> common::Result<impl Responder> {
 	state.get().only_active()?;
 
 	// HTTPリクエスト・レスポンスに乗せるUUIDは文字列

@@ -14,7 +14,7 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 	// TODO stream
 }
 
-async fn location_list(id: Option<Identity>, _: StateHandle, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
+async fn location_list(id: Option<Identity>, _: StateHandle, pool: web::Data<Pool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
 	#[derive(serde::Serialize)]
 	struct Record {
 		key: String,
@@ -31,7 +31,7 @@ async fn location_list(id: Option<Identity>, _: StateHandle, pool: web::Data<Sql
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }
 
-async fn location(key: web::Path<String>, web::Query(page): web::Query<Pagination>, req_type: ReqType, id: Option<Identity>, _: StateHandle, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
+async fn location(key: web::Path<String>, web::Query(page): web::Query<Pagination>, req_type: ReqType, id: Option<Identity>, _: StateHandle, pool: web::Data<Pool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
 	#[derive(serde::Serialize)]
 	struct Location {
 		key: String,
@@ -97,7 +97,7 @@ struct Chat {
 	#[validate(length(max = 500, message = "500文字以内で入力してください"))]
 	body: String,
 }
-async fn post_chat(web::Form(info): web::Form<Chat>, id: Identity, state: StateHandle, pool: web::Data<SqlitePool>) -> common::Result<impl Responder> {
+async fn post_chat(web::Form(info): web::Form<Chat>, id: Identity, state: StateHandle, pool: web::Data<Pool>) -> common::Result<impl Responder> {
 	state.get().only_active()?;
 
 	let timestamp = chrono::Utc::now().timestamp();

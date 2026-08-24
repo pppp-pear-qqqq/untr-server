@@ -7,7 +7,7 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.route("{actor}", web::get().to(actor));
 }
 
-async fn list(web::Query(page): web::Query<Pagination>, req_type: ReqType, id: Option<Identity>, _: StateHandle, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
+async fn list(web::Query(page): web::Query<Pagination>, req_type: ReqType, id: Option<Identity>, _: StateHandle, pool: web::Data<Pool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
 	#[derive(serde::Serialize)]
 	struct Record {
 		id: i64,
@@ -33,7 +33,7 @@ async fn list(web::Query(page): web::Query<Pagination>, req_type: ReqType, id: O
 	}
 }
 
-async fn actor(actor: web::Path<i32>, id: Option<Identity>, _: StateHandle, pool: web::Data<SqlitePool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
+async fn actor(actor: web::Path<i32>, id: Option<Identity>, _: StateHandle, pool: web::Data<Pool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
 	#[derive(serde::Serialize)]
 	struct Record {
 		name: String,

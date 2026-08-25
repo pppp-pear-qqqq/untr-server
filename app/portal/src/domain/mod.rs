@@ -15,13 +15,15 @@ use validator::Validate;
 
 use crate::utils::{Identity, Page, StateHandle, UserData, is_internal};
 
-pub fn cfg(cfg: &mut web::ServiceConfig) {
-	cfg.route("/", web::get().to(pages::index));
-	cfg.route("info", web::get().to(pages::info));
-	cfg.service(web::scope("entry").configure(entry::cfg));
-	cfg.service(web::scope("auth").configure(auth::cfg));
-	cfg.service(web::scope("home").configure(home::cfg));
-	cfg.service(web::scope("user").configure(user::cfg));
-	cfg.service(web::scope("webhook").guard(guard::fn_guard(is_internal)).configure(webhook::cfg));
-	cfg.service(web::scope("admin").configure(admin::cfg));
+pub fn make_cfg(admin_key: String) -> impl FnOnce(&mut web::ServiceConfig) {
+	|cfg: &mut web::ServiceConfig| {
+		cfg.route("/", web::get().to(pages::index));
+		cfg.route("info", web::get().to(pages::info));
+		cfg.service(web::scope("entry").configure(entry::cfg));
+		cfg.service(web::scope("auth").configure(auth::cfg));
+		cfg.service(web::scope("home").configure(home::cfg));
+		cfg.service(web::scope("user").configure(user::cfg));
+		cfg.service(web::scope("webhook").guard(guard::fn_guard(is_internal)).configure(webhook::cfg));
+		cfg.service(web::scope("admin").wrap(common::AdminGuardMiddleware(admin_key)).configure(admin::cfg));
+	}
 }

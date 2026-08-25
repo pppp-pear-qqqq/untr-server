@@ -6,7 +6,7 @@ use tera::Tera;
 use crate::utils::{self, State, StateHandle, tag_parse as tag};
 
 // 定数
-const STATE: &str = "STATE";
+pub const STATE: &str = "STATE";
 const KEY: &str = "KEY";
 
 #[derive(Clone)]

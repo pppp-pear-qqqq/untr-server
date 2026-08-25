@@ -7,7 +7,7 @@ use actix_web::{
 use futures_util::future::{LocalBoxFuture, Ready, ok};
 
 const ADMIN_KEY: &str = "admin";
-const AUTHORIZE: &str = "Authorize";
+const AUTHORIZATION_KEY: &str = "Authorization";
 
 pub struct AdminGuardMiddleware(pub String);
 
@@ -47,7 +47,7 @@ where
 
 	fn call(&self, req: ServiceRequest) -> Self::Future {
 		let session = req.get_session();
-		if let Some(Ok(value)) = req.headers().get(AUTHORIZE).map(|x| x.to_str()) {
+		if let Some(Ok(value)) = req.headers().get(AUTHORIZATION_KEY).map(|x| x.to_str()) {
 			let _ = session.insert(ADMIN_KEY, value);
 		}
 		if let Ok(Some(admin)) = session.get::<String>(ADMIN_KEY) {

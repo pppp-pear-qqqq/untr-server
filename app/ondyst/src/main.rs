@@ -47,7 +47,7 @@ async fn main() -> Result<(), io::Error> {
 			.app_data(app_data.state)
 			.app_data(app_data.pool)
 			.app_data(app_data.tera)
-			.configure(domain::cfg);
+			.configure(domain::make_cfg(app_data.admin_key));
 		#[cfg(feature = "test")]
 		let app = {
 			use actix_files::Files;

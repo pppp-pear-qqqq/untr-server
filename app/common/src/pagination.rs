@@ -1,6 +1,4 @@
-use serde::Deserialize;
-
-#[derive(Deserialize)]
+#[derive(serde::Deserialize)]
 #[serde(default)]
 pub struct Pagination {
 	pub offset: usize,

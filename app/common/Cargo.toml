@@ -8,6 +8,7 @@ authors.workspace = true
 actix-session.workspace = true
 actix-web.workspace = true
 chrono.workspace = true
+futures-util = "0.3.34"
 fxhash.workspace = true
 minify-html.workspace = true
 regex.workspace = true

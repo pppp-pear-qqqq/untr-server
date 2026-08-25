@@ -1,3 +1,4 @@
+mod admin_guard;
 mod error;
 mod html_encode;
 mod identity;
@@ -7,6 +8,7 @@ mod req_type;
 mod state;
 pub mod tera_filter;
 
+pub use admin_guard::*;
 pub use error::*;
 pub use html_encode::*;
 pub use identity::Identity;

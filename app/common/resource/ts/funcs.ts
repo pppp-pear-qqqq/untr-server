@@ -17,8 +17,8 @@ export function bake<K extends keyof HTMLElementTagNameMap>(tagName: K, f: (e: H
 	return e;
 }
 
-export function bake_tpl(tpl: HTMLElement, data: Record<string, any>): HTMLElement;
 export function bake_tpl(tpl: HTMLTemplateElement, data: Record<string, any>): DocumentFragment;
+export function bake_tpl(tpl: HTMLElement, data: Record<string, any>): HTMLElement;
 export function bake_tpl(tpl: HTMLElement | HTMLTemplateElement, data: Record<string, any>) {
 	const e = (tpl instanceof HTMLTemplateElement ? tpl.content.cloneNode(true) : tpl.cloneNode(true)) as HTMLElement | DocumentFragment;
 	for (const [key, value] of Object.entries(data)) {

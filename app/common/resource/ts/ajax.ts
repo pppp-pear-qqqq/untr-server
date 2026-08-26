@@ -120,9 +120,9 @@ export class Ajax {
 	send(ret_type: 'text'): Promise<string>;
 	send(ret_type?: 'arrayBuffer' | 'blob' | 'bytes' | 'formData' | 'json' | 'text'): Promise<any> {
 		if (!this._url) throw new Error('URL未設定');
-		if (Ajax.actions.has(this._url)) throw new Error('既に同リクエストを処理中です');
-		Ajax.actions.add(this._url);
-		setTimeout(() => Ajax.actions.delete(this._url!), Ajax._wait);
+		if (Ajax.actions.has(`${this._url}:${this._req.method}`)) throw new Error('既に同リクエストを処理中です');
+		Ajax.actions.add(`${this._url}:${this._req.method}`);
+		setTimeout(() => Ajax.actions.delete(`${this._url}:${this._req.method}`), Ajax._wait);
 		return fetch(this._query ? `${this._url}?${this._query.toString()}` : this._url, this._req)
 			.then(r => {
 				if (r.ok) {

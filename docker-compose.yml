@@ -30,7 +30,7 @@ services:
             - ./nginx.conf.template:/etc/nginx/templates/nginx.conf.template:ro
             - ./app/common/resource:/app/app/common
             - ./app/portal/resource:/app/app/portal
-            - ./app/erltod/resource:/app/app/erltod
+            # - ./app/erltod/resource:/app/app/erltod
             - ./app/ondyst/resource:/app/app/ondyst
         depends_on:
             - portal

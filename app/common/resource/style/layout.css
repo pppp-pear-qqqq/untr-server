@@ -10,18 +10,26 @@ body {
 }
 
 body > header {
+	--header-height: 2.5rlh;
 	/* ボックスモデル */
 	display: block flex;
+	min-height: var(--header-height);
+	max-height: var(--header-height);
 	flex-direction: row-reverse;
 	justify-content: space-between;
 	align-items: center;
-	padding: 1rem 1dvw;
+	padding: 0 1dvw;
 	/* 装飾 */
 	border-bottom: 1px solid var(--border-color);
 	background-color: var(--surface-color);
 	/* アニメーション */
 	transition: background-color 0.2s;
 	view-transition-name: none;
+
+	> [aria-expanded] {
+		width: 1.5rlh;
+		height: 1.5rlh;
+	}
 }
 
 main {
@@ -38,7 +46,7 @@ main {
 #main-menu {
 	/* 配置 */
 	position: fixed;
-	top: 0;
+	top: var(--header-height);
 	right: 0;
 	z-index: 1;
 	/* ボックスモデル */
@@ -46,8 +54,8 @@ main {
 	flex-direction: column;
 	box-sizing: border-box;
 	min-width: 20dvw;
-	height: 100dvh;
-	padding: 80px 2dvw 2dvh 1dvw;
+	height: calc(100dvh - var(--header-height));
+	padding: 2dvh 2dvw 2dvh 1dvw;
 	gap: 0.1rlh;
 	overflow-y: auto;
 	/* 装飾 */

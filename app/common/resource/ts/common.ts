@@ -29,10 +29,14 @@ dialog.addEventListener('close', () => {
 	dialog.innerHTML = '';
 });
 
-let insert_target_element: HTMLInputElement | HTMLTextAreaElement | undefined;
-document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('.insert-tag').forEach(e => e.addEventListener('focusin', () => insert_target_element = e));
-function insert_tag(pre: string, suf: string, elem?: HTMLInputElement | HTMLTextAreaElement) {
-	if (elem ??= insert_target_element) {
+// insert tag
+let insert_target: HTMLInputElement | HTMLTextAreaElement;
+document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('.insert-tag').forEach(e => {
+	e.addEventListener('focusin', () => insert_target = e);
+	if (!insert_target) insert_target = e;
+});
+window.insert_tag = function (pre: string, suf: string, elem?: HTMLInputElement | HTMLTextAreaElement) {
+	if (elem ??= insert_target) {
 		const start = elem.selectionStart, end = elem.selectionEnd;
 		if (start != null && end != null) {
 			const prev = elem.value;

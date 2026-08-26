@@ -16,7 +16,7 @@ async fn list(web::Query(page): web::Query<common::Pagination>, req_type: ReqTyp
 		ReqType::Empty => Ok(HttpResponse::Ok().json(records)),
 		_ => {
 			let mut ctx = tera::Context::new();
-			ctx.insert("list", &records);
+			ctx.insert("user_list", &records);
 			let body = Page::default().user_data_opt(UserData::load_opt(&id, &pool).await?).render_with_ctx("user_list.html", &tmpl, ctx)?;
 			Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 		}

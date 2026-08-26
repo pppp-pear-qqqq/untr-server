@@ -5,10 +5,41 @@
 <script type="module" src="script/setting.js"></script>
 {% endblock %}
 {% block content %}
-<form id="profile" action="home/setting" autocomplete="off">
+<form action="home/setting" autocomplete="off">
 	<h2>設定</h2>
-	<label>プロフィール<textarea name="profile">{{profile}}</textarea></label>
-	<label>Webhook URL<input type="text" name="webhook" value="{{webhook}}"></label>
+	<label for="profile">
+		プロフィール
+		<ic role="button" class="help ri-question-line">
+			ユーザーページで表示されます。各種タグが使用できます。<br>
+			このサイトには現在ユーザー一覧ページが存在しないため、自分で共有しない限りこの文章が読まれることは無いんじゃないかと思います。<br>
+			空欄でも特に困ることはないでしょう。
+		</ic>
+		<label class="auto-resize"><input type="checkbox" checked>自動リサイズ</label>
+		<textarea id="profile" name="profile" class="insert-tag">{{profile}}</textarea>
+		<div class="tool-box">
+			<button type="button" title="太字" onclick="insert_tag('[b/', '/b]')"><ic class="ri-bold"></ic></button>
+			<button type="button" title="斜体" onclick="insert_tag('[i/', '/i]')"><ic class="ri-italic"></ic></button>
+			<button type="button" title="下線" onclick="insert_tag('[u/', '/u]')"><ic class="ri-underline"></ic></button>
+			<button type="button" title="取消線" onclick="insert_tag('[s/', '/s]')"><ic class="ri-strikethrough"></ic></button>
+			<button type="button" title="小文字" onclick="insert_tag('[small/', '/small]')"><ic class="ri-subtract-line"></ic></button>
+			<button type="button" title="大文字" onclick="insert_tag('[large/', '/large]')"><ic class="ri-add-line"></ic></button>
+			<button type="button" title="圏点" onclick="insert_tag('[em/', '/em]')"><ic class="ri-emphasis"></ic></button>
+			<button type="button" title="ルビ" onclick="insert_tag('[ruby/', '|ルビ/ruby]')"><ic class="ri-emphasis-cn"></ic></button>
+			<button type="button" title="虹色" onclick="insert_tag('[rainbow/', '/rainbow]')"><ic class="ri-rainbow-fill"></ic></button>
+			<button type="button" title="画像挿入" onclick="insert_tag('[image/', '/image]')"><ic class="ri-image-line"></ic></button>
+			<button type="button" title="見出し" onclick="insert_tag('\n# ', '')"><ic class="ri-heading"></ic></button>
+		</div>
+	</label>
+	<label>
+		Webhook URL
+		<ic role="button" class="help ri-question-line">
+			DiscordのWebhook、ないし同形式のリクエストを受け取れるAPIのURLを貼り付けてください。<br>
+			詳しいことは<a target="_blank" href="https://support.discord.com/hc/ja/articles/228383668-%E3%82%A6%E3%82%A7%E3%83%96%E3%83%95%E3%83%83%E3%82%AF%E3%81%AE%E3%81%94%E7%B4%B9%E4%BB%8B">Discord公式ドキュメント</a>を参照するか、解説記事を探すか、分かってそうな人に聞いてください。<br>
+			当ポータルサイトと連携するサイト（one day's' talk）は、ここで設定したWebhookURLを使用します。
+		</ic>
+		<input type="text" name="webhook" value="{{webhook}}">
+	</label>
+	<p><a target="_blank" href="user/{{user.name|urlencode}}">自分のプロフィール閲覧</a></p>
 	<button type="submit">更新</button>
 </form>
 {% endblock %}

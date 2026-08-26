@@ -46,14 +46,9 @@ async fn login(web::Form(info): web::Form<Auth>, session: Session, _: StateHandl
 	let user = user.to_bytes_le().to_vec();
 
 	let pool = pool.as_ref();
-	match sqlx::query_scalar!("SELECT id FROM actor WHERE user=?", user).fetch_one(pool).await {
-		Ok(id) => {
-			Identity::set(&session, id)?;
-			Ok(HttpResponse::Ok().content_type(header::ContentType::plaintext()).body(id.to_string()))
-		}
-		Err(sqlx::Error::RowNotFound) => Err(ErrorUnauthorized("idが違う、またはキャラクターを未登録です").into()),
-		Err(err) => Err(err.into()),
-	}
+	let id = sqlx::query_scalar!("SELECT id FROM actor WHERE user=?", user).fetch_optional(pool).await?.ok_or(ErrorUnauthorized("idが違う、またはキャラクターを未登録です"))?;
+	Identity::set(&session, id)?;
+	Ok(HttpResponse::Ok().content_type(header::ContentType::plaintext()).body(id.to_string()))
 }
 
 async fn auth(code: String) -> common::Result<Uuid> {

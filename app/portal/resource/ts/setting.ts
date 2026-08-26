@@ -2,7 +2,7 @@ import { Ajax } from '/common/script/ajax.js';
 import { toast } from './import.js';
 
 let data: Record<string, string> = {};
-const form = document.getElementById('profile') as HTMLFormElement;
+const form = document.querySelector('form')!;
 form.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('[name]').forEach(e => {
 	e.addEventListener('change', () => {
 		e.classList.add('changed');

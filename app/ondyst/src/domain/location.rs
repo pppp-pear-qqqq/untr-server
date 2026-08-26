@@ -60,11 +60,7 @@ async fn location(key: web::Path<String>, web::Query(page): web::Query<Paginatio
 	let limit = page.limit as i64;
 
 	let pool = pool.as_ref();
-	let location = match sqlx::query_as!(Location, "SELECT key,name,lore FROM location WHERE key=?", key).fetch_one(pool).await {
-		Ok(r) => r,
-		Err(sqlx::Error::RowNotFound) => return Err(ErrorNotFound("指定された場所は存在しません").into()),
-		Err(err) => return Err(err.into()),
-	};
+	let location = sqlx::query_as!(Location, "SELECT key,name,lore FROM location WHERE key=?", key).fetch_optional(pool).await?.ok_or(ErrorNotFound("指定された場所は存在しません"))?;
 	let chat_list = sqlx::query_as!(Chat, "SELECT id,timestamp,actor,name,icon,body FROM chat WHERE location=? LIMIT ?,?", location.name, offset, limit).fetch_all(pool).await?;
 
 	match req_type {

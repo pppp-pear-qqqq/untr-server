@@ -1,0 +1,12 @@
+{% extends "template.html" %}
+{% block head %}
+{% endblock %}
+{% block content %}
+<article>
+	{% for user in user_list %}
+	<div class="user">
+		<a class="name" href="/user/{{user.id}}">{{user.name}}</a>
+	</div>
+	{% endfor %}
+</article>
+{% endblock %}

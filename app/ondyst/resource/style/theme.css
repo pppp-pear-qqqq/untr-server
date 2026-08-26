@@ -4,7 +4,7 @@
 	font-size: min(16px, calc(98dvw / 30));
 
 	&[data-theme="light"] {
-		--surface-color: #ffffffd0;
+		--surface-color: #efefef;
 		--weak-surface-color: #f0f0f080;
 		--content-color: #202020;
 		--accent-color: #ffcd1b;
@@ -14,7 +14,7 @@
 		--rainbow-color: #b00000;
 	}
 	&[data-theme="dark"] {
-		--surface-color: #202020d0;
+		--surface-color: #1a1a1a;
 		--weak-surface-color: #32323280;
 		--content-color: #d0d0d0;
 		--accent-color: #ffcd1b;
@@ -47,5 +47,5 @@ button {
 body {
 	background-image: url("/image/back.png");
 	background-repeat: repeat;
-	background-blend-mode: hue;
+	background-blend-mode: overlay;
 }

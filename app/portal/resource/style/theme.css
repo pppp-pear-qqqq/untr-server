@@ -9,8 +9,8 @@
 		--content-color: #222;
 		--accent-color: #ffcd1b;
 		--border-color: #767676;
-		--link-color: #80a0ff;
-		--link-visited-color: #80a0ff;
+		--link-color: #5a7bdf;
+		--link-visited-color: #773a8e;
 		--rainbow-color: #b00000;
 	}
 	&[data-theme="dark"] {
@@ -19,8 +19,8 @@
 		--content-color: #ddd;
 		--accent-color: #ffcd1b;
 		--border-color: #767676;
-		--link-color: #007bff;
-		--link-visited-color: #007bff;
+		--link-color: #95bce5;
+		--link-visited-color: #ba87eb;
 		--rainbow-color: #ff6060;
 	}
 }

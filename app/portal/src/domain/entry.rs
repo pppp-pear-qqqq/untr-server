@@ -39,7 +39,8 @@ struct Login {
 async fn login(web::Form(info): web::Form<Login>, session: Session, _: StateHandle, pool: web::Data<Pool>) -> common::Result<impl Responder> {
 	info.validate()?;
 	let pool = pool.as_ref();
-	let record = sqlx::query!("SELECT id,password FROM user WHERE name=?", info.username).fetch_one(pool).await?;
+
+	let record = sqlx::query!("SELECT id,password FROM user WHERE name=?", info.username).fetch_optional(pool).await?.ok_or(ErrorUnauthorized("ユーザー名またはパスワードが異なります"))?;
 	let parsed_hash = PasswordHash::new(&record.password)?;
 	if Argon2::default().verify_password(info.password.as_bytes(), &parsed_hash).is_ok() {
 		Identity::set(&session, record.id)?;

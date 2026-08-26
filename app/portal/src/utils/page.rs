@@ -1,6 +1,7 @@
 use std::ops::Deref;
 
 use sqlx::SqlitePool;
+use uuid::Uuid;
 
 #[derive(serde::Serialize)]
 pub struct Page {
@@ -19,6 +20,7 @@ enum PageType {
 }
 #[derive(serde::Serialize)]
 pub struct UserData {
+	id: Uuid,
 	name: String,
 }
 
@@ -52,8 +54,11 @@ impl Page {
 impl UserData {
 	pub async fn load(id: &super::Identity, pool: &SqlitePool) -> Result<Self, sqlx::Error> {
 		let id = id.deref();
-		let name = sqlx::query_scalar!("SELECT name FROM user WHERE id=?", id).fetch_one(pool).await?;
-		Ok(Self { name })
+		let record = sqlx::query!("SELECT id,name FROM user WHERE id=?", id).fetch_one(pool).await?;
+		Ok(Self {
+			id: Uuid::from_slice(&record.id).map_err(|err| sqlx::Error::Decode(err.into()))?,
+			name: record.name,
+		})
 	}
 	pub async fn load_opt(id: &Option<super::Identity>, pool: &SqlitePool) -> Result<Option<Self>, sqlx::Error> {
 		match id {

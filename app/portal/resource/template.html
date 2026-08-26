@@ -40,7 +40,7 @@
 			</nav>
 			{% if user %}
 			<div id="user-data">
-				ログイン中: <span class="username">{{user.name}}</span>
+				ログイン中: <a class="username" href="home">{{user.name}}</a>
 			</div>
 			{% endif %}
 		</header>

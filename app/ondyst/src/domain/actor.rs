@@ -35,12 +35,6 @@ async fn list(web::Query(page): web::Query<Pagination>, req_type: ReqType, id: O
 
 async fn actor(actor: web::Path<i32>, id: Option<Identity>, _: StateHandle, pool: web::Data<Pool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
 	#[derive(serde::Serialize)]
-	struct Record {
-		name: String,
-		profile: String,
-		portrait_list: String,
-	}
-	#[derive(serde::Serialize)]
 	struct Section<'a> {
 		title: Option<&'a str>,
 		content: &'a str,
@@ -49,11 +43,7 @@ async fn actor(actor: web::Path<i32>, id: Option<Identity>, _: StateHandle, pool
 	let target_id = actor.into_inner();
 
 	let pool = pool.as_ref();
-	let record = match sqlx::query_as!(Record, "SELECT name,profile,portrait_list FROM actor WHERE id=?", target_id).fetch_one(pool).await {
-		Ok(r) => r,
-		Err(sqlx::Error::RowNotFound) => return Err(ErrorBadRequest("対象のキャラクターは存在しません").into()),
-		Err(err) => return Err(err.into()),
-	};
+	let record = sqlx::query!("SELECT name,profile,portrait_list FROM actor WHERE id=?", target_id).fetch_optional(pool).await?.ok_or(ErrorNotFound("対象のキャラクターは存在しません"))?;
 
 	let mut section_iter = record.profile.split("\n# ");
 	let mut sections = Vec::new();

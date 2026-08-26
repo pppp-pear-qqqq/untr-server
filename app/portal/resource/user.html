@@ -1,0 +1,15 @@
+{% extends "template.html" %}
+{% block head %}
+<link rel="stylesheet" href="style/note.css">
+{% endblock %}
+{% block content %}
+<article>
+	<h2 class="name">{{user.name}}</h2>
+	{% for section in profile %}
+	<section>
+		<h3>{{section.title|default(value='Profile')}}</h3>
+		<p>{{section.content|html(link=true)|safe}}</p>
+	</section>
+	{% endfor %}
+</article>
+{% endblock %}

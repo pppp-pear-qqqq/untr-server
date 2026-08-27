@@ -25,18 +25,20 @@ form.addEventListener('submit', async (ev) => {
 });
 
 // アイコン選択
-const icon_dialog = form.querySelector<HTMLDialogElement>('dialog')!;
-const icon_button = form.querySelector<HTMLButtonElement>('button.icon')!;
-const icon = icon_button.firstElementChild as HTMLImageElement;
-icon_button.addEventListener('click', () => {
-	icon_dialog.showModal();
-});
-icon_dialog.querySelectorAll<HTMLInputElement>('input').forEach((e) => {
-	e.addEventListener('click', () => {
-		icon.src = e.value;
-		icon_dialog.close();
+const icon_dialog = form.querySelector<HTMLDialogElement>('dialog');
+if (icon_dialog) {
+	const icon_button = form.querySelector<HTMLButtonElement>('button.icon')!;
+	const icon = icon_button.firstElementChild as HTMLImageElement;
+	icon_button.addEventListener('click', () => {
+		icon_dialog.showModal();
 	});
-});
+	icon_dialog.querySelectorAll<HTMLInputElement>('input').forEach((e) => {
+		e.addEventListener('click', () => {
+			icon.src = e.value;
+			icon_dialog.close();
+		});
+	});
+}
 
 // 再読み込み
 const parent = document.getElementById('timeline')!;

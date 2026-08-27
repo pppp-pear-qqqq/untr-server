@@ -10,6 +10,7 @@ use super::*;
 /// リソース
 pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.route("", web::to(location_list));
+	cfg.route("new", web::post().to(new_location));
 	cfg.service(web::resource("{key}").get(location).post(post_chat));
 	// TODO stream
 }
@@ -31,10 +32,23 @@ async fn location_list(id: Option<Identity>, _: StateHandle, pool: web::Data<Poo
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }
 
+async fn new_location(id: Identity, state: StateHandle, pool: web::Data<Pool>) -> common::Result<impl Responder> {
+	let timestamp = chrono::Utc::now().timestamp();
+	state.get().only_active()?;
+
+	let key = nanoid::nanoid!(8, &nanoid::alphabet::SAFE);
+
+	let message = format!("新しい場所を追加しました<br><a href=\"location/{key}\">移動する</a>");
+
+	let pool = pool.as_ref();
+	sqlx::query!("INSERT INTO log(timestamp,actor,body) VALUES(?,?,?)", timestamp, *id, message).execute(pool).await?;
+
+	Ok(HttpResponse::SeeOther().insert_header((header::LOCATION, key)).finish())
+}
+
 async fn location(key: web::Path<String>, page: Pagination<20, 100>, req_type: ReqType, id: Option<Identity>, _: StateHandle, pool: web::Data<Pool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
 	#[derive(serde::Serialize)]
 	struct Location {
-		key: String,
 		name: String,
 		lore: String,
 	}
@@ -60,12 +74,13 @@ async fn location(key: web::Path<String>, page: Pagination<20, 100>, req_type: R
 	let limit = page.limit.min(100) as i64;
 
 	let pool = pool.as_ref();
-	let location = sqlx::query_as!(Location, "SELECT key,name,lore FROM location WHERE key=?", key).fetch_optional(pool).await?.ok_or(ErrorNotFound("指定された場所は存在しません"))?;
-	let chat_list = sqlx::query_as!(Chat, "SELECT id,timestamp,actor,name,icon,body FROM chat WHERE location=? ORDER BY id DESC LIMIT ?,?", location.name, offset, limit).fetch_all(pool).await?;
+
+	let chat_list = sqlx::query_as!(Chat, "SELECT id,timestamp,actor,name,icon,body FROM chat WHERE location=? ORDER BY id DESC LIMIT ?,?", key, offset, limit).fetch_all(pool).await?;
 
 	match req_type {
 		ReqType::Empty => Ok(HttpResponse::Ok().json(chat_list)),
 		_ => {
+			let location = sqlx::query_as!(Location, "SELECT name,lore FROM location WHERE key=?", key).fetch_optional(pool).await?;
 			let item_list = sqlx::query_as!(Item, "SELECT id,name,lore,message FROM item WHERE location=?", key).fetch_all(pool).await?;
 			let mut ctx = tera::Context::new();
 			if let Some(id) = &id {
@@ -74,6 +89,7 @@ async fn location(key: web::Path<String>, page: Pagination<20, 100>, req_type: R
 				ctx.insert("icon_list", &icon_list);
 			}
 			ctx.insert("location", &location);
+			ctx.insert("location_key", &key);
 			ctx.insert("chat_list", &chat_list);
 			ctx.insert("item_list", &item_list);
 			let body = Page::default().actor_data_opt(ActorData::load_opt(&id, &pool).await?).render_with_ctx("location.html", &tmpl, ctx)?;
@@ -85,7 +101,7 @@ async fn location(key: web::Path<String>, page: Pagination<20, 100>, req_type: R
 #[derive(serde::Deserialize, Validate)]
 struct Chat {
 	#[validate(length(max = 16, message = "16文字以内で入力してください"))]
-	location: String,
+	location: String, // key
 	#[validate(length(max = 16, message = "16文字以内で入力してください"))]
 	name: String,
 	#[validate(length(max = 256, message = "256文字以内にしてください"))]
@@ -94,9 +110,8 @@ struct Chat {
 	body: String,
 }
 async fn post_chat(web::Form(info): web::Form<Chat>, id: Identity, state: StateHandle, pool: web::Data<Pool>) -> common::Result<impl Responder> {
-	state.get().only_active()?;
-
 	let timestamp = chrono::Utc::now().timestamp();
+	state.get().only_active()?;
 	info.validate()?;
 
 	// 入力のパース
@@ -132,21 +147,13 @@ async fn post_chat(web::Form(info): web::Form<Chat>, id: Identity, state: StateH
 		.await?;
 	// メンション
 	if !mentions.is_empty() {
-		let mut builder = sqlx::QueryBuilder::new("INSERT INTO chat_mention(source,target) VALUES");
-		let mut sep = builder.separated(',');
-		for t in &mentions {
-			sep.push('(').push_bind_unseparated(chat_id).push_bind(t).push_unseparated(')');
-		}
-		builder.build().execute(&mut *tx).await?;
+		let json = serde_json::to_string(&mentions).unwrap();
+		sqlx::query!("INSERT OR IGNORE INTO chat_mention(source,target) SELECT ?,actor.id FROM json_each(?) JOIN actor ON actor.id=value", chat_id, json).execute(&mut *tx).await?;
 	}
 	// アンカー
 	if !anchors.is_empty() {
-		let mut builder = sqlx::QueryBuilder::new("INSERT INTO chat_anchor(source,target) VALUES");
-		let mut sep = builder.separated(',');
-		for t in &anchors {
-			sep.push('(').push_bind_unseparated(chat_id).push_bind(t).push_unseparated(')');
-		}
-		builder.build().execute(&mut *tx).await?;
+		let json = serde_json::to_string(&anchors).unwrap();
+		sqlx::query!("INSERT OR IGNORE INTO chat_anchor(source,target) SELECT ?,chat.id FROM json_each(?) JOIN chat ON chat.id=value", chat_id, json).execute(&mut *tx).await?;
 	}
 	tx.commit().await?;
 
@@ -163,9 +170,16 @@ async fn post_chat(web::Form(info): web::Form<Chat>, id: Identity, state: StateH
 	// 通知
 	mentions.remove(&id); // 自分対象を除外
 	if !mentions.is_empty() {
+		let target = mentions.into_iter().collect();
+
+		// サイト内通知
+		let message = format!("id:{} から言及されました<br><a href=\"location/{}\">発言場所へ移動</a>", id, info.location);
+		let target_json = serde_json::to_string(&target).unwrap();
+		sqlx::query!("INSERT INTO log(timestamp,actor,body) SELECT ?,value,? FROM json_each(?)", timestamp, message, target_json).execute(pool).await?;
+
+		// webhook通知
 		let preview = raw_body.char_indices().nth(48).map(|(idx, _)| &raw_body[..idx]).unwrap_or(&raw_body);
 		let webhook = Webhook::new(format!("{}\n\n{}", preview, APP_URL)).username(format!("{} (one day's' talk)", info.name)).avatar_url(info.icon);
-		let target = mentions.into_iter().collect();
 		tokio::spawn(async move {
 			if let Err(err) = webhook.send(target).await {
 				eprintln!("{:?}", err);

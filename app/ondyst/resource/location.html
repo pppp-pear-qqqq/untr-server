@@ -5,8 +5,10 @@
 {% endblock %}
 {% block content %}
 <article id="location">
+	{% if location %}
 	<h2 class="name">{{location.name}}</h2>
 	<p class="name">{{location.lore|safe}}</p>
+	{% endif %}
 	<a href="location">一覧に戻る</a>
 	{% if item_list %}
 	<section id="item_list">
@@ -69,8 +71,8 @@
 				<ic class="ri-reply-line"></ic>
 			</footer>
 		</article>
-		<form action="location/{{location.key}}" method="post" data-encode="form">
-			<input type="hidden" name="location" value="{{location.name}}">
+		<form action="location/{{location_key}}" method="post" data-encode="form">
+			<input type="hidden" name="location" value="{{location_key}}">
 			{% if icon_list %}
 			<dialog closedby="any">
 				<fieldset>

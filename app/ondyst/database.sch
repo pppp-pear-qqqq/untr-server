@@ -11,9 +11,9 @@ table location
 # アイテム
 table item
 	id int pk
+	location text index(item_location)
 	name text
 	lore text
-	location ref(location.key)?.update(cascade).delete(cascade) index(item_location)
 	message text
 	@init(master/item.csv)
 

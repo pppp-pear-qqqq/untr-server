@@ -15,5 +15,13 @@
 		<p class="lore">{{location.lore|safe}}</p>
 	</section>
 	{% endfor %}
+	<form action="location/new" method="post">
+		<h3 class="name">ひみつの場所</h3>
+		<p>
+			パステルサイトは小さな町だけれど、それでも町と呼べる規模だ。<br>
+			内緒話をするのに丁度いい密やかな場所も、ここには多く息づいている。<br>
+			<button type="submit">新しい場所を追加する</button>
+		</p>
+	</form>
 </article>
 {% endblock %}

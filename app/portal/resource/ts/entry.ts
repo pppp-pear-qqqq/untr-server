@@ -3,13 +3,18 @@ import { sleep } from '/common/script/utils.js';
 import { toast } from './import.js';
 
 document.querySelectorAll('form').forEach(e => {
-	e.addEventListener('submit', ev => {
+	e.addEventListener('submit', async (ev) => {
 		ev.preventDefault()
-		new Ajax(e).send().then(async () => {
-			if (e.id === 'login') toast.success('ログインしました');
-			else if (e.id === 'register') toast.success('新規登録が完了しました');
+		try {
+			await new Ajax(e).send();
+			switch (e.id) {
+				case 'login': toast.success('ログインしました'); break;
+				case 'register': toast.success('新規登録が完了しました'); break;
+			}
 			await sleep(2000);
 			location.href = 'home';
-		})
+		} catch (err: any) {
+			toast.error(err.message);
+		}
 	})
 })

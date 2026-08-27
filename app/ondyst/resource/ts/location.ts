@@ -4,15 +4,16 @@ import { toast } from './toast.js';
 
 // 発言
 const form = document.querySelector<HTMLFormElement>('#post form')!;
-form.addEventListener('submit', (ev) => {
+form.addEventListener('submit', async (ev) => {
 	ev.preventDefault();
-	new Ajax(form).send().then(() => {
+	try {
+		await new Ajax(form).send();
 		(form.children.namedItem('body') as HTMLTextAreaElement).value = '';
 		toast.success('発言しました');
 		reload({ scroll: 'bottom' });
-	}).catch((err) => {
+	} catch (err: any) {
 		toast.error(err.message);
-	});
+	}
 });
 
 // アイコン選択
@@ -38,15 +39,16 @@ let offset_max: number = Number.MAX_SAFE_INTEGER;
 const limit_default = 20;
 const limit_max = 100;
 
-if (container.childElementCount < limit_max) offset_max = 0;
+if (container.childElementCount < limit_default) offset_max = Number(new URLSearchParams(location.search).get('offset') ?? 0);
 
-function reload({ offset = 0, limit = limit_default, scroll = 'none' }: { offset?: number; limit?: number; scroll?: 'top' | 'bottom' | 'none' }) {
+async function reload({ offset = 0, limit = limit_default, scroll = 'none' }: { offset?: number; limit?: number; scroll?: 'top' | 'bottom' | 'none' }) {
 	const o = Math.min(offset, offset_max);
 	const l = Math.min(limit, limit_max);
 	const params = new URLSearchParams();
 	params.set('offset', o.toString());
 	params.set('limit', l.toString());
-	new Ajax(window.location.pathname).get(params).send('json').then(ret => {
+	try {
+		const ret = await new Ajax(window.location.pathname).get(params).send('json');
 		window.history.pushState(null, '', `${location.pathname}?offset=${o}&limit=${l}`);
 		const fragment = document.createDocumentFragment();
 		ret.forEach((item: any) => {
@@ -63,7 +65,9 @@ function reload({ offset = 0, limit = limit_default, scroll = 'none' }: { offset
 		if (container.childElementCount < l) offset_max = o;
 		if (scroll === 'none') return;
 		parent.scroll({ top: scroll === 'top' ? 0 : parent.scrollHeight, behavior: 'smooth' });
-	})
+	} catch (err: any) {
+		toast.error(err.message);
+	}
 }
 
 // ページネーション

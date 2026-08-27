@@ -13,11 +13,12 @@ form.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('[name]').forEach(
 form.addEventListener('submit', async (ev) => {
 	ev.preventDefault();
 	const form = ev.currentTarget as HTMLFormElement;
-	new Ajax(form.action).method('PATCH').body(data, 'json').send().then(() => {
+	try {
+		await new Ajax(form.action).method('PATCH').body(data, 'json').send();
 		toast.success('更新しました');
-	}).catch(err => {
+	} catch (err: any) {
 		toast.error(err.message);
-	});
+	}
 });
 
 const icon_list = document.getElementById('icon_list') as HTMLTextAreaElement;

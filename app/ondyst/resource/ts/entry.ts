@@ -19,27 +19,29 @@ if (register) register.addEventListener('submit', ev => {
 	window.open(`${portal}/auth`, '', 'popup');
 });
 
-window.addEventListener('message', ev => {
+window.addEventListener('message', async (ev) => {
 	if (ev.origin !== portal) return;
 	if (target == null) return;
 	target.querySelector<HTMLInputElement>('input[name="code"]')!.value = ev.data;
-	new Ajax(target).send('text').then(async ret => {
+	try {
+		const ret = await new Ajax(target).send('text');
 		toast.success(`id: ${ret}`);
 		await sleep(2000);
 		location.href = 'home';
-	}).catch(err => {
+	} catch (err: any) {
 		toast.error(err.message);
-	});
+	}
 });
 
-document.getElementById('logout')?.addEventListener('click', ev => {
+document.getElementById('logout')?.addEventListener('click', async (ev) => {
 	ev.preventDefault();
 	const href = (ev.currentTarget as HTMLAnchorElement).href;
-	new Ajax(href).send('text').then(async () => {
+	try {
+		await new Ajax(href).send('text');
 		toast.success('ログアウトしました');
 		await sleep(2000);
 		location.reload();
-	}).catch(err => {
+	} catch (err: any) {
 		toast.error(err.message);
-	});
+	}
 });

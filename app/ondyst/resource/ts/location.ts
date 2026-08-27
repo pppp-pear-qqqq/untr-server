@@ -4,11 +4,19 @@ import { toast } from './toast.js';
 
 // 発言
 const form = document.querySelector<HTMLFormElement>('#post form')!;
+let force_submit = false;
 form.addEventListener('submit', async (ev) => {
 	ev.preventDefault();
+	const body = form.children.namedItem('body') as HTMLTextAreaElement;
+	if (!force_submit && body.value.trim() === '') {
+		toast.warn('発言内容が空欄です\nこのまま投稿する場合は再度送信してください');
+		force_submit = true;
+		return;
+	}
 	try {
 		await new Ajax(form).send();
-		(form.children.namedItem('body') as HTMLTextAreaElement).value = '';
+		body.value = '';
+		force_submit = false;
 		toast.success('発言しました');
 		reload({ scroll: 'bottom' });
 	} catch (err: any) {

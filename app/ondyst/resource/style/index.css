@@ -1,9 +1,15 @@
-#forms {
-	width: fit-content;
+#entry {
 	margin: 2lh auto;
 	text-align: center;
 
 	form {
-		padding: 0.3lh 0;
+		margin: 0.2lh 0;
+		padding: 0;
+		border: none;
+		justify-items: center;
+	}
+
+	button {
+		margin: 0;
 	}
 }

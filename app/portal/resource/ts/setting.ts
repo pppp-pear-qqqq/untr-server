@@ -1,5 +1,5 @@
 import { Ajax } from '/common/script/ajax.js';
-import { toast } from './import.js';
+import { toast } from './toast.js';
 
 let data: Record<string, string> = {};
 const form = document.querySelector('form')!;

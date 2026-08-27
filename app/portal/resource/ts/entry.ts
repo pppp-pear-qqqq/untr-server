@@ -1,6 +1,6 @@
 import { Ajax } from '/common/script/ajax.js';
 import { sleep } from '/common/script/utils.js';
-import { toast } from './import.js';
+import { toast } from './toast.js';
 
 document.querySelectorAll('form').forEach(e => {
 	e.addEventListener('submit', async (ev) => {

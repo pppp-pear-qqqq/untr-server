@@ -8,15 +8,15 @@ const login = document.getElementById('login') as HTMLFormElement
 const register = document.getElementById('register') as HTMLFormElement
 let target: HTMLFormElement | null = null;
 
-if (login) login.addEventListener('submit', ev => {
+if (login) login.addEventListener('submit', (ev) => {
 	ev.preventDefault();
 	target = login;
-	window.open(`${portal}/auth`, '', 'popup');
+	window.open(`${portal}/auth`, '', `popup,width=640,height=140`);
 });
-if (register) register.addEventListener('submit', ev => {
+if (register) register.addEventListener('submit', (ev) => {
 	ev.preventDefault();
 	target = register;
-	window.open(`${portal}/auth`, '', 'popup');
+	window.open(`${portal}/auth`, '', 'popup,width=640,height=140');
 });
 
 window.addEventListener('message', async (ev) => {

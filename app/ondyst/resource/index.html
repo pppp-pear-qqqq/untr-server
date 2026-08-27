@@ -1,7 +1,6 @@
 {% extends "template.html" %}
 {% block head %}
 <link rel="stylesheet" href="style/note.css">
-<link rel="stylesheet" href="style/form.css">
 <link rel="stylesheet" href="style/index.css">
 <link rel="stylesheet" href="style/title.css">
 <script type="module" src="script/entry.js"></script>
@@ -11,7 +10,7 @@
 	<!--時計盤を配置 JSで実際の時刻に合わせて針を描画する-->
 	one day's' talk
 </h1>
-<div id="forms">
+<div id="entry">
 	{% if actor %}
 	<p>ログイン済み <a href="home"><ic class="ri-home-line"></ic>ホームへ</a></p>
 	<p>または <a id="logout" href="entry/logout"><ic class="ri-logout-circle-line"></ic>ログアウト</a></p>
@@ -24,7 +23,14 @@
 	<form id="register" method="post" action="entry/register" data-encode="form" autocomplete="off">
 		<input type="hidden" name="code">
 		<button type="submit">新規登録</button>
-		<span>新規登録を押した時点で<a href="#tos">利用規約</a>に同意したものと見なします</span>
+		<ic role="button" class="help ri-question-line">
+			<template>
+				<a target="_blank" href="https://untroche.com">ポータルサイト</a>と連携してアカウントを登録します（ボタンを押すと画面がポップアップします）。<br>
+				このサイトでユーザー名やパスワードを入力することはありませんが、先にポータルサイトでアカウント作成・ログインしておいてください。
+			</template>
+		</ic>
+		<br>
+		<small>新規登録を押した時点で<a href="#tos">利用規約</a>に同意したものと見なします</small>
 	</form>
 	{% endif %}
 </div>

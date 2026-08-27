@@ -7,9 +7,25 @@
 	}
 </style>
 <!--submitの完了を待機してauthに戻る-->
+<script type="module">
+import { Ajax } from '/common/script/ajax.js';
+import { sleep } from '/common/script/utils.js';
+import { toast } from '/script/toast.js';
+document.getElementById('login').addEventListener('submit', async (e) => {
+	e.preventDefault();
+	try {
+		await new Ajax(e.currentTarget).send();
+		toast.success('ログインしました');
+		await sleep(2000);
+		location.href = '/auth';
+	} catch (err) {
+		toast.error(err.message);
+	}
+});
+</script>
 {% endblock %}
 {% block content %}
-<form id="login" method="post" action="entry/login">
+<form id="login" method="post" action="entry/login" data-encode="form">
 	<h3>ログイン</h3>
 	<label>
 		<ic class="ri-user-line"></ic>
@@ -24,5 +40,6 @@
 		</button>
 	</label>
 	<button type="submit">ログイン</button>
+	<small>アカウント未登録の場合は、このウィンドウを閉じてポータルサイトでアカウントを登録してください</small>
 </form>
 {% endblock %}

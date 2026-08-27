@@ -31,7 +31,7 @@ async fn register(web::Form(info): web::Form<Auth>, session: Session, state: Sta
 	let pool = pool.as_ref();
 	let actor_id = match sqlx::query_scalar!("INSERT INTO actor(user,name) VALUES(?,?) RETURNING id", user, name).fetch_one(pool).await {
 		Ok(r) => r,
-		Err(sqlx::Error::Database(err)) if err.is_unique_violation() => return Err(ErrorBadRequest("そのユーザーは既に登録されています").into()),
+		Err(sqlx::Error::Database(err)) if err.is_unique_violation() => return Err(ErrorBadRequest("あなたは既にキャラクターを登録しています").into()),
 		Err(err) => return Err(err.into()),
 	};
 	Identity::set(&session, actor_id)?;

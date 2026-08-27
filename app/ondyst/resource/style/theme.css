@@ -57,9 +57,7 @@ body {
 h1 {
 	font-family: var(--font-display-1);
 }
-h2 {
-	font-family: var(--font-display-2);
-}
+h2,
 h3 {
 	font-family: var(--font-display-2);
 	font-weight: 400;

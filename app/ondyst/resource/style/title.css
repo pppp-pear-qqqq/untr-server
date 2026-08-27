@@ -1,4 +1,4 @@
 h1 {
-	font-family: "Darumadrop One", sans-serif;
+	font-family: var(--font-display-1);
 	text-align: center;
 }

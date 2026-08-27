@@ -7,7 +7,7 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.route("{actor}", web::get().to(actor));
 }
 
-async fn list(web::Query(page): web::Query<Pagination>, req_type: ReqType, id: Option<Identity>, _: StateHandle, pool: web::Data<Pool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
+async fn list(page: Pagination<100, 200>, req_type: ReqType, id: Option<Identity>, _: StateHandle, pool: web::Data<Pool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
 	#[derive(serde::Serialize)]
 	struct Record {
 		id: i64,
@@ -17,7 +17,7 @@ async fn list(web::Query(page): web::Query<Pagination>, req_type: ReqType, id: O
 	}
 
 	let offset = page.offset as i64;
-	let limit = page.limit as i64;
+	let limit = page.limit.min(200) as i64;
 
 	let pool = pool.as_ref();
 	let records = sqlx::query_as!(Record, "SELECT id,name,comment,icon FROM actor LIMIT ?,?", offset, limit).fetch_all(pool).await?;

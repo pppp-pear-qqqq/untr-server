@@ -7,7 +7,7 @@ mod user;
 mod webhook;
 
 use actix_web::{HttpResponse, Responder, error::*, guard, http::header, web};
-use common::{PageRender, ReqType};
+use common::{PageRender, Pagination, ReqType};
 use sqlx::SqlitePool as Pool;
 use tera::Tera;
 use uuid::Uuid;

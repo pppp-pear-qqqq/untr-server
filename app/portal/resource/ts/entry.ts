@@ -1,5 +1,5 @@
 import { Ajax } from '/common/script/ajax.js';
-import { sleep } from '/common/script/funcs.js';
+import { sleep } from '/common/script/utils.js';
 import { toast } from './import.js';
 
 document.querySelectorAll('form').forEach(e => {

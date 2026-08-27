@@ -12,7 +12,6 @@ x-rust-base: &rust-base
 
 x-sqlite-web-base: &sqlite-web-base
     image: ghcr.io/coleifer/sqlite-web:latest
-    restart: always
     # environment:
     #     - SQLITE_WEB_PASSWORD=your_secret_password
     command: /data/database.db -p 8080

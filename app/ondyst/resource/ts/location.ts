@@ -1,12 +1,15 @@
 import { Ajax } from '/common/script/ajax.js';
-import { toast } from './import.js';
+import { time_formatter as formatter } from '/common/script/utils.js';
+import { toast } from './toast.js';
 
+// 発言
 const form = document.querySelector<HTMLFormElement>('#post form')!;
 form.addEventListener('submit', (ev) => {
 	ev.preventDefault();
 	new Ajax(form).send().then(() => {
+		(form.children.namedItem('body') as HTMLTextAreaElement).value = '';
 		toast.success('発言しました');
-		reload();
+		reload({ scroll: 'bottom' });
 	}).catch((err) => {
 		toast.error(err.message);
 	});
@@ -26,19 +29,25 @@ icon_dialog.querySelectorAll<HTMLInputElement>('input').forEach((e) => {
 	});
 });
 
-const formatter = new Intl.DateTimeFormat('ja-JP', {
-	year: 'numeric', month: '2-digit', day: '2-digit',
-	hour: '2-digit', minute: '2-digit', second: '2-digit',
-	hour12: false
-});
+// 再読み込み
+const parent = document.getElementById('timeline')!;
+const container = document.getElementById('chat_list')!;
+const template = document.getElementById(`${container.id}-template`) as HTMLTemplateElement;
 
-function reload(offset?: number, limit?: number) {
+let offset_max: number = Number.MAX_SAFE_INTEGER;
+const limit_default = 20;
+const limit_max = 100;
+
+if (container.childElementCount < limit_max) offset_max = 0;
+
+function reload({ offset = 0, limit = limit_default, scroll = 'none' }: { offset?: number; limit?: number; scroll?: 'top' | 'bottom' | 'none' }) {
+	const o = Math.min(offset, offset_max);
+	const l = Math.min(limit, limit_max);
 	const params = new URLSearchParams();
-	if (offset != null) params.set('offset', offset.toString());
-	if (limit != null) params.set('limit', limit.toString());
-	new Ajax(window.location.href).get(params).send('json').then(ret => {
-		const container = document.getElementById('chat_list')!;
-		const template = document.getElementById(`${container.id}-template`) as HTMLTemplateElement;
+	params.set('offset', o.toString());
+	params.set('limit', l.toString());
+	new Ajax(window.location.pathname).get(params).send('json').then(ret => {
+		window.history.pushState(null, '', `${location.pathname}?offset=${o}&limit=${l}`);
 		const fragment = document.createDocumentFragment();
 		ret.forEach((item: any) => {
 			const node = template.content.cloneNode(true) as DocumentFragment;
@@ -48,8 +57,24 @@ function reload(offset?: number, limit?: number) {
 			node.querySelector('.id')!.textContent += item.actor;
 			node.querySelector('.body')!.textContent = item.body;
 			node.querySelector('.timestamp')!.textContent = formatter.format(new Date(item.timestamp * 1000));
-			fragment.appendChild(node);
+			fragment.insertBefore(node, fragment.firstChild);
 		});
 		container.replaceChildren(fragment);
+		if (container.childElementCount < l) offset_max = o;
+		if (scroll === 'none') return;
+		parent.scroll({ top: scroll === 'top' ? 0 : parent.scrollHeight, behavior: 'smooth' });
 	})
 }
+
+// ページネーション
+document.querySelectorAll<HTMLElement>('[data-page]').forEach(e => {
+	e.addEventListener('click', () => {
+		const page = Number(e.dataset.page);
+		const search = new URLSearchParams(location.search);
+		const offset = Number(search.get('offset') ?? 0);
+		const limit = Number(search.get('limit') ?? limit_default);
+		reload({ offset: Math.max(offset + page * limit, 0), limit: limit, scroll: 'top' });
+	});
+})
+
+parent.scroll({ top: parent.scrollHeight, behavior: 'smooth' });

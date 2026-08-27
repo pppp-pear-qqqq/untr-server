@@ -35,7 +35,7 @@
 		</article>
 	</template>
 	<div id="chat_list">
-		{% for chat in chat_list %}
+		{% for chat in chat_list|reverse %}
 		<article class="chat" data-id="{{chat.id}}">
 			<a class="icon" target="_blank" href="actor/{{chat.actor}}"><img src="{{chat.icon}}"></a>
 			<a class="name" target="_blank" href="actor/{{chat.actor}}">{{chat.name}}</a>
@@ -50,6 +50,11 @@
 			</footer>
 		</article>
 		{% endfor %}
+	</div>
+	<div class="pagination">
+		<ic role="button" title="前へ" data-page="1" class="ri-arrow-left-wide-line"></ic>
+		<ic role="button" title="更新" data-page="0" class="ri-refresh-line"></ic>
+		<ic role="button" title="次へ" data-page="-1" class="ri-arrow-right-wide-line"></ic>
 	</div>
 	{% if actor %}
 	<div id="post">

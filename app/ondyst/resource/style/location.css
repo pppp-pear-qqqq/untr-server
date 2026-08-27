@@ -19,11 +19,19 @@ main {
 	max-height: stretch;
 	padding: 0.4rlh;
 	flex-direction: column;
-	justify-content: space-between;
 	align-items: center;
 	gap: 1rlh;
 	overflow: hidden auto;
 	scrollbar-width: thin;
+	scrollbar-gutter: stable;
+
+	> .pagination {
+		display: flex;
+		margin-top: auto;
+		justify-content: center;
+		align-items: center;
+		gap: 1rem;
+	}
 }
 
 #chat_list,

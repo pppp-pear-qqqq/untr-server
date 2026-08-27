@@ -31,7 +31,7 @@ async fn location_list(id: Option<Identity>, _: StateHandle, pool: web::Data<Poo
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }
 
-async fn location(key: web::Path<String>, web::Query(page): web::Query<Pagination>, req_type: ReqType, id: Option<Identity>, _: StateHandle, pool: web::Data<Pool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
+async fn location(key: web::Path<String>, page: Pagination<20, 100>, req_type: ReqType, id: Option<Identity>, _: StateHandle, pool: web::Data<Pool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
 	#[derive(serde::Serialize)]
 	struct Location {
 		key: String,
@@ -57,11 +57,11 @@ async fn location(key: web::Path<String>, web::Query(page): web::Query<Paginatio
 
 	let key = key.into_inner();
 	let offset = page.offset as i64;
-	let limit = page.limit as i64;
+	let limit = page.limit.min(100) as i64;
 
 	let pool = pool.as_ref();
 	let location = sqlx::query_as!(Location, "SELECT key,name,lore FROM location WHERE key=?", key).fetch_optional(pool).await?.ok_or(ErrorNotFound("指定された場所は存在しません"))?;
-	let chat_list = sqlx::query_as!(Chat, "SELECT id,timestamp,actor,name,icon,body FROM chat WHERE location=? LIMIT ?,?", location.name, offset, limit).fetch_all(pool).await?;
+	let chat_list = sqlx::query_as!(Chat, "SELECT id,timestamp,actor,name,icon,body FROM chat WHERE location=? ORDER BY id DESC LIMIT ?,?", location.name, offset, limit).fetch_all(pool).await?;
 
 	match req_type {
 		ReqType::Empty => Ok(HttpResponse::Ok().json(chat_list)),

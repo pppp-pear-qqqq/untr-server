@@ -32,8 +32,10 @@
 			<ic class="ri-user-line"></ic>
 			ユーザー名
 			<ic role="button" class="help ri-question-line">
-				ログイン時に使用し、またポータルサイトでは画面にも表示されます。<br>
-				基本的にゲーム中に表示されることはありません。
+				<template>
+					ログイン時に使用し、またポータルサイトでは画面にも表示されます。<br>
+					基本的にゲーム中に表示されることはありません。
+				</template>
 			</ic>
 			<input type="text" name="username" min="4" max="24" placeholder="4~24文字">
 		</label>
@@ -41,8 +43,10 @@
 			<ic class="ri-lock-line"></ic>
 			パスワード
 			<ic role="button" class="help ri-question-line">
-				ログイン時に必要なパスワードです。<br>
-				今のところ変更機能を実装していないので、忘れないようにしてください。
+				<template>
+					ログイン時に必要なパスワードです。<br>
+					今のところ変更機能を実装していないので、忘れないようにしてください。
+				</template>
 			</ic>
 			<input type="password" name="password" min="4" placeholder="4文字以上">
 			<button type="button" class="toggle-visible">

@@ -21,7 +21,7 @@ document.querySelectorAll<HTMLElement>('input[type="password"]+.toggle-visible')
 const dialog = document.getElementById('help') as HTMLDialogElement;
 document.querySelectorAll<HTMLElement>('.help').forEach(e => {
 	e.addEventListener('click', () => {
-		dialog.innerHTML = e.innerHTML;
+		dialog.replaceChildren(e.querySelector('template')!.content.cloneNode(true));
 		dialog.showModal();
 	});
 });

@@ -101,14 +101,6 @@ ic {
 	font-size: 1.2em;
 	line-height: 1;
 }
-ic.help {
-	font-size: 0;
-	user-select: none;
-
-	&::before {
-		font-size: 1.2rem;
-	}
-}
 
 /* 文字装飾 */
 large {

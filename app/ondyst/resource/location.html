@@ -2,6 +2,7 @@
 {% block head %}
 <link rel="stylesheet" href="style/fav.css">
 <link rel="stylesheet" href="style/location.css">
+<link rel="stylesheet" href="style/timeline.css">
 <script type="module" src="script/fav.js"></script>
 <script type="module" src="script/location.js"></script>
 {% endblock %}
@@ -9,7 +10,7 @@
 <article id="location">
 	<h2 class="name">
 		{{location.name|default(value='ひみつの場所')}}
-		<span><label role="button" class="fav"><input type="checkbox" name="location" value="{{location_key}}"><ic class="off ri-star-line" title="未フォロー"></ic><ic class="on ri-star-fill" title="フォロー中"></ic></label></span>
+		<span><label role="button" class="fav"><input type="checkbox" name="location" value="{{location_key}}:{{location.name|default(value='ひみつの場所')}}"><ic class="off ri-star-line" title="未フォロー"></ic><ic class="on ri-star-fill" title="フォロー中"></ic></label></span>
 	</h2>
 	<p class="lore">
 		{% if location.lore %}

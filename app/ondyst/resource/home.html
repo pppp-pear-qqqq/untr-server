@@ -1,9 +1,29 @@
 {% extends "template.html" %}
 {% block head %}
+<link rel="stylesheet" href="style/home.css">
+<link rel="stylesheet" href="style/timeline.css">
+<script type="module" src="script/home.js"></script>
 {% endblock %}
 {% block content %}
-<div id="fav_list"></div>
-<div id="chat_list"></div>
+<div id="timeline">
+	<template id="chat_list-template">
+		<article class="chat" data-id>
+			<a class="icon" target="_blank" href><img src></a>
+			<a class="name" target="_blank" href></a>
+			<span class="id">id: </span>
+			<p class="body"></p>
+			<footer class="util">
+				<time class="timestamp"></time>
+				<div class="partition"></div>
+				<button type="button" class="reply" title="返信"><ic class="ri-reply-line"></ic></button>
+			</footer>
+		</article>
+	</template>
+	<fieldset class="tabs">
+		<label class="tab" role="button"><input type="radio" name="tab" value="actor" checked>キャラクター</label>
+	</fieldset>
+	<div id="chat_list"></div>
+</div>
 <div id="log_list">
 	{% for log in log_list|reverse %}
 	<div class="log" data-id="{{log.id}}">

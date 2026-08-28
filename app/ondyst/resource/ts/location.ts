@@ -4,6 +4,7 @@ import { toast } from './toast.js';
 
 // 発言
 const form = document.querySelector<HTMLFormElement>('#post form')!;
+const form_name = form.children.namedItem('name') as HTMLInputElement;
 const form_body = form.children.namedItem('body') as HTMLTextAreaElement;
 let force_submit = false;
 form.addEventListener('submit', async (ev) => {
@@ -105,5 +106,34 @@ document.querySelectorAll<HTMLElement>('[data-page]').forEach(e => {
 	});
 })
 
+// 発言内容初期設定
+window.addEventListener('beforeunload', () => {
+	localStorage.setItem('chat/body', form_body.value);
+	if (form_name) localStorage.setItem('chat/name', form_name.value);
+	else localStorage.removeItem('chat/name');
+	const icon = form.querySelector<HTMLInputElement>('input[name="icon"]:checked')?.value;
+	if (icon) localStorage.setItem('chat/icon', icon);
+	else localStorage.removeItem('chat/icon');
+})
+if (location.hash) {
+	const id = Number(location.hash.slice(3));
+	if (id) {
+		if (location.hash.startsWith('#a-')) form_body.value = `>>${id}\n`;
+		else if (location.hash.startsWith('#m-')) form_body.value = `@${id}\n`;
+	}
+}
+form_body.value += localStorage.getItem('chat/body') ?? '';
+const save_name = localStorage.getItem('chat/name');
+if (save_name) (form.children.namedItem('name') as HTMLInputElement).value = save_name;
+const save_icon = localStorage.getItem('chat/icon');
+if (save_icon) {
+	const target = form.querySelector<HTMLInputElement>(`input[name="icon"][value="${save_icon}"]`);
+	if (target) {
+		target.click();
+		form.querySelector<HTMLImageElement>('button.icon>img')!.src = save_icon;
+	}
+}
+
 setting_reply_buttons();
+
 parent.scroll({ top: parent.scrollHeight, behavior: 'smooth' });

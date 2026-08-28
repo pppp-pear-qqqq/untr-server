@@ -7,6 +7,8 @@ mod pages;
 
 use actix_web::{HttpResponse, Responder, error::*, http::header, web};
 use common::{HTMLEncode, PageRender, Pagination, ReqType};
+#[allow(unused_imports)]
+use log::{debug, error, info};
 use sqlx::SqlitePool as Pool;
 use tera::Tera;
 use uuid::Uuid;

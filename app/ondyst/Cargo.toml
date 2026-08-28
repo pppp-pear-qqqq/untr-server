@@ -17,6 +17,7 @@ common.workspace = true
 dotenv = { workspace = true, optional = true }
 env_logger.workspace = true
 fxhash.workspace = true
+log.workspace = true
 nanoid = "0.5.0"
 rand.workspace = true
 regex.workspace = true

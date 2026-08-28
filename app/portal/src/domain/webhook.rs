@@ -44,7 +44,7 @@ async fn index(web::Json(info): web::Json<Webhook>, state: StateHandle, pool: we
 		tokio::spawn(async move {
 			let res = client.post(&url).json(&*content).send().await.and_then(|r| r.error_for_status());
 			if let Err(err) = res {
-				eprintln!("Webhook送信失敗: {}({})", err, url);
+				error!("Webhook送信失敗: {}({})", err, url);
 			}
 		});
 	}

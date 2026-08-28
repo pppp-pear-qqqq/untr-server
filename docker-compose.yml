@@ -55,7 +55,7 @@ services:
             - APP_NAME=portal
             - SERVER_PORT=8000
             - DATABASE_URL=sqlite:app/portal/database.db
-            - RUST_LOG=debug
+            - RUST_LOG=info,portal=debug,actix_web::middleware=warn
         networks: [untroche]
 
     # erltod:
@@ -72,6 +72,7 @@ services:
             - APP_NAME=ondyst
             - SERVER_PORT=8006
             - DATABASE_URL=sqlite:app/ondyst/database.db
+            - RUST_LOG=info,ondyst=debug,actix_web::middleware=warn
         networks: [untroche]
 
     sqlite-web-portal:

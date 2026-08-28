@@ -9,6 +9,7 @@ use std::io;
 
 use actix_session::{SessionMiddleware, config::PersistentSession, storage};
 use actix_web::{App, HttpResponse, HttpServer, cookie, middleware, web};
+use log::info;
 
 #[actix_web::main]
 async fn main() -> Result<(), io::Error> {
@@ -30,7 +31,7 @@ async fn main() -> Result<(), io::Error> {
 
 	let app_data = app_data::AppData::new(&db_url).await;
 
-	println!("ondyst-admin: {}", app_data.admin_key);
+	info!("ondyst-admin: {}", app_data.admin_key);
 
 	let server = HttpServer::new(move || {
 		let app_data = app_data.clone();

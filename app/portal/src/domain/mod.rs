@@ -8,6 +8,8 @@ mod webhook;
 
 use actix_web::{HttpResponse, Responder, error::*, guard, http::header, web};
 use common::{PageRender, Pagination, ReqType};
+#[allow(unused_imports)]
+use log::{debug, error, info};
 use sqlx::SqlitePool as Pool;
 use tera::Tera;
 use uuid::Uuid;

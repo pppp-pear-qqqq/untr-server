@@ -1,5 +1,6 @@
 use actix_web::{cookie, web};
 use base64::prelude::*;
+use log::error;
 use sqlx::SqlitePool;
 use tera::Tera;
 
@@ -53,7 +54,7 @@ impl AppData {
 				t
 			}
 			Err(e) => {
-				println!("Parsing error(s): {}", e);
+				error!("Parsing error(s): {}", e);
 				std::process::exit(1);
 			}
 		};

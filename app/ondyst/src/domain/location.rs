@@ -195,7 +195,7 @@ async fn post_chat(web::Form(info): web::Form<Chat>, id: Identity, state: StateH
 		let webhook = Webhook::new(format!("{}\n\n{}", preview, APP_URL)).username(format!("{} (one day's' talk)", info.name)).avatar_url(info.icon);
 		tokio::spawn(async move {
 			if let Err(err) = webhook.send(targets).await {
-				eprintln!("{:?}", err);
+				error!("{:?}", err);
 			}
 		});
 	}

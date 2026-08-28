@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use common::{HTMLEncode, Tag, TagFormat};
+use log::debug;
 use rand::seq::IndexedRandom as _;
 
 #[derive(Clone, Copy)]
@@ -27,7 +28,7 @@ impl TagFormat for Common {
 			"image" => format!("<img src=\"{}\">", tag.content.replace("\"", "%22")),
 			"" => {
 				let params = tag.content.split('|').collect::<Vec<_>>();
-				println!("{params:?}");
+				debug!("{params:?}");
 				match params.len() {
 					1 if tag.content == "br" => "<br>".into(),
 					_ => params.choose(&mut rng).unwrap().to_html(self, link),

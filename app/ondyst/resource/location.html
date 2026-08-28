@@ -5,10 +5,17 @@
 {% endblock %}
 {% block content %}
 <article id="location">
-	{% if location %}
-	<h2 class="name">{{location.name}}</h2>
-	<p class="name">{{location.lore|safe}}</p>
-	{% endif %}
+	<h2 class="name">{{location.name|default(value='ひみつの場所')}}</h2>
+	<p class="lore">
+		{% if location.lore %}
+		{{location.lore|safe}}
+		{% else %}
+		<small>
+			誰かをこの場所に招待する際は、ここで相手にメンション（@{id}）を付けて発言してください。サイト内通知、およびWebhookにリンクが送られます。<br>
+			あるいは、プロフィール等にこの場所のURLを貼るなどしてもいいでしょう。プレイヤーと直接URLを共有しても構いません。
+		</small>
+		{% endif %}
+	</p>
 	<a href="location">一覧に戻る</a>
 	{% if item_list %}
 	<section id="item_list">
@@ -32,7 +39,7 @@
 			<footer class="util">
 				<time class="timestamp"></time>
 				<div class="partition"></div>
-				<button type="button" title="返信"><ic class="ri-reply-line"></ic></button>
+				<button type="button" class="reply" title="返信"><ic class="ri-reply-line"></ic></button>
 			</footer>
 		</article>
 	</template>
@@ -48,7 +55,7 @@
 			<footer class="util">
 				<time class="timestamp">{{chat.timestamp|time}}</time>
 				<div class="partition"></div>
-				<button type="button" title="返信"><ic class="ri-reply-line"></ic></button>
+				<button type="button" class="reply" title="返信"><ic class="ri-reply-line"></ic></button>
 			</footer>
 		</article>
 		{% endfor %}

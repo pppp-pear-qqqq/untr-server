@@ -4,4 +4,4 @@ RUN apt-get update && apt-get install -y pkg-config libssl-dev && rm -rf /var/li
 RUN cargo install watchexec-cli
 WORKDIR /app
 
-CMD ["sh", "-c", "exec watchexec --restart --poll -w app/${APP_NAME} -w Cargo.toml -e rs,html,toml -- cargo run --bin ${APP_NAME}"]
+CMD ["sh", "-c", "exec watchexec --print-events --restart --poll -w app/${APP_NAME}/src -w app/${APP_NAME}/resource -w Cargo.toml -e rs,html,toml -- cargo run --bin ${APP_NAME}"]

@@ -4,18 +4,18 @@ import { toast } from './toast.js';
 
 // 発言
 const form = document.querySelector<HTMLFormElement>('#post form')!;
+const form_body = form.children.namedItem('body') as HTMLTextAreaElement;
 let force_submit = false;
 form.addEventListener('submit', async (ev) => {
 	ev.preventDefault();
-	const body = form.children.namedItem('body') as HTMLTextAreaElement;
-	if (!force_submit && body.value.trim() === '') {
+	if (!force_submit && form_body.value.trim() === '') {
 		toast.warn('発言内容が空欄です\nこのまま投稿する場合は再度送信してください');
 		force_submit = true;
 		return;
 	}
 	try {
 		await new Ajax(form).send();
-		body.value = '';
+		form_body.value = '';
 		force_submit = false;
 		toast.success('発言しました');
 		reload({ scroll: 'bottom' });
@@ -67,17 +67,31 @@ async function reload({ offset = 0, limit = limit_default, scroll = 'none' }: { 
 			node.querySelector<HTMLImageElement>('.icon>img')!.src = item.icon;
 			node.querySelector('.name')!.textContent = item.name;
 			node.querySelector('.id')!.textContent += item.actor;
-			node.querySelector('.body')!.textContent = item.body;
+			node.querySelector('.body')!.innerHTML = item.body;
 			node.querySelector('.timestamp')!.textContent = formatter.format(new Date(item.timestamp * 1000));
 			fragment.insertBefore(node, fragment.firstChild);
 		});
 		container.replaceChildren(fragment);
+		setting_reply_buttons();
 		if (container.childElementCount < l) offset_max = o;
 		if (scroll === 'none') return;
 		parent.scroll({ top: scroll === 'top' ? 0 : parent.scrollHeight, behavior: 'smooth' });
 	} catch (err: any) {
 		toast.error(err.message);
 	}
+}
+
+function setting_reply_buttons() {
+	document.querySelectorAll<HTMLElement>('button.reply').forEach(e => {
+		e.addEventListener('click', () => {
+			const id = e.closest<HTMLElement>('[data-id]')!.dataset.id;
+			if (form_body.value.startsWith('>>')) {
+				form_body.value = `>>${id} ${form_body.value}`;
+			} else {
+				form_body.value = `>>${id}\n${form_body.value}`;
+			}
+		});
+	});
 }
 
 // ページネーション
@@ -91,4 +105,5 @@ document.querySelectorAll<HTMLElement>('[data-page]').forEach(e => {
 	});
 })
 
+setting_reply_buttons();
 parent.scroll({ top: parent.scrollHeight, behavior: 'smooth' });

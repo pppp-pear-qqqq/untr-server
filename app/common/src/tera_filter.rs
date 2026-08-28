@@ -18,7 +18,7 @@ where
 {
 	move |value: &tera::Value, _args: &HashMap<String, tera::Value>| -> tera::Result<tera::Value> {
 		let timestamp = value.as_i64().ok_or_else(|| tera::Error::msg("timestamp filter can only be applied to integers"))?;
-		let dt = tz.timestamp_opt(timestamp, 0).single().ok_or_else(|| tera::Error::msg("invalid timestamp value"))?;
+		let dt = chrono::DateTime::from_timestamp_secs(timestamp).ok_or(tera::Error::msg("invalid timestamp value"))?.with_timezone(&tz);
 		let formatted = dt.format("%Y-%m-%d %H:%M:%S").to_string();
 		Ok(tera::Value::String(formatted))
 	}

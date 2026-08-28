@@ -6,12 +6,22 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.service(web::resource("setting").get(view_setting).patch(patch_setting));
 }
 
+#[derive(serde::Serialize)]
+struct Log {
+	id: i64,
+	timestamp: i64,
+	body: String,
+}
+
 async fn index(id: Identity, _: StateHandle, pool: web::Data<Pool>, tmpl: web::Data<tera::Tera>) -> common::Result<impl Responder> {
 	let pool = pool.as_ref();
 
 	// favはlocalStorageに持っているので、クライアント側で諸々のAPIを叩く　バックエンドではあんまり何もしない
+	let log_list = sqlx::query_as!(Log, "SELECT id,timestamp,body FROM log WHERE actor=? ORDER BY id DESC LIMIT 20", *id).fetch_all(pool).await?;
 
-	let body = Page::default().actor_data(ActorData::load(&id, pool).await?).render("home.html", &tmpl)?;
+	let mut ctx = tera::Context::new();
+	ctx.insert("log_list", &log_list);
+	let body = Page::default().actor_data(ActorData::load(&id, pool).await?).render_with_ctx("home.html", &tmpl, ctx)?;
 	Ok(HttpResponse::Ok().body(body))
 }
 

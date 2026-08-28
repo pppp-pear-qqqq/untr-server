@@ -139,24 +139,36 @@ async fn post_chat(web::Form(info): web::Form<Chat>, id: Identity, state: StateH
 		caps[0].to_string()
 	});
 
-	// 発言の投稿
 	let pool = pool.as_ref();
+
+	// 発言の投稿
 	let mut tx = pool.begin().await?;
 	let chat_id = sqlx::query_scalar!("INSERT INTO chat(timestamp,location,actor,name,icon,body) VALUES(?,?,?,?,?,?) RETURNING id", timestamp, info.location, id, info.name, info.icon, body)
 		.fetch_one(&mut *tx)
 		.await?;
 	// メンション
-	if !mentions.is_empty() {
+	let mentions = if !mentions.is_empty() {
 		let json = serde_json::to_string(&mentions).unwrap();
-		sqlx::query!("INSERT OR IGNORE INTO chat_mention(source,target) SELECT ?,actor.id FROM json_each(?) JOIN actor ON actor.id=value", chat_id, json).execute(&mut *tx).await?;
-	}
+		sqlx::query_scalar!("INSERT OR IGNORE INTO chat_mention(source,target) SELECT ?,actor.id FROM json_each(?) JOIN actor ON actor.id=value RETURNING target", chat_id, json)
+			.fetch_all(&mut *tx)
+			.await?
+	} else {
+		Vec::new()
+	};
 	// アンカー
-	if !anchors.is_empty() {
+	let anchors = if !anchors.is_empty() {
 		let json = serde_json::to_string(&anchors).unwrap();
-		sqlx::query!("INSERT OR IGNORE INTO chat_anchor(source,target) SELECT ?,chat.id FROM json_each(?) JOIN chat ON chat.id=value", chat_id, json).execute(&mut *tx).await?;
-	}
+		sqlx::query_scalar!("INSERT OR IGNORE INTO chat_anchor(source,target) SELECT ?,chat.id FROM json_each(?) JOIN chat ON chat.id=value RETURNING target", chat_id, json)
+			.fetch_all(&mut *tx)
+			.await?
+	} else {
+		Vec::new()
+	};
 	tx.commit().await?;
 
+	// 対象整理
+	let mut targets = HashSet::default();
+	targets.extend(mentions);
 	// アンカーの対象追跡
 	if !anchors.is_empty() {
 		let mut builder = sqlx::QueryBuilder::new("SELECT actor FROM chat WHERE id IN (");
@@ -165,23 +177,24 @@ async fn post_chat(web::Form(info): web::Form<Chat>, id: Identity, state: StateH
 			sep.push_bind(anchor);
 		}
 		builder.push(")");
-		mentions.extend(builder.build_query_scalar::<Option<i64>>().fetch_all(pool).await?.into_iter().flatten());
+		targets.extend(builder.build_query_scalar::<Option<i64>>().fetch_all(pool).await?.into_iter().flatten());
 	}
+	targets.remove(&id); // 自分対象を除外
+
 	// 通知
-	mentions.remove(&id); // 自分対象を除外
-	if !mentions.is_empty() {
-		let target = mentions.into_iter().collect();
+	if !targets.is_empty() {
+		let targets = targets.into_iter().collect();
 
 		// サイト内通知
 		let message = format!("id:{} から言及されました<br><a href=\"location/{}\">発言場所へ移動</a>", id, info.location);
-		let target_json = serde_json::to_string(&target).unwrap();
-		sqlx::query!("INSERT INTO log(timestamp,actor,body) SELECT ?,value,? FROM json_each(?)", timestamp, message, target_json).execute(pool).await?;
+		let json = serde_json::to_string(&targets).unwrap();
+		sqlx::query!("INSERT INTO log(timestamp,actor,body) SELECT ?,value,? FROM json_each(?)", timestamp, message, json).execute(pool).await?;
 
 		// webhook通知
 		let preview = raw_body.char_indices().nth(48).map(|(idx, _)| &raw_body[..idx]).unwrap_or(&raw_body);
 		let webhook = Webhook::new(format!("{}\n\n{}", preview, APP_URL)).username(format!("{} (one day's' talk)", info.name)).avatar_url(info.icon);
 		tokio::spawn(async move {
-			if let Err(err) = webhook.send(target).await {
+			if let Err(err) = webhook.send(targets).await {
 				eprintln!("{:?}", err);
 			}
 		});

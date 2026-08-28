@@ -4,6 +4,14 @@
 {% block content %}
 <div id="fav_list"></div>
 <div id="chat_list"></div>
+<div id="log_list">
+	{% for log in log_list|reverse %}
+	<div class="log" data-id="{{log.id}}">
+		<p>{{log.body|safe}}</p>
+		<time>{{log.timestamp|time}}</time>
+	</div>
+	{% endfor %}
+</div>
 <nav>
 	<a href="home/setting">設定</a>
 </nav>

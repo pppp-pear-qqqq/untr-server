@@ -47,7 +47,9 @@ impl AppData {
 		let tera = match Tera::new(&utils::resource("**/*.html")) {
 			Ok(mut t) => {
 				t.register_filter("html", common::tera::html::<tag::Ondyst>);
-				t.register_filter("time", common::tera::make_timestamp_filter(chrono::Local));
+
+				let jst = chrono::FixedOffset::east_opt(9 * 3600).unwrap();
+				t.register_filter("time", common::tera::make_timestamp_filter(jst));
 				t
 			}
 			Err(e) => {

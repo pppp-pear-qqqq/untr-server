@@ -8,7 +8,9 @@
 <article>
 	<h2 class="name">
 		{{name}}
+		{% if actor.id!=target_id %}
 		<span><label role="button" class="fav"><input type="checkbox" name="actor" value="{{target_id}}"><ic class="off ri-star-line" title="未フォロー"></ic><ic class="on ri-star-fill" title="フォロー中"></ic></label></span>
+		{% endif %}
 	</h2>
 	{% if portrait %}
 	<img class="portrait" src="{{portrait}}">

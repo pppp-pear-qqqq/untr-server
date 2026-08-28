@@ -7,15 +7,19 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.service(web::resource("setting").get(view_setting).patch(update_setting));
 }
 
-async fn index(id: Identity, _: StateHandle, pool: web::Data<Pool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
-	let pool = pool.as_ref();
-	let record = sqlx::query!("SELECT profile,webhook FROM user WHERE id=?", *id).fetch_one(pool).await?;
-	let mut ctx = tera::Context::new();
-	ctx.insert("profile", &record.profile);
-	ctx.insert("webhook", &record.webhook);
+async fn index(id: Option<Identity>, _: StateHandle, pool: web::Data<Pool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
+	if let Some(id) = id {
+		let pool = pool.as_ref();
+		let record = sqlx::query!("SELECT profile,webhook FROM user WHERE id=?", *id).fetch_one(pool).await?;
+		let mut ctx = tera::Context::new();
+		ctx.insert("profile", &record.profile);
+		ctx.insert("webhook", &record.webhook);
 
-	let body = Page::default().user_data(UserData::load(&id, pool).await?).render_with_ctx("home.html", &tmpl, ctx)?;
-	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
+		let body = Page::default().user_data(UserData::load(&id, pool).await?).render_with_ctx("home.html", &tmpl, ctx)?;
+		Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
+	} else {
+		Ok(HttpResponse::SeeOther().insert_header((header::LOCATION, "/")).finish())
+	}
 }
 
 async fn view_setting(id: Identity, _: StateHandle, pool: web::Data<Pool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {

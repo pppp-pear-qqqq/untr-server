@@ -44,7 +44,7 @@ async fn view_setting(id: Identity, _: StateHandle, pool: web::Data<Pool>, tmpl:
 struct Setting {
 	#[validate(length(max = 16, message = "16文字以内で入力してください"))]
 	name: Option<String>,
-	#[validate(length(max = 48, message = "48文字以内で入力してください"))]
+	#[validate(length(max = 24, message = "24文字以内で入力してください"))]
 	comment: Option<String>,
 	#[validate(length(max = 8192, message = "8192文字以内で入力してください"))]
 	profile: Option<String>,

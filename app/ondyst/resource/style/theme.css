@@ -3,9 +3,9 @@
 :root {
 	font-size: min(16px, calc(98dvw / 30));
 
-	--font-primary: "Zen Maru Gothic", sans-serif;
+	--font-primary: "Zen Maru Gothic", "Chiron GoRound TC", sans-serif;
 	--font-display-1: "Darumadrop One", fantasy;
-	--font-display-2: "Yusei Magic", fantasy;
+	--font-display-2: "Yusei Magic", "LXGW Marker Gothic", fantasy;
 
 	&[data-theme="light"] {
 		--surface-color: #efefef;

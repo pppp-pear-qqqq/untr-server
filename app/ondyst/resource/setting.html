@@ -8,11 +8,18 @@
 {% block content %}
 <form action="home/setting" autocomplete="off">
 	<h2>設定<span>(id: {{actor.id}} {{actor.name}})</span></h2>
-	<label>コメント<input type="text" name="comment" value="{{comment}}"></label>
+	<label>名前<input type="text" name="name" value="{{actor.name}}" placeholder="16文字以内"></label>
+	<label>
+		コメント
+		<ic role="button" class="help ri-question-line"><template>
+			キャラクターリスト画面で表示されます。
+		</template></ic>
+		<input type="text" name="comment" value="{{comment}}" placeholder="24文字以内">
+	</label>
 	<label for="profile">
 		プロフィール
 		<label class="auto-resize"><input type="checkbox" checked>自動リサイズ</label>
-		<textarea id="profile" name="profile" class="insert-tag">{{profile}}</textarea>
+		<textarea id="profile" name="profile" class="insert-tag" placeholder="8192文字以内">{{profile}}</textarea>
 		<div class="tool-box">
 			<button type="button" title="太字" onclick="insert_tag('[b/', '/b]')"><ic class="ri-bold"></ic></button>
 			<button type="button" title="斜体" onclick="insert_tag('[i/', '/i]')"><ic class="ri-italic"></ic></button>
@@ -27,7 +34,15 @@
 			<button type="button" title="見出し" onclick="insert_tag('\n# ', '')"><ic class="ri-heading"></ic></button>
 		</div>
 	</label>
-	<label for="icon_list">アイコン
+	<label for="icon_list">
+		アイコン
+		<ic role="button" class="help ri-question-line"><template>
+			画像として直接使用可能なURLを入力してください。<br>
+			表示サイズは横が48pxで、横:縦の比率1:2まで対応可能です。縦72pxで1行発言時にぴったりの高さになります。<br>
+			実際に登録する画像は表示サイズの2倍程度を推奨します。<br>
+			改行区切りで複数のアイコンを登録できます。<br>
+			画像アップローダーには<a target="_blank" href="https://rabbithutch.site/usagoya">うさごや</a>や<a target="_blank" href="https://game.428.st">The Clover Garden</a>などがおすすめです。
+		</template></ic>
 		<label class="auto-resize"><input type="checkbox">自動リサイズ</label>
 		<textarea id="icon_list" name="icon_list" placeholder="改行区切り">{{icon_list}}</textarea>
 		<div class="icon_list">
@@ -40,6 +55,13 @@
 	</label>
 	<label for="portrait_list">
 		プロフィール画像
+		<ic role="button" class="help ri-question-line"><template>
+			画像として直接使用可能なURLを入力してください。<br>
+			表示サイズは横480px、縦自由です。縦720px程度だと丁度いいかもしれません。<br>
+			実際に登録する画像は表示サイズの2倍程度を推奨します。<br>
+			改行区切りで複数のプロフィール画像を登録できます。プロフィール表示毎にランダムに切り替わります。<br>
+			画像アップローダーには<a target="_blank" href="https://rabbithutch.site/usagoya">うさごや</a>や<a target="_blank" href="https://game.428.st">The Clover Garden</a>などがおすすめです。
+		</template></ic>
 		<label class="auto-resize"><input type="checkbox">自動リサイズ</label>
 		<textarea id="portrait_list" name="portrait_list" placeholder="改行区切り">{{portrait_list}}</textarea>
 		<div class="portrait_list">
@@ -50,7 +72,7 @@
 			{% endif %}
 		</div>
 	</label>
-	<p>Webhook設定は<a target="_blank" href="http://localhost:8080/home">ポータルサイト</a>側にて行ってください</p>
+	<p>Webhook設定は<a target="_blank" href="https://untroche.com/home">ポータルサイト</a>側にて行ってください</p>
 	<p><a target="_blank" href="actor/{{actor.id}}">プロフィール閲覧</a></p>
 	<button type="submit">更新</button>
 </form>

@@ -10,6 +10,7 @@ actix-web.workspace = true
 chrono.workspace = true
 futures-util = "0.3.34"
 fxhash.workspace = true
+log.workspace = true
 minify-html.workspace = true
 regex.workspace = true
 serde.workspace = true

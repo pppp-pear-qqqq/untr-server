@@ -33,7 +33,7 @@ async fn list(page: Pagination<100, 200>, req_type: ReqType, id: Option<Identity
 	}
 }
 
-async fn actor(actor: web::Path<i32>, id: Option<Identity>, _: StateHandle, pool: web::Data<Pool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
+async fn actor(actor: web::Path<i64>, id: Option<Identity>, _: StateHandle, pool: web::Data<Pool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
 	#[derive(serde::Serialize)]
 	struct Section<'a> {
 		title: Option<&'a str>,
@@ -62,6 +62,7 @@ async fn actor(actor: web::Path<i32>, id: Option<Identity>, _: StateHandle, pool
 	let portrait = record.portrait_list.lines().choose(&mut rand::rng());
 
 	let mut ctx = tera::Context::new();
+	ctx.insert("target_id", &target_id);
 	ctx.insert("name", &record.name);
 	ctx.insert("profile", &sections);
 	ctx.insert("portrait", &portrait);

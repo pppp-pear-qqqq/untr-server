@@ -8,6 +8,7 @@ use actix_web::{
 	http::{StatusCode, header},
 	middleware, web,
 };
+use log::error;
 use tera::Tera;
 use validator::{ValidationErrors, ValidationErrorsKind};
 
@@ -42,6 +43,7 @@ where
 	E: std::error::Error + 'static,
 {
 	fn from(err: E) -> Self {
+		error!("{:?}", err);
 		let boxed: Box<dyn std::error::Error> = Box::new(err);
 
 		if let Some(actix_err) = boxed.downcast_ref::<actix_web::Error>() {

@@ -1,0 +1,11 @@
+[role="button"].fav {
+	> input {
+		display: none;
+	}
+	> input:checked ~ .off {
+		display: none;
+	}
+	> input:not(:checked) ~ .on {
+		display: none;
+	}
+}

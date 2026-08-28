@@ -1,10 +1,15 @@
 {% extends "template.html" %}
 {% block head %}
 <link rel="stylesheet" href="style/note.css">
+<link rel="stylesheet" href="style/fav.css">
+<script type="module" src="script/fav.js"></script>
 {% endblock %}
 {% block content %}
 <article>
-	<h2 class="name">{{name}}</h2>
+	<h2 class="name">
+		{{name}}
+		<span><label role="button" class="fav"><input type="checkbox" name="actor" value="{{target_id}}"><ic class="off ri-star-line" title="未フォロー"></ic><ic class="on ri-star-fill" title="フォロー中"></ic></label></span>
+	</h2>
 	{% if portrait %}
 	<img class="portrait" src="{{portrait}}">
 	{% endif %}

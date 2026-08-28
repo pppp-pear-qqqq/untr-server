@@ -20,7 +20,7 @@ main {
 	padding: 0.4rlh;
 	flex-direction: column;
 	align-items: center;
-	gap: 1rlh;
+	gap: 0.5rlh;
 	overflow: hidden auto;
 	scrollbar-width: thin;
 	scrollbar-gutter: stable;
@@ -134,6 +134,7 @@ main {
 		min-height: 2lh;
 	}
 	button:is(:not([type]), [type="submit"]) {
+		order: 100;
 		width: 3rem;
 		padding-left: 7px;
 		border: 1px var(--border-color);

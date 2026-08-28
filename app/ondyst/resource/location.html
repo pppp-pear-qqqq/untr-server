@@ -99,6 +99,7 @@
 			<span class="id">id: {{actor.id}}</span>
 			<textarea class="body insert-tag" name="body" placeholder="本文"></textarea>
 			<footer class="util">
+				<button type="submit" title="発言投稿"><ic class="ri-send-plane-2-line"></ic></button>
 				<button type="button" title="太字" onclick="insert_tag('[b/', '/b]')"><ic class="ri-bold"></ic></button>
 				<button type="button" title="斜体" onclick="insert_tag('[i/', '/i]')"><ic class="ri-italic"></ic></button>
 				<button type="button" title="下線" onclick="insert_tag('[u/', '/u]')"><ic class="ri-underline"></ic></button>
@@ -110,7 +111,6 @@
 				<button type="button" title="虹色" onclick="insert_tag('[rainbow/', '/rainbow]')"><ic class="ri-rainbow-fill"></ic></button>
 				<button type="button" title="画像挿入" onclick="insert_tag('[image/', '/image]')"><ic class="ri-image-line"></ic></button>
 				<div class="partition"></div>
-				<button type="submit" title="発言投稿"><ic class="ri-send-plane-2-line"></ic></button>
 			</footer>
 		</form>
 	</div>

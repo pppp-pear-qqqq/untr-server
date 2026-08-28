@@ -32,11 +32,16 @@ async fn location_list(id: Option<Identity>, _: StateHandle, pool: web::Data<Poo
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }
 
+const BASE62: [char; 62] = [
+	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W',
+	'X', 'Y', 'Z',
+];
+
 async fn new_location(id: Identity, state: StateHandle, pool: web::Data<Pool>) -> common::Result<impl Responder> {
 	let timestamp = chrono::Utc::now().timestamp();
 	state.get().only_active()?;
 
-	let key = nanoid::nanoid!(8, &nanoid::alphabet::SAFE);
+	let key = nanoid::nanoid!(8, &BASE62);
 
 	let message = format!("新しい場所を追加しました<br><a href=\"location/{key}\">移動する</a>");
 
@@ -75,25 +80,35 @@ async fn location(key: web::Path<String>, page: Pagination<20, 100>, req_type: R
 
 	let pool = pool.as_ref();
 
-	let chat_list = sqlx::query_as!(Chat, "SELECT id,timestamp,actor,name,icon,body FROM chat WHERE location=? ORDER BY id DESC LIMIT ?,?", key, offset, limit).fetch_all(pool).await?;
+	if key.contains('_') {
+		// actor
+		let json = serde_json::to_string(&key.split('_').map(|s| s.parse::<i64>()).collect::<Result<Vec<_>, _>>()?)?;
+		let chat_list = sqlx::query_as!(Chat, "SELECT id,timestamp,actor,name,icon,body FROM chat WHERE actor IN (SELECT value FROM json_each(?)) ORDER BY id DESC LIMIT ?,?", json, offset, limit)
+			.fetch_all(pool)
+			.await?;
+		Ok(HttpResponse::Ok().json(chat_list))
+	} else {
+		// location
+		let chat_list = sqlx::query_as!(Chat, "SELECT id,timestamp,actor,name,icon,body FROM chat WHERE location=? ORDER BY id DESC LIMIT ?,?", key, offset, limit).fetch_all(pool).await?;
 
-	match req_type {
-		ReqType::Empty => Ok(HttpResponse::Ok().json(chat_list)),
-		_ => {
-			let location = sqlx::query_as!(Location, "SELECT name,lore FROM location WHERE key=?", key).fetch_optional(pool).await?;
-			let item_list = sqlx::query_as!(Item, "SELECT id,name,lore,message FROM item WHERE location=?", key).fetch_all(pool).await?;
-			let mut ctx = tera::Context::new();
-			if let Some(id) = &id {
-				let icon_list = sqlx::query_scalar!("SELECT icon_list FROM actor WHERE id=?", **id).fetch_one(pool).await?;
-				let icon_list: Vec<_> = icon_list.lines().collect();
-				ctx.insert("icon_list", &icon_list);
+		match req_type {
+			ReqType::Empty => Ok(HttpResponse::Ok().json(chat_list)),
+			_ => {
+				let location = sqlx::query_as!(Location, "SELECT name,lore FROM location WHERE key=?", key).fetch_optional(pool).await?;
+				let item_list = sqlx::query_as!(Item, "SELECT id,name,lore,message FROM item WHERE location=?", key).fetch_all(pool).await?;
+				let mut ctx = tera::Context::new();
+				if let Some(id) = &id {
+					let icon_list = sqlx::query_scalar!("SELECT icon_list FROM actor WHERE id=?", **id).fetch_one(pool).await?;
+					let icon_list: Vec<_> = icon_list.lines().collect();
+					ctx.insert("icon_list", &icon_list);
+				}
+				ctx.insert("location", &location);
+				ctx.insert("location_key", &key);
+				ctx.insert("chat_list", &chat_list);
+				ctx.insert("item_list", &item_list);
+				let body = Page::default().actor_data_opt(ActorData::load_opt(&id, &pool).await?).render_with_ctx("location.html", &tmpl, ctx)?;
+				Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 			}
-			ctx.insert("location", &location);
-			ctx.insert("location_key", &key);
-			ctx.insert("chat_list", &chat_list);
-			ctx.insert("item_list", &item_list);
-			let body = Page::default().actor_data_opt(ActorData::load_opt(&id, &pool).await?).render_with_ctx("location.html", &tmpl, ctx)?;
-			Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 		}
 	}
 }

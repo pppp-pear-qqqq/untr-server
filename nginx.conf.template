@@ -26,39 +26,60 @@ http {
 
 	map $host $app_name {
 		localhost				portal;
-		# dpdpdp.localhost		dpdpdp;
-		# strings.localhost		strings;
-		# charadie.localhost	charadie;
-		# colllus.localhost		colllus;
-		# erltod.localhost		erltod;
-		ondyst.localhost		ondyst;
+		untroche.com			portal;
+		# dpdpdp\.(localhost|untroche\.com)$	dpdpdp;
+		# strings\.(localhost|untroche\.com)$	strings;
+		# charadie\.(localhost|untroche\.com)$	charadie;
+		# colllus\.(localhost|untroche\.com)$	colllus;
+		# erltod\.(localhost|untroche\.com)$	erltod;
+		~^ondyst\.(localhost|untroche\.com)$	ondyst;
 	}
 	map $host $app_port {
 		localhost				8000;
-		# dpdpdp.localhost		8001;
-		# strings.localhost		8002;
-		# charadie.localhost	8003;
-		# colllus.localhost		8004;
-		# erltod.localhost		8005;
-		ondyst.localhost		8006;
+		untroche.com			8000;
+		# ~^dpdpdp\.(localhost|untroche\.com)$	8001;
+		# ~^strings\.(localhost|untroche\.com)$	8002;
+		# ~^charadie\.(localhost|untroche\.com)$	8003;
+		# ~^colllus\.(localhost|untroche\.com)$	8004;
+		# ~^erltod\.(localhost|untroche\.com)$	8005;
+		~^ondyst\.(localhost|untroche\.com)$	8006;
 	}
 
+	# 未定義ホストヘッダーへのアクセスを弾く
 	server {
-		listen 8080 default_server;
+		listen 80 default_server;
+		listen 443 ssl default_server;
 		server_name _;
+
+		ssl_certificate /app/ssl/fullchain.pem;
+		ssl_certificate_key /app/ssl/privkey.pem;
+
 		return 404;
 	}
 
+	# HTTPリダイレクト
 	server {
-		listen 8080;
+		listen 80;
+		server_name untroche.com *.untroche.com localhost *.localhost;
+
+		return 301 https://$host$request_uri;
+	}
+
+	# メイン
+	server {
+		listen 443 ssl;
 		server_name
-			# dpdpdp.localhost
-			# strings.localhost
-			# charadie.localhost
-			# colllus.localhost
-			# erltod.localhost
-			ondyst.localhost
-			localhost;
+			untroche.com
+			*.untroche.com
+			localhost
+			*.localhost;
+
+		# 証明書設定
+		ssl_certificate /app/ssl/fullchain.pem;
+		ssl_certificate_key /app/ssl/privkey.pem;
+		# プロトコルと暗号設定
+		ssl_protocols TLSv1.2 TLSv1.3;
+		ssl_ciphers HIGH:!aNULL:!MD5;
 
 		root /app/app/$app_name;
 

@@ -27,6 +27,7 @@ services:
             - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx
         volumes:
             - ./nginx.conf.template:/etc/nginx/templates/nginx.conf.template:ro
+            - ./ssl:/app/ssl:ro
             - ./app/common/resource:/app/app/common
             - ./app/portal/resource:/app/app/portal
             # - ./app/erltod/resource:/app/app/erltod

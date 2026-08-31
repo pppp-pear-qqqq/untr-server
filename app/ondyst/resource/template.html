@@ -25,11 +25,13 @@
 		<header>
 			<button type="button" aria-controls="main-menu" aria-expanded="false"><span></span></button>
 			<nav id="main-menu">
+				{% if !(state && (state == "prepare" || state == "maintenance")) %}
 				{% if actor %}
 				<a href="home"><ic class="ri-home-line"></ic>ホーム</a>
 				{% endif %}
 				<a href="location"><ic class="ri-road-map-line"></ic>町を歩く</a>
 				<a href="actor"><ic class="ri-group-3-line"></ic>人々を見る</a>
+				{% endif %}
 				<a href="info"><ic class="ri-information-line"></ic>お知らせ</a>
 				<a href="guide"><ic class="ri-booklet-line"></ic>ガイドブック</a>
 				<div class="partition"></div>

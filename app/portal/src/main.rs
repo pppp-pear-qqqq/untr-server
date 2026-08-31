@@ -1,6 +1,6 @@
 mod app_data;
 mod domain;
-mod utils;
+mod util;
 
 use std::io;
 
@@ -13,7 +13,7 @@ async fn main() -> Result<(), io::Error> {
 	#[cfg(feature = "test")]
 	{
 		use dotenv;
-		if let Err(e) = dotenv::from_path(utils::app(".env")) {
+		if let Err(e) = dotenv::from_path(util::app(".env")) {
 			eprintln!("Failed to load .env file: {}", e);
 			std::process::exit(1);
 		}
@@ -42,7 +42,7 @@ async fn main() -> Result<(), io::Error> {
 			.wrap(middleware::Logger::default())
 			.wrap(middleware::NormalizePath::trim())
 			.wrap(session)
-			.wrap(middleware::from_fn(common::mw_err_format::<utils::Page>))
+			.wrap(middleware::from_fn(common::mw_err_format::<util::Page>))
 			.default_service(web::to(|| HttpResponse::NotFound()))
 			.app_data(app_data.state)
 			.app_data(app_data.pool)
@@ -51,9 +51,9 @@ async fn main() -> Result<(), io::Error> {
 		#[cfg(feature = "test")]
 		let app = {
 			use actix_files::Files;
-			app.service(Files::new("/script", utils::resource("script/")).prefer_utf8(true))
-				.service(Files::new("/style", utils::resource("style/")).prefer_utf8(true))
-				.service(Files::new("/image", utils::resource("image/")).prefer_utf8(true))
+			app.service(Files::new("/script", util::resource("script/")).prefer_utf8(true))
+				.service(Files::new("/style", util::resource("style/")).prefer_utf8(true))
+				.service(Files::new("/image", util::resource("image/")).prefer_utf8(true))
 		};
 		app
 	});

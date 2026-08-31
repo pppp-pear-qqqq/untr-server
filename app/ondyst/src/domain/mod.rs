@@ -14,7 +14,7 @@ use tera::Tera;
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::utils::{ActorData, Identity, Page, StateHandle, tag_parse as tag};
+use crate::util::{ActorData, Identity, Page, StateHandle, tag_parse as tag};
 
 pub fn make_cfg(admin_key: String) -> impl FnOnce(&mut web::ServiceConfig) {
 	move |cfg| {

@@ -3,7 +3,7 @@ use std::str::FromStr;
 use actix_session::Session;
 use rand::{RngExt, seq::IteratorRandom};
 
-use crate::utils::client;
+use crate::util::client;
 
 use super::*;
 

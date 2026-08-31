@@ -3,7 +3,7 @@ use std::sync::OnceLock;
 use fxhash::FxHashSet as HashSet;
 use regex::Regex;
 
-use crate::utils::{APP_URL, Webhook};
+use crate::util::{APP_URL, Webhook};
 
 use super::*;
 

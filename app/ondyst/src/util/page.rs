@@ -5,6 +5,7 @@ use sqlx::SqlitePool;
 #[derive(serde::Serialize)]
 pub struct Page {
 	title: String,
+	state: Option<crate::util::State>,
 	#[serde(rename = "actor", skip_serializing_if = "Option::is_none")]
 	actor_data: Option<ActorData>,
 }
@@ -18,12 +19,19 @@ pub struct ActorData {
 impl common::PageRender for Page {}
 impl Default for Page {
 	fn default() -> Self {
-		Self { title: "one day's' talk".into(), actor_data: None }
+		Self {
+			title: "one day's' talk".into(),
+			state: None,
+			actor_data: None,
+		}
 	}
 }
 impl Page {
 	pub fn title(self, title: &str) -> Self {
 		Self { title: title.into(), ..self }
+	}
+	pub fn state(self, state: Option<crate::util::State>) -> Self {
+		Self { state, ..self }
 	}
 	pub fn actor_data(self, data: ActorData) -> Self {
 		Self { actor_data: Some(data), ..self }

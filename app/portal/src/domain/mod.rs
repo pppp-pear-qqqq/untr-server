@@ -15,7 +15,7 @@ use tera::Tera;
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::utils::{Identity, Page, StateHandle, UserData, is_internal};
+use crate::util::{Identity, Page, StateHandle, UserData, is_internal};
 
 pub fn make_cfg(admin_key: String) -> impl FnOnce(&mut web::ServiceConfig) {
 	|cfg: &mut web::ServiceConfig| {

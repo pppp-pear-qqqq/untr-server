@@ -1,6 +1,7 @@
 use std::{fmt, str::FromStr};
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
+#[serde(rename_all = "lowercase")]
 pub enum State {
 	Prepare,
 	Register,

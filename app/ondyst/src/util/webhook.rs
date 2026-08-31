@@ -1,4 +1,4 @@
-use crate::utils::client;
+use crate::util::client;
 
 #[derive(serde::Deserialize, serde::Serialize)]
 pub struct Webhook {

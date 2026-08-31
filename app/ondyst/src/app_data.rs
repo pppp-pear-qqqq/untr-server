@@ -4,7 +4,7 @@ use log::error;
 use sqlx::SqlitePool;
 use tera::Tera;
 
-use crate::utils::{self, State, StateHandle, tag_parse as tag};
+use crate::util::{self, State, StateHandle, tag_parse as tag};
 
 // 定数
 pub const STATE: &str = "STATE";
@@ -45,7 +45,7 @@ impl AppData {
 			Err(err) => panic!("{}", err),
 		};
 		// teraコア生成
-		let tera = match Tera::new(&utils::resource("**/*.html")) {
+		let tera = match Tera::new(&util::resource("**/*.html")) {
 			Ok(mut t) => {
 				t.register_filter("html", common::tera::html::<tag::Ondyst>);
 

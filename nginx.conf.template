@@ -48,26 +48,27 @@ http {
 	# 未定義ホストヘッダーへのアクセスを弾く
 	server {
 		listen 80 default_server;
-		listen 443 ssl default_server;
+${SSL}		listen 443 ssl default_server;
 		server_name _;
 
-		ssl_certificate /app/ssl/fullchain.pem;
-		ssl_certificate_key /app/ssl/privkey.pem;
+		# 証明書設定
+${SSL}		ssl_certificate /app/ssl/fullchain.pem;
+${SSL}		ssl_certificate_key /app/ssl/privkey.pem;
 
 		return 404;
 	}
 
 	# HTTPリダイレクト
-	server {
-		listen 80;
-		server_name untroche.com *.untroche.com localhost *.localhost;
-
-		return 301 https://$host$request_uri;
-	}
+${SSL}	server {
+${SSL}		listen 80;
+${SSL}		server_name untroche.com *.untroche.com localhost *.localhost;
+${SSL}
+${SSL}		return 301 https://$host$request_uri;
+${SSL}	}
 
 	# メイン
 	server {
-		listen 443 ssl;
+		listen ${USE_PORT} ${LISTEN_OPT};
 		server_name
 			untroche.com
 			*.untroche.com
@@ -75,45 +76,45 @@ http {
 			*.localhost;
 
 		# 証明書設定
-		ssl_certificate /app/ssl/fullchain.pem;
-		ssl_certificate_key /app/ssl/privkey.pem;
+${SSL}		ssl_certificate /app/ssl/fullchain.pem;
+${SSL}		ssl_certificate_key /app/ssl/privkey.pem;
 		# プロトコルと暗号設定
-		ssl_protocols TLSv1.2 TLSv1.3;
-		ssl_ciphers HIGH:!aNULL:!MD5;
+${SSL}		ssl_protocols TLSv1.2 TLSv1.3;
+${SSL}		ssl_ciphers HIGH:!aNULL:!MD5;
 
 		root /app/app/$app_name;
 
 		resolver 127.0.0.11 valid=30s; # 開発用
 
-		location ~ ^/common/(script|style)/(.+)$ {
-			alias /app/app/common/$1${ASSET_SUFFIX}/$2;
-			access_log off;
-			log_not_found off;
+		location ~ ^/common/(?<type>script|style)/(?<file>.+)$ {
+			alias /app/app/common/$type${ASSET_SUFFIX}/$file;
+			# access_log off;
+			# log_not_found off;
 		}
 		location /common/ {
 			alias /app/app/common/;
-			access_log off;
-			log_not_found off;
+			# access_log off;
+			# log_not_found off;
 		}
 		location /.well-known/ {
 			alias /app/app/common/.well-known/;
-			access_log off;
-			log_not_found off;
+			# access_log off;
+			# log_not_found off;
 		}
 
 		location /image/ {
-			access_log off;
-			log_not_found off;
+			# access_log off;
+			# log_not_found off;
 		}
-		location ~ ^/(script|style)/(.+)$ {
-			try_files /$1${ASSET_SUFFIX}/$2 /common/$1${ASSET_SUFFIX}/$2;
-			access_log off;
-			log_not_found off;
+		location ~ ^/(?<type>script|style)/(?<file>.+)$ {
+			try_files /$type${ASSET_SUFFIX}/$file /common/$type${ASSET_SUFFIX}/$file;
+			# access_log off;
+			# log_not_found off;
 		}
 		location = /favicon.ico {
 			try_files /image/favicon.ico =404;
-			access_log off;
-			log_not_found off;
+			# access_log off;
+			# log_not_found off;
 		}
 
 		location / {

@@ -22,22 +22,20 @@ async fn index(web::Query(info): web::Query<Config>, req_type: common::ReqType, 
 		let state = new.to_string();
 		// app_data設定
 		match req.app_data::<StateHandle>() {
-			Some(data) => data.set(new),
+			Some(data) => data.set(new.clone()),
 			None => return Err(ErrorInternalServerError("State is not configured").into()),
 		};
 		// データベース更新
 		sqlx::query!("UPDATE setting SET value=? WHERE key=?", state, crate::app_data::STATE).execute(pool).await?;
-		state
+		new
 	} else {
-		sqlx::query_scalar!("SELECT value FROM setting WHERE key=?", crate::app_data::STATE).fetch_one(pool).await?
+		State::from_str(&sqlx::query_scalar!("SELECT value FROM setting WHERE key=?", crate::app_data::STATE).fetch_one(pool).await?).map_err(|_| ErrorInternalServerError("サーバー状態が正しくない"))?
 	};
 
 	if req_type == common::ReqType::Empty {
 		Ok(HttpResponse::NoContent().finish())
 	} else {
-		let mut ctx = tera::Context::new();
-		ctx.insert("state", &state);
-		let body = Page::default().title("admin").render_with_ctx("admin.html", &tmpl, ctx)?;
+		let body = Page::default().title("admin").state(Some(state)).render("admin.html", &tmpl)?;
 		Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 	}
 }

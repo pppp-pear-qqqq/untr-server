@@ -25,7 +25,7 @@
 		<header>
 			<button type="button" aria-controls="main-menu" aria-expanded="false"><span></span></button>
 			<nav id="main-menu">
-				{% if !(state && (state == "prepare" || state == "maintenance")) %}
+				{% if state not in ["prepare", "maintenance"] %}
 				{% if actor %}
 				<a href="home"><ic class="ri-home-line"></ic>ホーム</a>
 				{% endif %}

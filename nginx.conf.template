@@ -86,8 +86,8 @@ ${SSL}		ssl_ciphers HIGH:!aNULL:!MD5;
 
 		resolver 127.0.0.11 valid=30s; # 開発用
 
-		location ~ ^/common/(?<type>script|style)/(?<file>.+)$ {
-			alias /app/app/common/$type${ASSET_SUFFIX}/$file;
+		location ~ ^/common/(?<dir>script|style)/(?<file>.+)$ {
+			alias /app/app/common/$dir${ASSET_SUFFIX}/$file;
 			# access_log off;
 			# log_not_found off;
 		}
@@ -106,8 +106,8 @@ ${SSL}		ssl_ciphers HIGH:!aNULL:!MD5;
 			# access_log off;
 			# log_not_found off;
 		}
-		location ~ ^/(?<type>script|style)/(?<file>.+)$ {
-			try_files /$type${ASSET_SUFFIX}/$file /common/$type${ASSET_SUFFIX}/$file;
+		location ~ ^/(?<dir>script|style)/(?<file>.+)$ {
+			try_files /$dir${ASSET_SUFFIX}/$file /common/$dir${ASSET_SUFFIX}/$file;
 			# access_log off;
 			# log_not_found off;
 		}

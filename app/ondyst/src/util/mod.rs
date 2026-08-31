@@ -19,5 +19,5 @@ pub fn app(path: &str) -> String {
 	format!("{}/{}", env!("CARGO_MANIFEST_DIR"), path)
 }
 pub fn resource(path: &str) -> String {
-	app(&format!("resource/{}", path))
+	format!("{}/{}/{}", env!("CARGO_MANIFEST_DIR"), if cfg!(debug_assertions) { "resource" } else { "ondyst" }, path)
 }

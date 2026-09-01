@@ -1,0 +1,53 @@
+main {
+	display: flex;
+	justify-content: center;
+	flex-wrap: wrap;
+	gap: 0.6rlh 1rem;
+}
+
+#timeline {
+	> .tabs {
+		display: flex;
+		padding: 0 0.2rem;
+		gap: 0.5rem;
+		overflow-x: auto;
+		scrollbar-width: none;
+		border: 1px var(--border-color);
+		border-style: none none solid;
+
+		> .tab {
+			padding: 0 0.2rem;
+			border: 1px var(--border-color);
+			border-style: none solid;
+
+			&:has(input:checked) {
+				color: var(--accent-color);
+			}
+
+			> input {
+				display: none;
+			}
+		}
+	}
+}
+
+#chat_list {
+	margin: 0.4rlh 0;
+}
+
+#log_list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.4rlh;
+
+	> .log {
+		border-bottom: 1px solid var(--border-color);
+		time {
+			display: block;
+			margin-top: -4px;
+			color: var(--border-color);
+			font-size: 0.8rem;
+			text-align: end;
+		}
+	}
+}

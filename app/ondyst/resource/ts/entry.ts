@@ -2,7 +2,8 @@ import { Ajax } from '/common/script/ajax.js';
 import { sleep } from '/common/script/utils.js';
 import { toast } from './toast.js';
 
-const portal = 'http://localhost:8080';
+const portal = 'http://localhost';
+// const portal = 'http://untroche.com';
 
 const login = document.getElementById('login') as HTMLFormElement
 const register = document.getElementById('register') as HTMLFormElement

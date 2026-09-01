@@ -17,7 +17,7 @@
 	{% endif %}
 	{% for section in profile %}
 	<section>
-		<h3>{{section.title|default(value='Profile')}}</h3>
+		<h3>{{section.title|default(value='Profile')|html|safe}}</h3>
 		<p>{{section.content|html(link=true)|safe}}</p>
 	</section>
 	{% endfor %}

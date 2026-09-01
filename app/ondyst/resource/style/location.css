@@ -12,3 +12,24 @@ main {
 		top: 0;
 	}
 }
+
+#timeline {
+	flex-grow: 1;
+	display: flex;
+	max-height: stretch;
+	padding: 0.4rlh;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.5rlh;
+	overflow: hidden auto;
+	scrollbar-width: thin;
+	scrollbar-gutter: stable;
+
+	> .pagination {
+		display: flex;
+		margin-top: auto;
+		justify-content: center;
+		align-items: center;
+		gap: 1rem;
+	}
+}

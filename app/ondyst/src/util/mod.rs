@@ -10,7 +10,8 @@ pub use page::{ActorData, Page};
 pub use state::State;
 pub use webhook::Webhook;
 
-pub const APP_URL: &str = "http://localhost:8080";
+pub const APP_URL: &str = "http://ondyst.localhost";
+// pub const APP_URL: &str = "http://ondyst.untroche.com";
 
 pub type Identity = common::Identity<i64>;
 pub type StateHandle = common::StateHandle<State>;

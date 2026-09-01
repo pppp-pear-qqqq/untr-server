@@ -3,11 +3,20 @@
 <link rel="stylesheet" href="style/note.css">
 <link rel="stylesheet" href="style/index.css">
 <link rel="stylesheet" href="style/title.css">
+<script type="module" src="script/index.js"></script>
 <script type="module" src="script/entry.js"></script>
 {% endblock %}
 {% block content %}
 <h1>
-	<!--時計盤を配置 JSで実際の時刻に合わせて針を描画する-->
+	<svg version="1.1" y="-150" x="-150" viewBox="-150 -150 300 300" height="200px" width="200px" style="overflow:visible">
+		<linearGradient id="title-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+			<stop offset="0%" stop-color="#ff88ff" />
+			<stop offset="100%" stop-color="#88ff88" />
+		</linearGradient>
+		<g id="clock-hand" stroke-linejoin="round" stroke="url(#title-gradient)" fill="rgb(0,0,0,0)">
+			<path stroke-linecap="butt" stroke-linejoin="round" stroke-width="6" stroke-opacity="1" d="m0.00001-267.673669c-8.79202 79.83581-23.46392 90.9391-23.46392 105.42579c0 11.57657 6.71195 21.39399 16.01988 24.87409v112.09575a26.883064 26.327924 0 0 0-19.43993 25.27804a26.883064 26.327924 0 0 0 26.88397 26.3288a26.883064 26.327924 0 0 0 26.88395-26.3288a26.883064 26.327924 0 0 0-19.43992-25.28766v-112.08613c9.30794-3.4801 16.01989-13.29752 16.01989-24.87409c0-14.48669-14.67191-25.58998-23.46392-105.42579zm0 257.880319a9.999268 9.792781 0 0 1 9.99985 9.79335a9.999268 9.792781 0 0 1-9.99985 9.79335a9.999268 9.792781 0 0 1-9.99984-9.79335a9.999268 9.792781 0 0 1 9.99984-9.79335z" />
+		</g>
+	</svg>
 	one day's' talk
 </h1>
 <div id="entry">

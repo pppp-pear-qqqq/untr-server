@@ -1,4 +1,21 @@
 h1 {
+	position: relative;
 	font-family: var(--font-display-1);
 	text-align: center;
+	font-size: 4rem;
+
+	> svg {
+		position: absolute;
+		z-index: -1;
+
+		> g {
+			stroke: linear-gradient(to right in hsl longer hue, var(--rainbow-color), var(--rainbow-color));
+		}
+	}
+}
+
+#gradient-surface {
+	position: absolute;
+	z-index: -1;
+	background: linear-gradient(to right in hsl longer hue, var(--rainbow-color), var(--rainbow-color));
 }

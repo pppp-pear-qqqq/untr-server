@@ -88,33 +88,33 @@ ${SSL}		ssl_ciphers HIGH:!aNULL:!MD5;
 
 		location ~ ^/common/(?<dir>script|style)/(?<file>.+)$ {
 			alias /app/app/common/$dir${ASSET_SUFFIX}/$file;
-			# access_log off;
-			# log_not_found off;
+			access_log off;
+			log_not_found off;
 		}
 		location /common/ {
 			alias /app/app/common/;
-			# access_log off;
-			# log_not_found off;
+			access_log off;
+			log_not_found off;
 		}
 		location /.well-known/ {
 			alias /app/app/common/.well-known/;
-			# access_log off;
-			# log_not_found off;
+			access_log off;
+			log_not_found off;
 		}
 
 		location /image/ {
-			# access_log off;
-			# log_not_found off;
+			access_log off;
+			log_not_found off;
 		}
 		location ~ ^/(?<dir>script|style)/(?<file>.+)$ {
 			try_files /$dir${ASSET_SUFFIX}/$file /common/$dir${ASSET_SUFFIX}/$file;
-			# access_log off;
-			# log_not_found off;
+			access_log off;
+			log_not_found off;
 		}
 		location = /favicon.ico {
 			try_files /image/favicon.ico =404;
-			# access_log off;
-			# log_not_found off;
+			access_log off;
+			log_not_found off;
 		}
 
 		location / {

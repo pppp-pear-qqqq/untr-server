@@ -19,7 +19,7 @@
 	}
 	&[data-theme="dark"] {
 		--surface-color: #1a1a1a;
-		--weak-surface-color: #32323280;
+		--weak-surface-color: #323232d0;
 		--content-color: #d0d0d0;
 		--accent-color: #ffcd1b;
 		--border-color: #b6b6b6;
@@ -49,7 +49,7 @@ button {
 }
 
 body {
-	background-image: url("/image/back.png");
+	background-image: url("/image/back.jpg");
 	background-repeat: repeat;
 	background-blend-mode: overlay;
 }

@@ -9,4 +9,4 @@ function updateClock() {
 }
 
 setInterval(updateClock, 60000);
-updateClock();
+requestAnimationFrame(updateClock);

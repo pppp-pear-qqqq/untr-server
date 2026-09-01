@@ -1,21 +1,23 @@
 h1 {
 	position: relative;
+	padding: 1.5lh 0;
 	font-family: var(--font-display-1);
 	text-align: center;
 	font-size: 4rem;
+	-webkit-text-stroke: 10px var(--weak-surface-color);
+	paint-order: stroke;
 
 	> svg {
 		position: absolute;
+		max-width: 60dvw;
+		max-height: 60dvw;
 		z-index: -1;
-
-		> g {
-			stroke: linear-gradient(to right in hsl longer hue, var(--rainbow-color), var(--rainbow-color));
-		}
+		top: 50%;
+		left: 50%;
+		translate: -100% -50%;
 	}
 }
 
-#gradient-surface {
-	position: absolute;
-	z-index: -1;
-	background: linear-gradient(to right in hsl longer hue, var(--rainbow-color), var(--rainbow-color));
+#clock-hand {
+	transition: transform 1s;
 }

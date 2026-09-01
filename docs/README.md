@@ -43,3 +43,11 @@ gitコマンドがインストールされているなら `git config --global c
 	- 一応アクセス弾くだけならNginxの設定調整すれば大丈夫か　まあ諸々検討
 	- どのみち`.dummy`が必要なのは開発中の過渡期だけで、最終的にはすべてのディレクトリにちゃんと意味のあるファイルが入るわけだし、そうなったら消せばいいだけかも
 	- でも消すのはちょっと面倒くさい
+
+# 本番ビルド
+`docker run --rm -v "${PWD}:/usr/src/app" -v cargo-cache:/usr/local/cargo/registry -w /usr/src/app rust:slim cargo build --bin portal --release`
+実際どういう感じでやっていけばいいのかは手探り
+
+本番サーバーでのディレクトリ構造を参考にしながら、etc/systemd/system以下に.serviceファイルを配置する
+etc/nginx/nginx.confも配置する
+データベースファイルとかを置きながら良い感じに

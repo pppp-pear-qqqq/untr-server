@@ -1,0 +1,24 @@
+[Unit]
+Description=Portal Service (Actix-web)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/app/app
+
+# docker-compose.yml の環境変数を指定
+Environment="SERVER_HOST=127.0.0.1"
+Environment="SERVER_PORT=8000"
+Environment="DATABASE_URL=sqlite:portal.db"
+Environment="RUST_LOG=info,portal=debug,actix_web::middleware=warn"
+
+# 実行ファイル
+ExecStart=/app/app/portal.exe
+
+# クラッシュ時の自動再起動設定
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

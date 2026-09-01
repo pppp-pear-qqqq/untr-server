@@ -1,6 +1,6 @@
 use actix_web::{cookie, web};
 use base64::prelude::*;
-use log::error;
+use log::{error, info};
 use sqlx::SqlitePool;
 use tera::Tera;
 
@@ -21,6 +21,7 @@ pub struct AppData {
 impl AppData {
 	pub async fn new(db_url: &str) -> Self {
 		// SqlitePool生成
+		info!("DB: {db_url}");
 		let pool = SqlitePool::connect(&db_url).await.unwrap();
 		// State読み込み
 		let state = match sqlx::query_scalar!("SELECT value FROM setting WHERE key=?", STATE).fetch_one(&pool).await {
@@ -45,6 +46,7 @@ impl AppData {
 			Err(err) => panic!("{}", err),
 		};
 		// teraコア生成
+		info!("Tera: {}", util::resource("**/*.html"));
 		let tera = match Tera::new(&util::resource("**/*.html")) {
 			Ok(mut t) => {
 				t.register_filter("html", common::tera::html::<tag::Ondyst>);
@@ -59,12 +61,6 @@ impl AppData {
 			}
 		};
 
-		AppData {
-			state: StateHandle::new(state),
-			pool: web::Data::new(pool),
-			tera: web::Data::new(tera),
-			session_key,
-			admin_key,
-		}
+		AppData { state: StateHandle::new(state), pool: web::Data::new(pool), tera: web::Data::new(tera), session_key, admin_key }
 	}
 }

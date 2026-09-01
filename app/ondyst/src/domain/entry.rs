@@ -52,8 +52,7 @@ async fn login(web::Form(info): web::Form<Auth>, session: Session, _: StateHandl
 }
 
 async fn auth(code: String) -> common::Result<Uuid> {
-	// dockerなしの内部通信なら"http://localhost:8000/auth"
-	let res = client().post("http://portal:8000/auth").json(&Auth { code }).send().await.and_then(|r| r.error_for_status())?;
+	let res = client().post(if cfg!(debug_assertions) { "http://portal:8000/auth" } else { "http://localhost:8000/auth" }).json(&Auth { code }).send().await.and_then(|r| r.error_for_status())?;
 	let user_id = res.text().await?;
 	Ok(Uuid::from_str(&user_id)?)
 }

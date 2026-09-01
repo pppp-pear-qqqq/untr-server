@@ -3,6 +3,9 @@ events {
 }
 
 http {
+	types_hash_max_size 4096;
+	types_hash_bucket_size 128;
+
 	# ContentType設定
 	include mime.types;
 	default_type text/plain;
@@ -62,7 +65,7 @@ ${SSL}		ssl_certificate_key /app/ssl/privkey.pem;
 ${SSL}	server {
 ${SSL}		listen 80;
 ${SSL}		server_name untroche.com *.untroche.com localhost *.localhost;
-${SSL}
+${SSL}		access_log off;
 ${SSL}		return 301 https://$host$request_uri;
 ${SSL}	}
 

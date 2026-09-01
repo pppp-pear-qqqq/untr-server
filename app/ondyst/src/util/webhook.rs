@@ -15,11 +15,7 @@ struct Post {
 
 impl Webhook {
 	pub fn new(content: impl ToString) -> Self {
-		Self {
-			content: content.to_string(),
-			username: None,
-			avatar_url: None,
-		}
+		Self { content: content.to_string(), username: None, avatar_url: None }
 	}
 	pub fn username(mut self, username: impl ToString) -> Self {
 		self.username = Some(username.to_string());
@@ -31,6 +27,6 @@ impl Webhook {
 	}
 
 	pub async fn send(self, target: Vec<i64>) -> Result<reqwest::Response, reqwest::Error> {
-		client().post("http://portal:8000/webhook").json(&Post { target, content: self }).send().await.and_then(|r| r.error_for_status())
+		client().post(if cfg!(debug_assertions) { "http://portal:8000/webhook" } else { "http://localhost:8000/webhook" }).json(&Post { target, content: self }).send().await.and_then(|r| r.error_for_status())
 	}
 }

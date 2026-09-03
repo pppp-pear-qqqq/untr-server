@@ -27,7 +27,7 @@ async fn post(web::Form(info): web::Form<Post>, id: Option<Identity>, state: Sta
 
 	let id = id.as_deref();
 	let tag = format!("{} {}", info.app_name, info.category);
-	let body = format!("{}\n{}", info.title, info.body);
+	let body = format!("## {}\n{}", info.title, info.body);
 
 	let pool = pool.as_ref();
 	sqlx::query!("INSERT INTO report(timestamp,user,tag,body) VALUES(?,?,?,?)", timestamp, id, tag, body).execute(pool).await?;

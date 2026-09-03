@@ -7,6 +7,7 @@ use super::*;
 /// リソース
 pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.route("", web::get().to(index));
+	cfg.route("report", web::get().to(get_reports));
 }
 
 #[derive(serde::Deserialize)]
@@ -40,4 +41,53 @@ async fn index(web::Query(info): web::Query<Config>, req_type: common::ReqType, 
 		let body = Page::default().title("admin").render_with_ctx("admin.html", &tmpl, ctx)?;
 		Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 	}
+}
+
+#[derive(serde::Deserialize)]
+struct GetReports {
+	#[serde(default)]
+	ignore_checked: bool,
+}
+async fn get_reports(web::Query(info): web::Query<GetReports>, pool: web::Data<Pool>) -> common::Result<impl Responder> {
+	#[derive(serde::Serialize)]
+	struct Report {
+		id: i64,
+		timestamp: i64,
+		user: String,
+		tag: String,
+		body: String,
+		checked: bool,
+	}
+
+	let pool = pool.as_ref();
+	let reports: Vec<_> = if info.ignore_checked {
+		sqlx::query!("SELECT r.id,r.timestamp,u.name AS user,r.tag,r.body FROM report r JOIN user u ON r.user=u.id WHERE checked=FALSE")
+			.fetch_all(pool)
+			.await?
+			.into_iter()
+			.map(|r| Report {
+				id: r.id,
+				timestamp: r.timestamp,
+				user: r.user,
+				tag: r.tag,
+				body: r.body,
+				checked: false,
+			})
+			.collect()
+	} else {
+		sqlx::query!("SELECT r.id,r.timestamp,u.name AS user,r.tag,r.body,r.checked FROM report r JOIN user u ON r.user=u.id")
+			.fetch_all(pool)
+			.await?
+			.into_iter()
+			.map(|r| Report {
+				id: r.id,
+				timestamp: r.timestamp,
+				user: r.user,
+				tag: r.tag,
+				body: r.body,
+				checked: r.checked != 0,
+			})
+			.collect()
+	};
+	Ok(HttpResponse::Ok().json(reports))
 }

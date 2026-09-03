@@ -53,7 +53,7 @@ main {
 	display: block flex;
 	flex-direction: column;
 	box-sizing: border-box;
-	min-width: 20dvw;
+	min-width: max(20dvw, 14rem);
 	height: calc(100dvh - var(--header-height));
 	padding: 2dvh 2dvw 2dvh 1dvw;
 	gap: 0.1rlh;

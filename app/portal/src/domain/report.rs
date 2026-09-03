@@ -17,7 +17,7 @@ struct Post {
 	category: String,
 	#[validate(length(max = 32, message = "32文字以内で入力してください"))]
 	title: String,
-	#[validate(length(min = 8, max = 4096, message = "8文字以上4096文字以内で入力してください"))]
+	#[validate(length(min = 8, max = 1500, message = "8文字以上1500文字以内で入力してください"))]
 	body: String,
 }
 async fn post(web::Form(info): web::Form<Post>, id: Option<Identity>, state: StateHandle, pool: web::Data<Pool>) -> common::Result<impl Responder> {
@@ -26,10 +26,22 @@ async fn post(web::Form(info): web::Form<Post>, id: Option<Identity>, state: Sta
 	info.validate()?;
 
 	let id = id.as_deref();
-	let tag = info.app_name + " " + &info.category;
-	let body = info.title + &info.body;
+	let tag = format!("{} {}", info.app_name, info.category);
+	let body = format!("{}\n{}", info.title, info.body);
 
 	let pool = pool.as_ref();
 	sqlx::query!("INSERT INTO report(timestamp,user,tag,body) VALUES(?,?,?,?)", timestamp, id, tag, body).execute(pool).await?;
+
+	if let Some(id) = id {
+		super::webhook::Content {
+			content: format!("連絡を受け付けました。\n>>> {}", body),
+			username: Some("untroche".into()),
+			avatar_url: None,
+		}
+		.target(vec![Uuid::from_slice(id)?])
+		.send(pool)
+		.await?;
+	}
+
 	Ok(HttpResponse::NoContent().finish())
 }

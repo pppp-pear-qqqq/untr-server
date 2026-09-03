@@ -101,9 +101,9 @@
 			{% else %}
 			<input type="hidden" name="icon" value="">
 			{% endif %}
-			<input class="name" type="text" name="name" placeholder="名前" value="{{actor.name}}">
+			<input class="name" type="text" name="name" maxlength="16" placeholder="名前" value="{{actor.name}}">
 			<span class="id">id: {{actor.id}}</span>
-			<textarea class="body insert-tag" name="body" placeholder="本文"></textarea>
+			<textarea class="body insert-tag" name="body" maxlength="500" placeholder="本文"></textarea>
 			<footer class="util">
 				<button type="submit" title="発言投稿"><ic class="ri-send-plane-2-line"></ic></button>
 				<button type="button" title="太字" onclick="insert_tag('[b/', '/b]')"><ic class="ri-bold"></ic></button>

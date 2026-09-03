@@ -8,18 +8,18 @@
 {% block content %}
 <form action="home/setting" autocomplete="off">
 	<h2>設定<span>(id: {{actor.id}} {{actor.name}})</span></h2>
-	<label>名前<input type="text" name="name" value="{{actor.name}}" placeholder="16文字以内"></label>
+	<label>名前<input type="text" name="name" value="{{actor.name}}" maxlength="16" placeholder="16文字以内"></label>
 	<label>
 		コメント
 		<ic role="button" class="help ri-question-line"><template>
 			キャラクターリスト画面で表示されます。
 		</template></ic>
-		<input type="text" name="comment" value="{{comment}}" placeholder="24文字以内">
+		<input type="text" name="comment" value="{{comment}}" maxlength="24" placeholder="24文字以内">
 	</label>
 	<label for="profile">
 		プロフィール
 		<label class="auto-resize"><input type="checkbox" checked>自動リサイズ</label>
-		<textarea id="profile" name="profile" class="insert-tag" placeholder="8192文字以内">{{profile}}</textarea>
+		<textarea id="profile" name="profile" class="insert-tag" maxlength="8192" placeholder="8192文字以内">{{profile}}</textarea>
 		<div class="tool-box">
 			<button type="button" title="太字" onclick="insert_tag('[b/', '/b]')"><ic class="ri-bold"></ic></button>
 			<button type="button" title="斜体" onclick="insert_tag('[i/', '/i]')"><ic class="ri-italic"></ic></button>
@@ -44,7 +44,7 @@
 			画像アップローダーには<a target="_blank" href="https://rabbithutch.site/usagoya">うさごや</a>や<a target="_blank" href="https://game.428.st">The Clover Garden</a>などがおすすめです。
 		</template></ic>
 		<label class="auto-resize"><input type="checkbox">自動リサイズ</label>
-		<textarea id="icon_list" name="icon_list" placeholder="改行区切り">{{icon_list}}</textarea>
+		<textarea id="icon_list" name="icon_list" maxlength="8192" placeholder="改行区切り">{{icon_list}}</textarea>
 		<div class="icon_list">
 			{% if icon_list %}
 			{% for line in icon_list|split(pat="\n") %}
@@ -63,7 +63,7 @@
 			画像アップローダーには<a target="_blank" href="https://rabbithutch.site/usagoya">うさごや</a>や<a target="_blank" href="https://game.428.st">The Clover Garden</a>などがおすすめです。
 		</template></ic>
 		<label class="auto-resize"><input type="checkbox">自動リサイズ</label>
-		<textarea id="portrait_list" name="portrait_list" placeholder="改行区切り">{{portrait_list}}</textarea>
+		<textarea id="portrait_list" name="portrait_list" maxlength="8192" placeholder="改行区切り">{{portrait_list}}</textarea>
 		<div class="portrait_list">
 			{% if portrait_list %}
 			{% for line in portrait_list|split(pat="\n") %}

@@ -1,0 +1,38 @@
+{% extends "template.html" %}
+{% block head %}
+<link rel="stylesheet" href="style/note.css">
+<link rel="stylesheet" href="style/form.css">
+<script type="module" src="script/report.js"></script>
+{% endblock %}
+{% block content %}
+<form action="report" method="post" data-encode="form">
+	<h2>報告・連絡フォーム</h2>
+	<p>
+		当サークルが運営するサービスに関連する連絡にはこちらをご利用ください。
+	</p>
+	<p>
+		種別
+		<select name="app_name">
+			<option value="portal">ポータルサイト</option>
+			<option value="ondyst">one day's' talk</option>
+			<option value="other">その他</option>
+		</select>
+		<select name="category">
+			<option value="bug">バグ報告</option>
+			<option value="request">機能要望・改善案</option>
+			<option value="contact">運営への連絡</option>
+			<option value="other">その他</option>
+		</select>
+	</p>
+	<label>
+		概要
+		<input type="text" name="title" maxlength="32" placeholder="32文字以内">
+	</label>
+	<label for="body">
+		詳細
+		<label class="auto-resize"><input type="checkbox" checked>自動リサイズ</label>
+		<textarea id="body" name="body" maxlength="1500" placeholder="1500文字以内"></textarea>
+	</label>
+	<button type="submit">送信</button>
+</form>
+{% endblock %}

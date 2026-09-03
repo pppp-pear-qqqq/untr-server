@@ -59,6 +59,17 @@ async fn update_setting(web::Json(info): web::Json<Setting>, id: Identity, state
 	let pool = pool.as_ref();
 	builder.build().execute(pool).await?;
 
+	if info.webhook.is_some_and(|s| !s.is_empty()) {
+		super::webhook::Content {
+			content: "これはテスト送信です。このメッセージを受け取れているなら、Webhookを正しく設定できています。".into(),
+			username: Some("untroche".into()),
+			avatar_url: None,
+		}
+		.target(vec![Uuid::from_slice(&*id)?])
+		.send(pool)
+		.await?;
+	}
+
 	Ok(HttpResponse::NoContent().finish())
 }
 

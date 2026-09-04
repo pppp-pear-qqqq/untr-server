@@ -8,7 +8,6 @@ const next = document.querySelector('.pagination>.next')!;
 const search = new URLSearchParams(window.location.search);
 const offset = Math.max(Number(search.get('offset') ?? 0), 0);
 const limit = Math.max(Number(search.get('limit') ?? 100), 1);
-console.log(offset, limit);
 const page_now = Math.ceil(offset / limit);
 const page_min = Math.max(page_now - 2, 0);
 const page_max = Math.min(page_now + 3, size / limit);

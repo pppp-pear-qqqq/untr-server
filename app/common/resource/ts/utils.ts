@@ -60,3 +60,7 @@ export const time_formatter = new Intl.DateTimeFormat('ja-JP', {
 	hour: '2-digit', minute: '2-digit', second: '2-digit',
 	hour12: false
 });
+
+export function clamp(value: number, min: number, max: number): number {
+	return Math.max(min, Math.min(max, value));
+}

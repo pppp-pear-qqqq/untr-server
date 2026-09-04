@@ -1,11 +1,39 @@
 import { Ajax } from '/common/script/ajax.js';
+import { Pagination } from '/common/script/pagination.js';
 import { time_formatter as formatter } from '/common/script/utils.js';
 import { toast } from './toast.js';
+
+// 要素取得
+const parent = document.getElementById('timeline')!;
+const container = document.getElementById('chat_list')!;
+const template = document.getElementById(`${container.id}-template`) as HTMLTemplateElement;
+const size = Number(document.querySelector('.pagination>.size')!.textContent);
+
+// 再読み込み関連
+const page = new Pagination({ size: size, limit_default: 20, limit_max: 100 });
+page.callback = (list: any[]) => {
+	const fragment = document.createDocumentFragment();
+	list.forEach((item: any) => {
+		const node = template.content.cloneNode(true) as DocumentFragment;
+		(node.firstElementChild as HTMLElement).dataset.id = item.id;
+		node.querySelector<HTMLImageElement>('.icon>img')!.src = item.icon;
+		node.querySelector('.name')!.textContent = item.name;
+		node.querySelector('.id')!.textContent += item.actor;
+		node.querySelector('.body')!.innerHTML = item.body;
+		node.querySelector('.timestamp')!.textContent = formatter.format(new Date(item.timestamp * 1000));
+		fragment.insertBefore(node, fragment.firstChild);
+	});
+	container.replaceChildren(fragment);
+	setting_reply_buttons();
+	parent.scroll({ top: parent.scrollHeight, behavior: 'smooth' });
+};
+page.error = (e) => toast.error(e.message);
 
 // 発言
 const form = document.querySelector<HTMLFormElement>('#post form')!;
 const form_name = form.children.namedItem('name') as HTMLInputElement;
 const form_body = form.children.namedItem('body') as HTMLTextAreaElement;
+
 let force_submit = false;
 form.addEventListener('submit', async (ev) => {
 	ev.preventDefault();
@@ -19,7 +47,7 @@ form.addEventListener('submit', async (ev) => {
 		form_body.value = '';
 		force_submit = false;
 		toast.success('発言しました');
-		reload({ scroll: 'bottom' });
+		page.reload();
 	} catch (err: any) {
 		toast.error(err.message);
 	}
@@ -40,71 +68,6 @@ if (icon_dialog) {
 		});
 	});
 }
-
-// 再読み込み
-const parent = document.getElementById('timeline')!;
-const container = document.getElementById('chat_list')!;
-const template = document.getElementById(`${container.id}-template`) as HTMLTemplateElement;
-
-let offset_max: number = Number.MAX_SAFE_INTEGER;
-const limit_default = 20;
-const limit_max = 100;
-
-if (container.childElementCount < limit_default) offset_max = Number(new URLSearchParams(location.search).get('offset') ?? 0);
-
-async function reload({ offset = 0, limit = limit_default, scroll = 'none' }: { offset?: number; limit?: number; scroll?: 'top' | 'bottom' | 'none' }) {
-	const o = Math.min(offset, offset_max);
-	const l = Math.min(limit, limit_max);
-	const params = new URLSearchParams();
-	params.set('offset', o.toString());
-	params.set('limit', l.toString());
-	try {
-		const ret = await new Ajax(window.location.pathname).get(params).send('json');
-		window.history.pushState(null, '', `${location.pathname}?offset=${o}&limit=${l}`);
-		const fragment = document.createDocumentFragment();
-		ret.forEach((item: any) => {
-			const node = template.content.cloneNode(true) as DocumentFragment;
-			(node.firstElementChild as HTMLElement).dataset.id = item.id;
-			node.querySelector<HTMLImageElement>('.icon>img')!.src = item.icon;
-			node.querySelector('.name')!.textContent = item.name;
-			node.querySelector('.id')!.textContent += item.actor;
-			node.querySelector('.body')!.innerHTML = item.body;
-			node.querySelector('.timestamp')!.textContent = formatter.format(new Date(item.timestamp * 1000));
-			fragment.insertBefore(node, fragment.firstChild);
-		});
-		container.replaceChildren(fragment);
-		setting_reply_buttons();
-		if (container.childElementCount < l) offset_max = o;
-		if (scroll === 'none') return;
-		parent.scroll({ top: scroll === 'top' ? 0 : parent.scrollHeight, behavior: 'smooth' });
-	} catch (err: any) {
-		toast.error(err.message);
-	}
-}
-
-function setting_reply_buttons() {
-	document.querySelectorAll<HTMLElement>('button.reply').forEach(e => {
-		e.addEventListener('click', () => {
-			const id = e.closest<HTMLElement>('[data-id]')!.dataset.id;
-			if (form_body.value.startsWith('>>')) {
-				form_body.value = `>>${id} ${form_body.value}`;
-			} else {
-				form_body.value = `>>${id}\n${form_body.value}`;
-			}
-		});
-	});
-}
-
-// ページネーション
-document.querySelectorAll<HTMLElement>('[data-page]').forEach(e => {
-	e.addEventListener('click', () => {
-		const page = Number(e.dataset.page);
-		const search = new URLSearchParams(location.search);
-		const offset = Number(search.get('offset') ?? 0);
-		const limit = Number(search.get('limit') ?? limit_default);
-		reload({ offset: Math.max(offset + page * limit, 0), limit: limit, scroll: 'top' });
-	});
-})
 
 // 発言内容初期設定
 window.addEventListener('beforeunload', () => {
@@ -132,6 +95,20 @@ if (save_icon) {
 		target.click();
 		form.querySelector<HTMLImageElement>('button.icon>img')!.src = save_icon;
 	}
+}
+
+// 返信ボタンイベント設定
+function setting_reply_buttons() {
+	document.querySelectorAll<HTMLElement>('button.reply').forEach(e => {
+		e.addEventListener('click', () => {
+			const id = e.closest<HTMLElement>('[data-id]')!.dataset.id;
+			if (form_body.value.startsWith('>>')) {
+				form_body.value = `>>${id} ${form_body.value}`;
+			} else {
+				form_body.value = `>>${id}\n${form_body.value}`;
+			}
+		});
+	});
 }
 
 setting_reply_buttons();

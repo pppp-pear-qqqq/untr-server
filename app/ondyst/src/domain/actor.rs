@@ -17,15 +17,20 @@ async fn list(page: Pagination<100, 200>, req_type: ReqType, id: Option<Identity
 	}
 
 	let offset = page.offset as i64;
-	let limit = page.limit.min(200) as i64;
+	let limit = page.limit as i64;
 
 	let pool = pool.as_ref();
+	let size = sqlx::query_scalar!("SELECT COUNT(*) FROM actor").fetch_one(pool).await?;
 	let records = sqlx::query_as!(Record, "SELECT id,name,comment,icon FROM actor LIMIT ?,?", offset, limit).fetch_all(pool).await?;
 
 	match req_type {
-		ReqType::Empty => Ok(HttpResponse::Ok().json(records)),
+		ReqType::Empty => Ok(HttpResponse::Ok().json(serde_json::json!({
+			"size": size,
+			"list": records,
+		}))),
 		_ => {
 			let mut ctx = tera::Context::new();
+			ctx.insert("actor_size", &size);
 			ctx.insert("actor_list", &records);
 			let body = Page::default().actor_data_opt(ActorData::load_opt(&id, &pool).await?).render_with_ctx("actor_list.html", &tmpl, ctx)?;
 			Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))

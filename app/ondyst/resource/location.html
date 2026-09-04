@@ -67,9 +67,10 @@
 		{% endfor %}
 	</div>
 	<div class="pagination">
-		<ic role="button" title="前へ" data-page="1" class="ri-arrow-left-wide-line"></ic>
-		<ic role="button" title="更新" data-page="0" class="ri-refresh-line"></ic>
-		<ic role="button" title="次へ" data-page="-1" class="ri-arrow-right-wide-line"></ic>
+		<ic role="button" title="新しい方へ" data-step="-1" class="ri-arrow-left-wide-line"></ic>
+		<ic role="button" title="更新" data-step="0" class="ri-refresh-line"></ic>
+		<ic role="button" title="古い方へ" data-step="1" class="ri-arrow-right-wide-line"></ic>
+		<small class="size" hidden>{{chat_size}}</small>
 	</div>
 	{% if actor %}
 	<div id="post">

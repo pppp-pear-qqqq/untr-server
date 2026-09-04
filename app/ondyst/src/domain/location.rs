@@ -76,23 +76,32 @@ async fn location(key: web::Path<String>, page: Pagination<20, 100>, req_type: R
 
 	let key = key.into_inner();
 	let offset = page.offset as i64;
-	let limit = page.limit.min(100) as i64;
+	let limit = page.limit as i64;
 
 	let pool = pool.as_ref();
 
 	if key.contains('_') {
 		// actor
 		let json = serde_json::to_string(&key.split('_').map(|s| s.parse::<i64>()).collect::<Result<Vec<_>, _>>()?)?;
+
+		let size = sqlx::query_scalar!("SELECT COUNT(*) FROM chat WHERE actor IN (SELECT value FROM json_each(?))", json).fetch_one(pool).await?;
 		let chat_list = sqlx::query_as!(Chat, "SELECT id,timestamp,actor,name,icon,body FROM chat WHERE actor IN (SELECT value FROM json_each(?)) ORDER BY id DESC LIMIT ?,?", json, offset, limit)
 			.fetch_all(pool)
 			.await?;
-		Ok(HttpResponse::Ok().json(chat_list))
+		Ok(HttpResponse::Ok().json(serde_json::json!({
+			"size": size,
+			"list": chat_list,
+		})))
 	} else {
 		// location
+		let size = sqlx::query_scalar!("SELECT COUNT(*) FROM chat WHERE location=?", key).fetch_one(pool).await?;
 		let chat_list = sqlx::query_as!(Chat, "SELECT id,timestamp,actor,name,icon,body FROM chat WHERE location=? ORDER BY id DESC LIMIT ?,?", key, offset, limit).fetch_all(pool).await?;
 
 		match req_type {
-			ReqType::Empty => Ok(HttpResponse::Ok().json(chat_list)),
+			ReqType::Empty => Ok(HttpResponse::Ok().json(serde_json::json!({
+				"size": size,
+				"list": chat_list,
+			}))),
 			_ => {
 				let location = sqlx::query_as!(Location, "SELECT name,lore FROM location WHERE key=?", key).fetch_optional(pool).await?;
 				let item_list = sqlx::query_as!(Item, "SELECT id,name,lore,message FROM item WHERE location=?", key).fetch_all(pool).await?;
@@ -104,6 +113,7 @@ async fn location(key: web::Path<String>, page: Pagination<20, 100>, req_type: R
 				}
 				ctx.insert("location", &location);
 				ctx.insert("location_key", &key);
+				ctx.insert("chat_size", &size);
 				ctx.insert("chat_list", &chat_list);
 				ctx.insert("item_list", &item_list);
 				let body = Page::default().actor_data_opt(ActorData::load_opt(&id, &pool).await?).render_with_ctx("location.html", &tmpl, ctx)?;

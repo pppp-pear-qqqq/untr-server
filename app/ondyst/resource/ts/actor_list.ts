@@ -5,9 +5,15 @@ import { toast } from './toast.js';
 const container = document.getElementById('actor_list') as HTMLElement;
 const size = Number(document.querySelector('.pagination>.size')!.textContent);
 const next = document.querySelector('.pagination>.next')!;
-const limit = Number(new URLSearchParams(window.location.search).get('limit') ?? 100);
+const search = new URLSearchParams(window.location.search);
+const offset = Math.max(Number(search.get('offset') ?? 0), 0);
+const limit = Math.max(Number(search.get('limit') ?? 100), 1);
+console.log(offset, limit);
+const page_now = Math.ceil(offset / limit);
+const page_min = Math.max(page_now - 2, 0);
+const page_max = Math.min(page_now + 3, size / limit);
 
-for (let i = 0; i < size / limit; ++i) {
+for (let i = page_min; i < page_max; ++i) {
 	next.insertAdjacentHTML('beforebegin', `<a role="button" title="ページ${i + 1}" data-page="${i}" class="page">${i + 1}</a>`);
 }
 

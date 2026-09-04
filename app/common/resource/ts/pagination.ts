@@ -40,7 +40,6 @@ export class Pagination {
 					}
 				}
 
-				console.log(offset, target, limit);
 				this.reload(target, limit);
 			});
 		});
@@ -65,7 +64,6 @@ export class Pagination {
 		// 数値の正規化
 		const l = clamp(limit == null || isNaN(limit) ? this.limit_default : limit, 1, this.limit_max);
 		const o = clamp(offset == null || isNaN(offset) ? 0 : offset, 0, Math.max((Math.ceil(this.size / l) - 1) * l, 0));
-		console.log(o, l);
 		// 変更を判定
 		const diff = Number(this.search.get('offset') ?? 0) !== o || Number(this.search.get('limit') ?? this.limit_default) !== l;
 		// if (!diff) return null;

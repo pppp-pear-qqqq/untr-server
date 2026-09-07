@@ -1,0 +1,9 @@
+.portrait {
+	float: right;
+	max-width: 98dvw;
+	justify-self: center;
+}
+
+article > section > h3 {
+	min-width: 30rem;
+}

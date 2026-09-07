@@ -2,6 +2,7 @@
 {% block head %}
 <link rel="stylesheet" href="style/note.css">
 <link rel="stylesheet" href="style/fav.css">
+<link rel="stylesheet" href="style/actor.css">
 <script type="module" src="script/fav.js"></script>
 {% endblock %}
 {% block content %}
@@ -13,7 +14,7 @@
 		{% endif %}
 	</h2>
 	{% if portrait %}
-	<img class="portrait" src="{{portrait}}">
+	<img class="portrait" width="480" src="{{portrait}}">
 	{% endif %}
 	{% for section in profile %}
 	<section>

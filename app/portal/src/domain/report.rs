@@ -5,7 +5,7 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 }
 
 async fn index(id: Option<Identity>, _: StateHandle, pool: web::Data<Pool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
-	let body = Page::default().user_data_opt(UserData::load_opt(&id, &pool).await?).render("report.html", &tmpl)?;
+	let body = Page::default().user_data(UserData::load_opt(&id, &pool).await?).render("report.html", &tmpl)?;
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }
 
@@ -33,14 +33,7 @@ async fn post(web::Form(info): web::Form<Post>, id: Option<Identity>, state: Sta
 	sqlx::query!("INSERT INTO report(timestamp,user,tag,body) VALUES(?,?,?,?)", timestamp, id, tag, body).execute(pool).await?;
 
 	if let Some(id) = id {
-		super::webhook::Content {
-			content: format!("連絡を受け付けました。\n>>> {}", body),
-			username: Some("untroche".into()),
-			avatar_url: None,
-		}
-		.target(vec![Uuid::from_slice(id)?])
-		.send(pool)
-		.await?;
+		super::webhook::Content { content: format!("連絡を受け付けました。\n>>> {}", body), username: Some("untroche".into()), avatar_url: None }.target(vec![Uuid::from_slice(id)?]).send(pool).await?;
 	}
 
 	Ok(HttpResponse::NoContent().finish())

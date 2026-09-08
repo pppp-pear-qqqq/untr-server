@@ -16,7 +16,7 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 
 /// ログイン・登録画面の表示
 async fn index(id: Option<Identity>, pool: web::Data<Pool>, tmpl: web::Data<tera::Tera>) -> common::Result<impl Responder> {
-	let body = Page::default().user_data_opt(UserData::load_opt(&id, &pool).await?).render("entry.html", &tmpl)?;
+	let body = Page::default().user_data(UserData::load_opt(&id, &pool).await?).render("entry.html", &tmpl)?;
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }
 
@@ -37,7 +37,6 @@ struct Login {
 
 /// ログイン処理
 async fn login(web::Form(info): web::Form<Login>, session: Session, _: StateHandle, pool: web::Data<Pool>) -> common::Result<impl Responder> {
-	info.validate()?;
 	let pool = pool.as_ref();
 
 	let record = sqlx::query!("SELECT id,password FROM user WHERE name=?", info.username).fetch_optional(pool).await?.ok_or(ErrorUnauthorized("ユーザー名またはパスワードが異なります"))?;

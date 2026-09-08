@@ -14,11 +14,11 @@
 	<form id="login" method="post" action="entry/login" data-encode="form">
 		<label>
 			<ic class="ri-user-line"></ic>
-			<input type="text" name="username" placeholder="ユーザー名">
+			<input type="text" name="username" minlength="4" maxlength="24" placeholder="ユーザー名">
 		</label>
 		<label>
 			<ic class="ri-lock-line"></ic>
-			<input type="password" name="password" placeholder="パスワード">
+			<input type="password" name="password" minlength="15" maxlength="128" placeholder="パスワード">
 			<button type="button" class="toggle-visible">
 				<ic class="on ri-eye-line"></ic>
 				<ic class="off ri-eye-off-line"></ic>
@@ -48,7 +48,7 @@
 					今のところ変更機能を実装していないので、忘れないようにしてください。
 				</template>
 			</ic>
-			<input type="password" name="password" minlength="4" placeholder="4文字以上">
+			<input type="password" name="password" minlength="15" maxlength="128" placeholder="15文字以上">
 			<button type="button" class="toggle-visible">
 				<ic class="on ri-eye-line"></ic>
 				<ic class="off ri-eye-off-line"></ic>

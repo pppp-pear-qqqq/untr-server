@@ -17,7 +17,7 @@ async fn list(page: Pagination<100, 200>, req_type: ReqType, id: Option<Identity
 		_ => {
 			let mut ctx = tera::Context::new();
 			ctx.insert("user_list", &records);
-			let body = Page::default().user_data(UserData::load_opt(&id, &pool).await?).render_with_ctx("user_list.html", &tmpl, ctx)?;
+			let body = Page::default().user_data_opt(UserData::load_opt(&id, &pool).await?).render_with_ctx("user_list.html", &tmpl, ctx)?;
 			Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 		}
 	}
@@ -53,6 +53,6 @@ async fn user(user: web::Path<String>, id: Option<Identity>, _: StateHandle, poo
 	let mut ctx = tera::Context::new();
 	ctx.insert("name", &record.name);
 	ctx.insert("profile", &sections);
-	let body = Page::default().title(&format!("{} - untroche.portal", record.name)).user_data(UserData::load_opt(&id, &pool).await?).render_with_ctx("user.html", &tmpl, ctx)?;
+	let body = Page::default().title(&format!("{} - untroche.portal", record.name)).user_data_opt(UserData::load_opt(&id, &pool).await?).render_with_ctx("user.html", &tmpl, ctx)?;
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }

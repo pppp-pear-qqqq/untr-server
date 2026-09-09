@@ -30,6 +30,8 @@ impl<T: DeserializeOwned> FromRequest for Identity<T> {
 	type Future = future::Ready<Result<Self, Self::Error>>;
 
 	fn from_request(req: &actix_web::HttpRequest, _: &mut actix_web::dev::Payload) -> Self::Future {
+		// TODO この段階でちゃんと認証するべきだと思うが、現行の仕様だと認証できる情報が無い
+		// ちゃんとログインセッションをDBで管理するべきなのか
 		future::ready(match req.get_session().get(KEY) {
 			Ok(Some(v)) => Ok(Self(v)),
 			Ok(None) => Err(ErrorUnauthorized("ログインしてください")),

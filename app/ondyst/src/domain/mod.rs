@@ -9,11 +9,10 @@ use actix_web::{HttpResponse, Responder, error::*, http::header, web};
 use common::{HTMLEncode, PageRender, Pagination, ReqType};
 #[allow(unused_imports)]
 use log::{debug, error, info};
-use sqlx::SqlitePool as Pool;
-use tera::Tera;
 use uuid::Uuid;
 use validator::Validate;
 
+use crate::app_data::{ChannelMap, Pool, Tera};
 use crate::util::{ActorData, Identity, Page, StateHandle, resource, tag_parse as tag};
 
 pub fn make_cfg(admin_key: String) -> impl FnOnce(&mut web::ServiceConfig) {

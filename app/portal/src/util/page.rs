@@ -52,17 +52,20 @@ impl Page {
 }
 
 impl UserData {
-	pub async fn load(id: &super::Identity, pool: &SqlitePool) -> Result<Self, sqlx::Error> {
+	pub async fn load(id: &super::Identity, pool: &SqlitePool) -> Result<Option<Self>, sqlx::Error> {
 		let id = id.deref();
-		let record = sqlx::query!("SELECT id,name FROM user WHERE id=?", id).fetch_one(pool).await?;
-		Ok(Self {
-			id: Uuid::from_slice(&record.id).map_err(|err| sqlx::Error::Decode(err.into()))?,
-			name: record.name,
-		})
+		let record = sqlx::query!("SELECT id,name FROM user WHERE id=?", id).fetch_optional(pool).await?;
+		match record {
+			Some(record) => Ok(Some(Self {
+				id: Uuid::from_slice(&record.id).map_err(|err| sqlx::Error::Decode(err.into()))?,
+				name: record.name,
+			})),
+			None => Ok(None),
+		}
 	}
 	pub async fn load_opt(id: &Option<super::Identity>, pool: &SqlitePool) -> Result<Option<Self>, sqlx::Error> {
 		match id {
-			Some(id) => Self::load(id, pool).await.map(Some),
+			Some(id) => Self::load(id, pool).await,
 			None => Ok(None),
 		}
 	}

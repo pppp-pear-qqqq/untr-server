@@ -15,7 +15,7 @@ async fn index(id: Option<Identity>, _: StateHandle, pool: web::Data<Pool>, tmpl
 		ctx.insert("profile", &record.profile);
 		ctx.insert("webhook", &record.webhook);
 
-		let body = Page::default().user_data(UserData::load(&id, pool).await?).render_with_ctx("home.html", &tmpl, ctx)?;
+		let body = Page::default().user_data(UserData::load(&id, pool).await?.ok_or(ErrorUnauthorized("ログインセッションが無効です"))?).render_with_ctx("home.html", &tmpl, ctx)?;
 		Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 	} else {
 		Ok(HttpResponse::SeeOther().insert_header((header::LOCATION, "/")).finish())
@@ -23,7 +23,7 @@ async fn index(id: Option<Identity>, _: StateHandle, pool: web::Data<Pool>, tmpl
 }
 
 async fn view_setting(id: Identity, _: StateHandle, pool: web::Data<Pool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
-	let body = Page::default().user_data(UserData::load(&id, &pool).await?).render("setting.html", &tmpl)?;
+	let body = Page::default().user_data(UserData::load(&id, &pool).await?.ok_or(ErrorUnauthorized("ログインセッションが無効です"))?).render("setting.html", &tmpl)?;
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }
 

@@ -7,7 +7,7 @@
 <script type="module" src="script/location.js"></script>
 {% endblock %}
 {% block content %}
-<article id="location">
+<article id="location" data-key="{{location_key}}">
 	<h2 class="name">
 		{{location.name|default(value='ひみつの場所')}}
 		<span><label role="button" class="fav"><input type="checkbox" name="location" value="{{location_key}}:{{location.name|default(value='ひみつの場所')}}"><ic class="off ri-star-line" title="未フォロー"></ic><ic class="on ri-star-fill" title="フォロー中"></ic></label></span>

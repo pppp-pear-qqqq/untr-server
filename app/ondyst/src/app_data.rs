@@ -1,8 +1,14 @@
+use std::sync::RwLock;
+
 use actix_web::{cookie, web};
 use base64::prelude::*;
+use fxhash::FxHashMap as HashMap;
 use log::{error, info};
-use sqlx::SqlitePool;
-use tera::Tera;
+pub use sqlx::SqlitePool as Pool;
+pub use tera::Tera;
+use tokio::sync::broadcast;
+
+pub type ChannelMap = RwLock<HashMap<String, broadcast::Sender<()>>>;
 
 use crate::util::{self, State, StateHandle, tag_parse as tag};
 
@@ -13,8 +19,9 @@ const KEY: &str = "KEY";
 #[derive(Clone)]
 pub struct AppData {
 	pub state: StateHandle,
-	pub pool: web::Data<SqlitePool>,
+	pub pool: web::Data<Pool>,
 	pub tera: web::Data<Tera>,
+	pub channels: web::Data<ChannelMap>,
 	pub session_key: cookie::Key,
 	pub admin_key: String,
 }
@@ -22,7 +29,7 @@ impl AppData {
 	pub async fn new(db_url: &str) -> Self {
 		// SqlitePool生成
 		info!("DB: {db_url}");
-		let pool = SqlitePool::connect(&db_url).await.unwrap();
+		let pool = Pool::connect(&db_url).await.unwrap();
 		// State読み込み
 		let state = match sqlx::query_scalar!("SELECT value FROM setting WHERE key=?", STATE).fetch_one(&pool).await {
 			Ok(r) => r.parse().unwrap(),
@@ -60,11 +67,14 @@ impl AppData {
 				std::process::exit(1);
 			}
 		};
+		// チャンネル生成
+		let channels = RwLock::new(HashMap::default());
 
 		AppData {
 			state: StateHandle::new(state),
 			pool: web::Data::new(pool),
 			tera: web::Data::new(tera),
+			channels: web::Data::new(channels),
 			session_key,
 			admin_key,
 		}

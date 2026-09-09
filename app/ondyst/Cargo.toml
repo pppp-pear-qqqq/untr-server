@@ -28,5 +28,6 @@ serde_json.workspace = true
 sqlx.workspace = true
 tera.workspace = true
 tokio.workspace = true
+tokio-stream = { version = "0.1.19", features = ["sync"] }
 uuid.workspace = true
 validator.workspace = true

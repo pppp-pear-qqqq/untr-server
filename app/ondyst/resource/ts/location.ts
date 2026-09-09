@@ -9,6 +9,8 @@ const container = document.getElementById('chat_list')!;
 const template = document.getElementById(`${container.id}-template`) as HTMLTemplateElement;
 const size = Number(document.querySelector('.pagination>.size')!.textContent);
 
+const key = document.getElementById('location')!.dataset.key;
+
 // 再読み込み関連
 const page = new Pagination({ size: size, limit_default: 20, limit_max: 100 });
 page.callback = (list: any[]) => {
@@ -28,6 +30,17 @@ page.callback = (list: any[]) => {
 	parent.scroll({ top: parent.scrollHeight, behavior: 'smooth' });
 };
 page.error = (e) => toast.error(e.message);
+
+const eventSource = new EventSource(`/location/${key}/stream`);
+// サーバーから 'data: update' が届いた時の処理
+eventSource.onmessage = function(event) {
+	console.log("新しい発言を検知しました:", event.data);
+	toast.success('新しい発言！');
+};
+// エラー時（通信切断など）の処理
+eventSource.onerror = function(error) {
+    console.error("ストリーム接続エラー（ブラウザが自動再接続を試みます）", error);
+};
 
 // 発言
 const form = document.querySelector<HTMLFormElement>('#post form')!;

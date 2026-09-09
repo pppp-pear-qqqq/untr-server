@@ -1,7 +1,10 @@
 use std::sync::OnceLock;
 
+use actix_web::web::Bytes;
 use fxhash::FxHashSet as HashSet;
 use regex::Regex;
+use tokio::sync::broadcast;
+use tokio_stream::{StreamExt, wrappers::BroadcastStream};
 
 use crate::util::{APP_URL, Webhook};
 
@@ -11,8 +14,7 @@ use super::*;
 pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.route("", web::to(location_list));
 	cfg.route("new", web::post().to(new_location));
-	cfg.service(web::resource("{key}").get(location).post(post_chat));
-	// TODO stream
+	cfg.service(web::scope("{key}").service(web::resource("").get(location).post(post_chat)).route("stream", web::get().to(stream)));
 }
 
 async fn location_list(id: Option<Identity>, _: StateHandle, pool: web::Data<Pool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
@@ -123,6 +125,27 @@ async fn location(key: web::Path<String>, page: Pagination<20, 100>, req_type: R
 	}
 }
 
+async fn stream(key: web::Path<String>, state: StateHandle, channel: web::Data<ChannelMap>) -> common::Result<impl Responder> {
+	state.get().only_active()?;
+	let key = key.into_inner();
+
+	let rx = {
+		let mut map = channel.write().unwrap();
+		let tx = map.entry(key).or_insert_with(|| {
+			// 最大16件の未読通知を保持（適宜調整）
+			let (tx, _rx) = broadcast::channel(16);
+			tx
+		});
+		tx.subscribe() // 購読開始
+	};
+	let stream = BroadcastStream::new(rx).map(|_| Ok::<_, actix_web::Error>(Bytes::from("data: update\n\n")));
+	Ok(HttpResponse::Ok()
+		.insert_header((header::CONTENT_TYPE, "text/event-stream"))
+		.insert_header(header::CacheControl(vec![header::CacheDirective::NoCache]))
+		.insert_header((header::CONNECTION, "keep-alive"))
+		.streaming(stream))
+}
+
 #[derive(serde::Deserialize, Validate)]
 struct Chat {
 	#[validate(length(max = 16, message = "16文字以内で入力してください"))]
@@ -134,7 +157,7 @@ struct Chat {
 	#[validate(length(max = 500, message = "500文字以内で入力してください"))]
 	body: String,
 }
-async fn post_chat(web::Form(info): web::Form<Chat>, id: Identity, state: StateHandle, pool: web::Data<Pool>) -> common::Result<impl Responder> {
+async fn post_chat(web::Form(info): web::Form<Chat>, id: Identity, state: StateHandle, pool: web::Data<Pool>, channel: web::Data<ChannelMap>) -> common::Result<impl Responder> {
 	let timestamp = chrono::Utc::now().timestamp();
 	state.get().only_active()?;
 	info.validate()?;
@@ -223,6 +246,10 @@ async fn post_chat(web::Form(info): web::Form<Chat>, id: Identity, state: StateH
 				error!("{:?}", err);
 			}
 		});
+	}
+	// チャンネル通知
+	if let Some(tx) = channel.read().unwrap().get(&info.location) {
+		let _ = tx.send(());
 	}
 
 	Ok(HttpResponse::NoContent().finish())

@@ -2,8 +2,10 @@ import { Ajax } from '/common/script/ajax.js';
 import { sleep } from '/common/script/utils.js';
 import { toast } from './toast.js';
 
-// const portal = 'http://localhost';
-const portal = 'https://untroche.com';
+let portal = 'https://untroche.com';
+(window as any).change_portal = function (url: string) {
+	portal = url;
+};
 
 const login = document.getElementById('login') as HTMLFormElement
 const register = document.getElementById('register') as HTMLFormElement

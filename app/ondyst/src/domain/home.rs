@@ -21,7 +21,7 @@ async fn index(id: Identity, _: StateHandle, pool: web::Data<Pool>, tmpl: web::D
 
 	let mut ctx = tera::Context::new();
 	ctx.insert("log_list", &log_list);
-	let body = Page::default().actor_data(ActorData::load(&id, pool).await?).render_with_ctx("home.html", &tmpl, ctx)?;
+	let body = Page::default().actor_data(ActorData::load(&id, pool).await?.ok_or(ErrorUnauthorized("ログインセッションが無効です"))?).render_with_ctx("home.html", &tmpl, ctx)?;
 	Ok(HttpResponse::Ok().body(body))
 }
 
@@ -35,7 +35,7 @@ async fn view_setting(id: Identity, _: StateHandle, pool: web::Data<Pool>, tmpl:
 	ctx.insert("icon_list", &record.icon_list);
 	ctx.insert("portrait_list", &record.portrait_list);
 
-	let body = Page::default().actor_data(ActorData::load(&id, pool).await?).render_with_ctx("setting.html", &tmpl, ctx)?;
+	let body = Page::default().actor_data(ActorData::load(&id, pool).await?.ok_or(ErrorUnauthorized("ログインセッションが無効です"))?).render_with_ctx("setting.html", &tmpl, ctx)?;
 	Ok(HttpResponse::Ok().body(body))
 }
 

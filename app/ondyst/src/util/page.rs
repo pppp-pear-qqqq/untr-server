@@ -42,14 +42,14 @@ impl Page {
 }
 
 impl ActorData {
-	pub async fn load(id: &super::Identity, pool: &SqlitePool) -> Result<Self, sqlx::Error> {
+	pub async fn load(id: &super::Identity, pool: &SqlitePool) -> Result<Option<Self>, sqlx::Error> {
 		let id = id.deref();
-		let r = sqlx::query!("SELECT name,icon FROM actor WHERE id=?", id).fetch_one(pool).await?;
-		Ok(Self { id: *id, name: r.name, icon: r.icon })
+		let r = sqlx::query!("SELECT name,icon FROM actor WHERE id=?", id).fetch_optional(pool).await?;
+		Ok(r.map(|r| Self { id: *id, name: r.name, icon: r.icon }))
 	}
 	pub async fn load_opt(id: &Option<super::Identity>, pool: &SqlitePool) -> Result<Option<Self>, sqlx::Error> {
 		match id {
-			Some(id) => Self::load(id, pool).await.map(Some),
+			Some(id) => Self::load(id, pool).await,
 			None => Ok(None),
 		}
 	}

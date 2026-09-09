@@ -1,3 +1,5 @@
+use std::fs;
+
 use actix_session::Session;
 use argon2::{
 	Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
@@ -16,7 +18,10 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 
 /// ログイン・登録画面の表示
 async fn index(id: Option<Identity>, pool: web::Data<Pool>, tmpl: web::Data<tera::Tera>) -> common::Result<impl Responder> {
-	let body = Page::default().user_data_opt(UserData::load_opt(&id, &pool).await?).render("entry.html", &tmpl)?;
+	let tos = fs::read_to_string(resource("html/tos.html"))?;
+	let mut ctx = tera::Context::new();
+	ctx.insert("tos", &tos);
+	let body = Page::default().user_data_opt(UserData::load_opt(&id, &pool).await?).render_with_ctx("entry.html", &tmpl, ctx)?;
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }
 

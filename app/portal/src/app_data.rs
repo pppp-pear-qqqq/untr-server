@@ -46,8 +46,8 @@ impl AppData {
 			Err(err) => panic!("{}", err),
 		};
 		// teraコア生成
-		info!("Tera: {}", util::resource("**/*.html"));
-		let tera = match Tera::new(&util::resource("**/*.html")) {
+		info!("Tera: {}", util::resource("template/*.html"));
+		let tera = match Tera::new(&util::resource("template/*.html")) {
 			Ok(mut t) => {
 				t.register_filter("html", common::tera::html::<tag::Common>);
 				t.register_filter("time", common::tera::make_timestamp_filter(chrono::Local));
@@ -59,6 +59,12 @@ impl AppData {
 			}
 		};
 
-		AppData { state: StateHandle::new(state), pool: web::Data::new(pool), tera: web::Data::new(tera), session_key, admin_key }
+		AppData {
+			state: StateHandle::new(state),
+			pool: web::Data::new(pool),
+			tera: web::Data::new(tera),
+			session_key,
+			admin_key,
+		}
 	}
 }

@@ -28,6 +28,8 @@ table actor
 	portrait_list text default('')
 	icon text expr(SUBSTR(icon_list||char(10),1,INSTR(icon_list||char(10),char(10))-1))
 	portrait text expr(SUBSTR(portrait_list||char(10),1,INSTR(portrait_list||char(10),char(10))-1))
+	ho_title text default('')
+	ho_body text default('')
 
 # キャラクター操作ログ
 table log

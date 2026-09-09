@@ -7,7 +7,11 @@ mod test;
 
 use std::io;
 
-use actix_session::{SessionMiddleware, config::PersistentSession, storage};
+use actix_session::{
+	SessionMiddleware,
+	config::{PersistentSession, TtlExtensionPolicy},
+	storage,
+};
 use actix_web::{App, HttpResponse, HttpServer, cookie, middleware, web};
 use log::info;
 
@@ -36,8 +40,7 @@ async fn main() -> Result<(), io::Error> {
 	let server = HttpServer::new(move || {
 		let app_data = app_data.clone();
 		let session = SessionMiddleware::builder(storage::CookieSessionStore::default(), app_data.session_key)
-			.cookie_secure(false)
-			.session_lifecycle(PersistentSession::default().session_ttl(cookie::time::Duration::days(14)))
+			.session_lifecycle(PersistentSession::default().session_ttl(cookie::time::Duration::days(14)).session_ttl_extension_policy(TtlExtensionPolicy::OnEveryRequest))
 			.build();
 		let app = App::new()
 			.wrap(middleware::Logger::default())

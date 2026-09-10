@@ -29,16 +29,12 @@ const template = document.getElementById(`${container.id}-template`) as HTMLTemp
 
 async function reload(key: 'actor' | string, quiet: boolean = false) {
 	const target = key === 'actor' ? [...fav_actors].join('_') : key;
-	try {
-		let ret: any[];
-		if (target) {
-			ret = await new Ajax(`location/${target}`).send('json');
-		} else {
-			ret = [];
-		}
+	if (target !== '') try {
+		let ret = await new Ajax(`location/${target}`).send('json');
+		console.log(ret);
 		if (!quiet) toast.success('発言を読み込みました');
 		const fragment = document.createDocumentFragment();
-		ret.forEach((item) => {
+		ret.list.forEach((item: any) => {
 			const node = template.content.cloneNode(true) as DocumentFragment;
 			(node.firstElementChild as HTMLElement).dataset.id = item.id;
 			node.querySelector<HTMLImageElement>('.icon>img')!.src = item.icon;

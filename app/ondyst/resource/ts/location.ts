@@ -82,32 +82,16 @@ if (icon_dialog) {
 	});
 }
 
-// 発言内容初期設定
+// ページ離脱時発言内容保存
 window.addEventListener('beforeunload', () => {
-	localStorage.setItem('chat/body', form_body.value);
-	if (form_name) localStorage.setItem('chat/name', form_name.value);
-	else localStorage.removeItem('chat/name');
-	const icon = form.querySelector<HTMLInputElement>('input[name="icon"]:checked')?.value;
-	if (icon) localStorage.setItem('chat/icon', icon);
-	else localStorage.removeItem('chat/icon');
+	sessionStorage.setItem('chat/body', form_body.value);
 })
+// 発言内容初期設定
+form_body.value = sessionStorage.getItem('chat/body') ?? '';
 if (location.hash) {
-	const id = Number(location.hash.slice(3));
-	if (id) {
-		if (location.hash.startsWith('#a-')) form_body.value = `>>${id}\n`;
-		else if (location.hash.startsWith('#m-')) form_body.value = `@${id}\n`;
-	}
-}
-form_body.value += localStorage.getItem('chat/body') ?? '';
-const save_name = localStorage.getItem('chat/name');
-if (save_name) (form.children.namedItem('name') as HTMLInputElement).value = save_name;
-const save_icon = localStorage.getItem('chat/icon');
-if (save_icon) {
-	const target = form.querySelector<HTMLInputElement>(`input[name="icon"][value="${save_icon}"]`);
-	if (target) {
-		target.click();
-		form.querySelector<HTMLImageElement>('button.icon>img')!.src = save_icon;
-	}
+	form_body.value = `${decodeURI(location.hash.slice(1))}\n${form_body.value}`;
+	form_body.focus();
+	form_body.setSelectionRange(form_body.value.length, form_body.value.length);
 }
 
 // 返信ボタンイベント設定

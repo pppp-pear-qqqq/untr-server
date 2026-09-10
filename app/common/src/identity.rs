@@ -6,6 +6,7 @@ use serde::de::DeserializeOwned;
 
 const KEY: &str = "user_id";
 
+#[derive(Debug)]
 pub struct Identity<T: DeserializeOwned>(pub T);
 
 impl<T: DeserializeOwned + serde::Serialize> Identity<T> {

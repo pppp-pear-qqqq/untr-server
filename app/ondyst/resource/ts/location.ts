@@ -44,7 +44,6 @@ eventSource.onerror = function(error) {
 
 // 発言
 const form = document.querySelector<HTMLFormElement>('#post form')!;
-const form_name = form.children.namedItem('name') as HTMLInputElement;
 const form_body = form.children.namedItem('body') as HTMLTextAreaElement;
 
 let force_submit = false;

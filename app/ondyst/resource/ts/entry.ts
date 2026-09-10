@@ -23,8 +23,14 @@ if (register) register.addEventListener('submit', (ev) => {
 });
 
 window.addEventListener('message', async (ev) => {
-	if (ev.origin !== portal) return;
-	if (target == null) return;
+	if (ev.origin !== portal) {
+		console.log('origin mismatch', ev.origin, portal);
+		return;
+	}
+	if (target == null) {
+		console.log('target not found');
+		return;
+	}
 	target.querySelector<HTMLInputElement>('input[name="code"]')!.value = ev.data;
 	try {
 		const ret = await new Ajax(target).send('text');

@@ -1,0 +1,24 @@
+# ContentType設定
+include mime.types;
+default_type text/plain;
+charset utf-8;
+charset_types text/plain text/css application/json application/javascript;
+
+# gzip圧縮設定
+gzip on;
+gzip_vary on;
+gzip_proxied any;
+gzip_comp_level 6;
+gzip_min_length 256;
+gzip_buffers 16 8k;
+gzip_http_version 1.1;
+gzip_types text/plain text/css text/javascript application/xml application/json application/javascript image/svg+xml;
+
+types_hash_max_size 4096;
+types_hash_bucket_size 128;
+
+# open_file_cache設定
+open_file_cache max=1000 inactive=20s;
+open_file_cache_valid 30s;
+open_file_cache_min_uses 2;
+open_file_cache_errors on;

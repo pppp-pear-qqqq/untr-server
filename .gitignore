@@ -6,6 +6,5 @@ memo/
 script/
 *.db*
 privkey.pem
-nginx.conf
 
 _app/

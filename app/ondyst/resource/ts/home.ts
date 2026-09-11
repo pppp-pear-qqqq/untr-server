@@ -1,6 +1,6 @@
 import { Ajax } from '/common/script/ajax.js';
 import { bake, time_formatter as formatter } from '/common/script/utils.js';
-import { toast } from './toast.js';
+import { toast } from './util/toast.js';
 import { fav_actors, fav_locations } from './fav.js';
 
 const tabs = document.querySelector<HTMLElement>('#timeline>.tabs')!;

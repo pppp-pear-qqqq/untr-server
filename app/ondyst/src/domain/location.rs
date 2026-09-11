@@ -138,7 +138,7 @@ async fn stream(key: web::Path<String>, state: StateHandle, channel: web::Data<C
 		});
 		tx.subscribe() // 購読開始
 	};
-	let stream = BroadcastStream::new(rx).map(|_| Ok::<_, actix_web::Error>(Bytes::from("data: update\n\n")));
+	let stream = BroadcastStream::new(rx).map(|_| Ok::<_, actix_web::Error>(Bytes::from("update\n\n")));
 	Ok(HttpResponse::Ok()
 		.insert_header((header::CONTENT_TYPE, "text/event-stream"))
 		.insert_header(header::CacheControl(vec![header::CacheDirective::NoCache]))

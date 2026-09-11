@@ -1,6 +1,6 @@
 import { Ajax } from '/common/script/ajax.js';
 import { sleep } from '/common/script/utils.js';
-import { toast } from './toast.js';
+import { toast } from './util/toast.js';
 
 let portal = 'https://untroche.com';
 (window as any).change_portal = function (url: string) {

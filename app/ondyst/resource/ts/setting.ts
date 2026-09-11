@@ -1,6 +1,6 @@
 import { Ajax } from '/common/script/ajax.js';
 import { bake } from '/common/script/utils.js';
-import { toast } from './toast.js';
+import { toast } from './util/toast.js';
 
 let data: Record<string, string> = {};
 const form = document.querySelector('form')!;

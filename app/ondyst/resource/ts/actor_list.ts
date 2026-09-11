@@ -1,6 +1,6 @@
 import { Pagination } from '/common/script/pagination.js';
 import { bake } from '/common/script/utils.js';
-import { toast } from './toast.js';
+import { toast } from './util/toast.js';
 
 const container = document.getElementById('actor_list') as HTMLElement;
 const size = Number(document.querySelector('.pagination>.size')!.textContent);

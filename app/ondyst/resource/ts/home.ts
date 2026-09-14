@@ -5,21 +5,23 @@ import { fav_actors, fav_locations } from './fav.js';
 
 const tabs = document.querySelector<HTMLElement>('#timeline>.tabs')!;
 for (const location of fav_locations) {
-	const item = location.split(':');
 	tabs.appendChild(bake('label', (e) => {
-		e.classList.add('tab');
 		e.role = 'button';
 		e.append(
 			bake('input', (e) => {
 				e.type = 'radio';
 				e.name = 'tab';
-				e.value = item[0];
+				e.value = location[0];
 				e.addEventListener('change', () => {
-					if (e.checked) reload(e.value);
+					reload(e.value);
 				})
 			}),
-			document.createTextNode(item[1]),
+			document.createTextNode(location[1]),
 		);
+	}));
+	tabs.appendChild(bake('a', (e) => {
+		e.href = `location/${location[0]}`;
+		e.textContent = location[1];
 	}));
 }
 

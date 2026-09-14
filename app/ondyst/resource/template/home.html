@@ -6,22 +6,23 @@
 {% endblock %}
 {% block content %}
 <div id="timeline">
+	<fieldset class="tabs">
+		<label class="tab" role="button"><input type="radio" name="tab" value="actor" checked>キャラクター</label>
+	</fieldset>
 	<template id="chat_list-template">
 		<article class="chat" data-id>
 			<a class="icon" target="_blank" href><img src></a>
-			<a class="name" target="_blank" href></a>
+			<span class="name"></span>
 			<span class="id">id: </span>
 			<p class="body"></p>
 			<footer class="util">
+				<a class="location" href></a>
 				<time class="timestamp"></time>
 				<div class="partition"></div>
 				<button type="button" class="reply" title="返信"><ic class="ri-reply-line"></ic></button>
 			</footer>
 		</article>
 	</template>
-	<fieldset class="tabs">
-		<label class="tab" role="button"><input type="radio" name="tab" value="actor" checked>キャラクター</label>
-	</fieldset>
 	<div id="chat_list"></div>
 </div>
 <div id="log_list">

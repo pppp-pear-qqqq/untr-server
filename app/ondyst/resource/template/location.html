@@ -10,7 +10,7 @@
 <article id="location" data-key="{{location_key}}">
 	<h2 class="name">
 		{{location.name|default(value='ひみつの場所')}}
-		<span><label role="button" class="fav"><input type="checkbox" name="location" value="{{location_key}}:{{location.name|default(value='ひみつの場所')}}"><ic class="off ri-star-line" title="未フォロー"></ic><ic class="on ri-star-fill" title="フォロー中"></ic></label></span>
+		<span><label role="button" class="fav"><input type="checkbox" name="location" value="{{location_key}}" data-label="{{location.name|default(value='')}}"><ic class="off ri-star-line" title="未フォロー"></ic><ic class="on ri-star-fill" title="フォロー中"></ic></label></span>
 	</h2>
 	<p class="lore">
 		{% if location.lore %}
@@ -39,10 +39,11 @@
 	<template id="chat_list-template">
 		<article class="chat" data-id>
 			<a class="icon" target="_blank" href><img src></a>
-			<a class="name" target="_blank" href></a>
+			<span class="name"></span>
 			<span class="id">id: </span>
 			<p class="body"></p>
 			<footer class="util">
+				<span class="location"></span>
 				<time class="timestamp"></time>
 				<div class="partition"></div>
 				<button type="button" class="reply" title="返信"><ic class="ri-reply-line"></ic></button>
@@ -53,7 +54,7 @@
 		{% for chat in chat_list|reverse %}
 		<article class="chat" data-id="{{chat.id}}">
 			<a class="icon" target="_blank" href="actor/{{chat.actor}}"><img src="{{chat.icon}}"></a>
-			<a class="name" target="_blank" href="actor/{{chat.actor}}">{{chat.name}}</a>
+			<span class="name">{{chat.name}}</span>
 			{% if chat.actor %}
 			<span class="id">id: {{chat.actor}}</span>
 			{% endif %}

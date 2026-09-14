@@ -67,6 +67,7 @@ async fn location(key: web::Path<String>, page: Pagination<20, 100>, req_type: R
 		name: String,
 		icon: String,
 		body: String,
+		location: String,
 	}
 	#[derive(serde::Serialize)]
 	struct Item {

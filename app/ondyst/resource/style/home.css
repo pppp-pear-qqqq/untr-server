@@ -15,18 +15,30 @@ main {
 		border: 1px var(--border-color);
 		border-style: none none solid;
 
-		> .tab {
+		> * {
 			padding: 0 0.2rem;
 			border: 1px var(--border-color);
 			border-style: none solid;
+		}
 
-			&:has(input:checked) {
+		> label {
+			&:has(input:checked):first-child {
 				color: var(--accent-color);
+			}
+			&:has(input:checked):not(:first-child) {
+				display: none;
+			}
+
+			&:has(input:not(:checked)) + a {
+				display: none;
 			}
 
 			> input {
 				display: none;
 			}
+		}
+		> a {
+			color: var(--accent-color);
 		}
 	}
 }

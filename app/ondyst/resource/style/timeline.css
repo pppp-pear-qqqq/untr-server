@@ -35,10 +35,15 @@
 		grid-area: ic;
 		width: 2rlh;
 		height: fit-content;
+		min-height: 2rlh;
 		max-height: 4rlh;
 		padding: 0;
 		border: none;
+		transition: filter 0.2s;
 
+		&:hover {
+			filter: brightness(1.1);
+		}
 		> img {
 			display: block;
 			width: 100%;
@@ -73,11 +78,6 @@
 	color: var(--content-color);
 	text-decoration: none;
 	border-bottom-color: transparent;
-	transition: color 0.2s;
-
-	&:hover {
-		color: var(--accent-color);
-	}
 }
 
 #post > form {

@@ -11,8 +11,6 @@ main {
 	flex-direction: column;
 	padding-bottom: 1dvw;
 	gap: 0.4lh;
-	overflow-y: auto;
-	scrollbar-width: thin;
 
 	.actor {
 		display: grid;

@@ -64,7 +64,7 @@
 		</template></ic>
 		<label class="auto-resize"><input type="checkbox">自動リサイズ</label>
 		<textarea id="portrait_list" name="portrait_list" maxlength="8192" placeholder="改行区切り">{{portrait_list}}</textarea>
-		<div class="portrait_list">
+		<div class="portrait_list scroll-x">
 			{% if portrait_list %}
 			{% for line in portrait_list|split(pat="\n") %}
 			<img class="portrait" src="{{line}}">

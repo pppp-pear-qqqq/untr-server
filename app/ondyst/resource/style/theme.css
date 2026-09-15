@@ -62,3 +62,21 @@ h3 {
 	font-family: var(--font-display-2);
 	font-weight: 400;
 }
+
+[class^="scroll-"],
+[class*=" scroll-"] {
+	scrollbar-width: thin;
+	scrollbar-color: var(--border-color) var(--weak-surface-color);
+}
+.scroll-y {
+	overflow-y: auto;
+}
+.scroll-x {
+	overflow-x: auto;
+}
+.scroll-g {
+	scrollbar-gutter: stable;
+}
+.scroll-gb {
+	scrollbar-gutter: stable both-edges;
+}

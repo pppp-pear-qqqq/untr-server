@@ -7,7 +7,7 @@
 <script type="module" src="script/location.js"></script>
 {% endblock %}
 {% block content %}
-<article id="location" data-key="{{location_key}}">
+<article id="location" class="scroll-y" data-key="{{location_key}}">
 	<h2 class="name">
 		{{location.name|default(value='ひみつの場所')}}
 		<span><label role="button" class="fav"><input type="checkbox" name="location" value="{{location_key}}" data-label="{{location.name|default(value='')}}"><ic class="off ri-star-line" title="未フォロー"></ic><ic class="on ri-star-fill" title="フォロー中"></ic></label></span>
@@ -50,7 +50,7 @@
 			</footer>
 		</article>
 	</template>
-	<div id="chat_list">
+	<div id="chat_list" class="scroll-y scroll-g">
 		{% for chat in chat_list|reverse %}
 		<article class="chat" data-id="{{chat.id}}">
 			<a class="icon" target="_blank" href="actor/{{chat.actor}}"><img src="{{chat.icon}}"></a>
@@ -75,18 +75,21 @@
 	</div>
 	{% if actor %}
 	<div id="post">
-		<article id="preview" hidden>
-			<img class="icon">
-			<span class="name"></span>
-			<span class="id">id: {{actor.id}}</span>
-			<p class="body"></p>
-			<footer class="util">
-				<time class="timestamp">0000-00-00 00:00:00</time>
-				<div class="partition"></div>
-				<ic class="ri-reply-line"></ic>
-			</footer>
-		</article>
-		<form action="location/{{location_key}}" method="post" data-encode="form">
+		<details id="preview">
+			<summary>Preview</summary>
+			<article class="chat">
+				<img class="icon">
+				<span class="name"></span>
+				<span class="id">id: {{actor.id}}</span>
+				<p class="body"></p>
+				<footer class="util">
+					<time class="timestamp">0000-00-00 00:00:00</time>
+					<div class="partition"></div>
+					<ic class="ri-reply-line"></ic>
+				</footer>
+			</article>
+		</details>
+		<form action="chat" method="post" data-encode="form">
 			<input type="hidden" name="location" value="{{location_key}}">
 			{% if icon_list %}
 			<dialog closedby="any">

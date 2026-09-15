@@ -1,5 +1,6 @@
 mod actor;
 mod admin;
+mod chat;
 mod entry;
 mod home;
 mod location;
@@ -21,9 +22,10 @@ pub fn make_cfg(admin_key: String) -> impl FnOnce(&mut web::ServiceConfig) {
 		cfg.route("info", web::to(pages::info));
 		cfg.route("guide", web::to(pages::guide));
 		cfg.service(web::scope("entry").configure(entry::cfg));
+		cfg.service(web::scope("home").configure(home::cfg));
 		cfg.service(web::scope("actor").configure(actor::cfg));
 		cfg.service(web::scope("location").configure(location::cfg));
-		cfg.service(web::scope("home").configure(home::cfg));
+		cfg.service(web::scope("chat").configure(chat::cfg));
 		cfg.service(web::scope("admin").wrap(common::AdminGuardMiddleware(admin_key)).configure(admin::cfg));
 	}
 }

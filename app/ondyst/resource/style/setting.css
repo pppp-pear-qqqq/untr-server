@@ -10,8 +10,6 @@ img.icon {
 .portrait_list {
 	display: flex;
 	gap: 0.2rem;
-	overflow-x: auto;
-	scrollbar-width: thin;
 	align-items: flex-start;
 }
 img.portrait {

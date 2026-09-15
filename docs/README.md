@@ -51,3 +51,11 @@ gitコマンドがインストールされているなら `git config --global c
 本番サーバーでのディレクトリ構造を参考にしながら、etc/systemd/system以下に.serviceファイルを配置する
 etc/nginx/nginx.confも配置する
 データベースファイルとかを置きながら良い感じに
+
+# タグ処理とかwasmにしてコンパイル
+設定そのものはCargo.tomlを見て
+
+ビルドコマンド `wasm-pack build -t web app/ondyst -d resource/pkg`
+
+ビルドしたはいいが、どのように環境に含めるべきか  
+pkgごとscriptに移せばとりあえず配信はできるはず　.wasm.jsなどの扱いをどうするか、そのまま配信していいのか　いいかな

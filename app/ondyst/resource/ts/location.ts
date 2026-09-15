@@ -3,6 +3,7 @@ import { Pagination } from '/common/script/pagination.js';
 import { format_time } from '/common/script/utils.js';
 import { toast } from './util/toast.js';
 import { Stream } from './util/stream.js';
+import { to_html } from '../pkg/ondyst.js';
 
 // 要素取得
 const key = document.getElementById('location')!.dataset.key;

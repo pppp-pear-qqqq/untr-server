@@ -4,22 +4,23 @@ version = "0.1.0"
 edition.workspace = true
 authors.workspace = true
 
+[lib]
+crate-type = ["cdylib"]
+path = "src/util/tag_parse.rs"
+
 [features]
 test = ["dep:actix-files", "dep:dotenv"]
 
-[dependencies]
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 actix-files = { workspace = true, optional = true }
 actix-session.workspace = true
 actix-web.workspace = true
 base64.workspace = true
 chrono.workspace = true
-common.workspace = true
 dotenv = { workspace = true, optional = true }
 env_logger.workspace = true
 fxhash.workspace = true
-log.workspace = true
 nanoid = "0.5.0"
-rand.workspace = true
 regex.workspace = true
 reqwest.workspace = true
 rkyv.workspace = true
@@ -31,3 +32,13 @@ tokio.workspace = true
 tokio-stream = { version = "0.1.19", features = ["sync"] }
 uuid.workspace = true
 validator.workspace = true
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom_0_2 = { package = "getrandom", version = "0.2", features = ["js"] }
+getrandom_0_4 = { package = "getrandom", version = "0.4", features = ["wasm_js"] }
+wasm-bindgen = "0.2.128"
+
+[dependencies]
+common.workspace = true
+log.workspace = true
+rand.workspace = true

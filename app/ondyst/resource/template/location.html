@@ -50,7 +50,7 @@
 			</footer>
 		</article>
 	</template>
-	<div id="chat_list" class="scroll-y scroll-g">
+	<div id="chat_list" class="scroll-y scroll-gb">
 		{% for chat in chat_list|reverse %}
 		<article class="chat" data-id="{{chat.id}}">
 			<a class="icon" target="_blank" href="actor/{{chat.actor}}"><img src="{{chat.icon}}"></a>
@@ -84,13 +84,14 @@
 				<span class="id">id: {{actor.id}}</span>
 				<p class="body"></p>
 				<footer class="util">
+					<span class="location">発言場所</span>
 					<time class="timestamp">0000-00-00 00:00:00</time>
 					<div class="partition"></div>
 					<ic class="ri-reply-line"></ic>
 				</footer>
 			</article>
 		</details>
-		<form action="chat" method="post" data-encode="form">
+		<form class="chat" action="chat" method="post" data-encode="form">
 			<input type="hidden" name="location" value="{{location_key}}">
 			{% if icon_list %}
 			<dialog closedby="any">

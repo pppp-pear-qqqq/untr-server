@@ -17,16 +17,69 @@ main {
 	flex-grow: 1;
 	display: flex;
 	max-height: stretch;
-	padding: 0.4rlh;
 	flex-direction: column;
 	align-items: center;
-	gap: 0.5rlh;
+	gap: 0.3rlh;
 
 	> .pagination {
 		display: flex;
-		margin-top: auto;
-		justify-content: center;
-		align-items: center;
 		gap: 1rem;
+	}
+}
+
+#chat_list {
+	flex-grow: 1;
+	padding: 0.2rlh 0;
+}
+
+#post {
+	padding-bottom: 0.2rlh;
+}
+
+#post > form {
+	input,
+	textarea {
+		padding: 0;
+		border: 1px dotted var(--border-color);
+		border-style: none none dotted;
+		border-radius: 0;
+		resize: none;
+
+		&:focus-visible {
+			outline: none;
+			border-bottom-style: solid;
+			border-bottom-color: var(--accent-color);
+		}
+	}
+	textarea {
+		field-sizing: content;
+		min-height: 2lh;
+	}
+	.util {
+		gap: 0.2em;
+	}
+	button:is(:not([type]), [type="submit"]) {
+		order: 100;
+		width: 3rem;
+		padding-left: 7px;
+		border: 1px var(--border-color);
+		border-style: none dotted;
+	}
+	dialog {
+		background-color: var(--surface-color);
+
+		fieldset {
+			display: grid;
+			gap: 0.2rem;
+			grid-template-columns: repeat(8, auto);
+			border: none;
+		}
+		input {
+			display: none;
+		}
+		img {
+			width: 2rlh;
+			max-height: 4rlh;
+		}
 	}
 }

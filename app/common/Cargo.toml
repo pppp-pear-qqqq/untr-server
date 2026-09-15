@@ -4,7 +4,7 @@ version = "0.2.0"
 edition.workspace = true
 authors.workspace = true
 
-[dependencies]
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 actix-session.workspace = true
 actix-web.workspace = true
 chrono.workspace = true
@@ -12,7 +12,10 @@ futures-util = "0.3.34"
 fxhash.workspace = true
 log.workspace = true
 minify-html.workspace = true
-regex.workspace = true
 serde.workspace = true
 tera.workspace = true
 validator.workspace = true
+
+[dependencies]
+cfg-if = "1.0.4"
+regex.workspace = true

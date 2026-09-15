@@ -66,7 +66,8 @@ h3 {
 [class^="scroll-"],
 [class*=" scroll-"] {
 	scrollbar-width: thin;
-	scrollbar-color: var(--border-color) var(--weak-surface-color);
+	scrollbar-color: var(--border-color) transparent;
+	scroll-behavior: smooth;
 }
 .scroll-y {
 	overflow-y: auto;

@@ -25,7 +25,6 @@ for (const location of fav_locations) {
 	}));
 }
 
-const parent = document.getElementById('timeline')!;
 const container = document.getElementById('chat_list')!;
 const template = document.getElementById(`${container.id}-template`) as HTMLTemplateElement;
 
@@ -38,7 +37,6 @@ async function reload(key: 'actor' | string, quiet: boolean = false) {
 	}
 	if (query) try {
 		let ret = await new Ajax('chat').query(query).send('json');
-		console.log(ret);
 		if (!quiet) toast.success('発言を読み込みました');
 		const fragment = document.createDocumentFragment();
 		ret.forEach((item: any) => {
@@ -55,7 +53,7 @@ async function reload(key: 'actor' | string, quiet: boolean = false) {
 			fragment.insertBefore(node, fragment.firstChild);
 		});
 		container.replaceChildren(fragment);
-		parent.scroll({ top: parent.scrollHeight, behavior: 'smooth' });
+		container.scroll({ top: container.scrollHeight, behavior: 'smooth' });
 	} catch (err: any) {
 		toast.error(err.message);
 	}

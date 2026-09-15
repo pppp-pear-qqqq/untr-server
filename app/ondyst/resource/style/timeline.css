@@ -1,8 +1,8 @@
-#chat_list,
-#post {
+#chat_list {
 	display: flex;
 	flex-direction: column;
-	width: fit-content;
+	align-items: center;
+	width: 100%;
 	gap: 0.5rlh;
 
 	> article {
@@ -11,22 +11,22 @@
 	}
 }
 
-#chat_list > article,
-#post > *:is(form, article) {
+.chat {
 	display: grid;
 	width: fit-content;
 	grid-template: "ic nm id" auto "ic bd bd" 1fr "ic ut ut" auto / auto 1fr max-content;
 	column-gap: 4px;
 	padding-right: 4px;
-	overflow: hidden;
 	border-radius: 4px;
 	box-shadow: 0 0 2px var(--border-color);
 	background-color: var(--weak-surface-color);
 
 	> .name {
 		grid-area: nm;
-		border-bottom: 1px dotted;
+		border-bottom: 1px dotted transparent;
+		color: var(--content-color);
 		font-weight: 500;
+		text-decoration: none;
 	}
 	> .id {
 		grid-area: id;
@@ -59,6 +59,7 @@
 		display: flex;
 		height: 1rlh;
 		margin-bottom: -2px;
+		gap: 0.5em;
 	}
 
 	* {
@@ -67,58 +68,9 @@
 	button {
 		border: none;
 	}
+	.location,
 	time {
 		font-size: 0.8rem;
 		color: var(--border-color);
-	}
-}
-
-#chat_list > article > .name,
-#post > article > .name {
-	color: var(--content-color);
-	text-decoration: none;
-	border-bottom-color: transparent;
-}
-
-#post > form {
-	input,
-	textarea {
-		padding: 0;
-		border: none;
-		border-radius: 0;
-		resize: none;
-
-		&:focus-visible {
-			outline: none;
-			border-bottom: 1px solid var(--accent-color);
-		}
-	}
-	textarea {
-		field-sizing: content;
-		min-height: 2lh;
-	}
-	button:is(:not([type]), [type="submit"]) {
-		order: 100;
-		width: 3rem;
-		padding-left: 7px;
-		border: 1px var(--border-color);
-		border-style: none dotted;
-	}
-	dialog {
-		background-color: var(--surface-color);
-
-		fieldset {
-			display: grid;
-			gap: 0.2rem;
-			grid-template-columns: repeat(8, auto);
-			border: none;
-		}
-		input {
-			display: none;
-		}
-		img {
-			width: 2rlh;
-			max-height: 4rlh;
-		}
 	}
 }

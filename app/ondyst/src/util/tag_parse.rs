@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use common::{HTMLEncode, Tag, TagFormat};
 use log::debug;
 use rand::seq::IndexedRandom as _;
@@ -8,7 +6,8 @@ use rand::seq::IndexedRandom as _;
 pub struct Ondyst;
 
 impl TagFormat for Ondyst {
-	fn from_args(_args: &HashMap<String, tera::Value>) -> Self {
+	#[cfg(not(target_arch = "wasm32"))]
+	fn from_args(_args: &std::collections::HashMap<String, tera::Value>) -> Self {
 		Self
 	}
 
@@ -36,5 +35,16 @@ impl TagFormat for Ondyst {
 			}
 			_ => format!("[{0}/{1}/{0}]", tag.name, tag.content.to_html(self, link)),
 		}
+	}
+}
+
+#[cfg(target_arch = "wasm32")]
+pub mod wasm {
+	use super::*;
+	use wasm_bindgen::prelude::*;
+
+	#[wasm_bindgen]
+	pub fn to_html(input: &str, link: bool) -> String {
+		input.to_html(&Ondyst, link)
 	}
 }

@@ -7,7 +7,6 @@ import { Stream } from './util/stream.js';
 // 要素取得
 const key = document.getElementById('location')!.dataset.key;
 
-const parent = document.getElementById('timeline')!;
 const container = document.getElementById('chat_list')!;
 const template = document.getElementById(`${container.id}-template`) as HTMLTemplateElement;
 const size = Number(document.querySelector('.pagination>.size')!.textContent);
@@ -32,7 +31,7 @@ page.callback = (list: any[]) => {
 	});
 	container.replaceChildren(fragment);
 	setting_reply_buttons();
-	parent.scroll({ top: parent.scrollHeight, behavior: 'smooth' });
+	container.scroll({ top: container.scrollHeight, behavior: 'smooth' });
 };
 page.error = (e) => toast.error(e.message);
 
@@ -113,4 +112,4 @@ if (form && form_body) {
 	setting_reply_buttons();
 }
 
-parent.scroll({ top: parent.scrollHeight, behavior: 'smooth' });
+container.scroll({ top: container.scrollHeight, behavior: 'smooth' });

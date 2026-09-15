@@ -49,7 +49,7 @@ async fn location(key: web::Path<String>, page: Pagination<20, 100>, req_type: R
 	let pool = pool.as_ref();
 
 	let size = sqlx::query_scalar!("SELECT COUNT(*) FROM chat WHERE location=?", key).fetch_one(pool).await?;
-	let chat_list = chat::get_chat(chat::Search::new(Some(vec![key.clone()]), None, None, chat::SearchLevel::default(), false), page, pool).await?;
+	let chat_list = chat::get_chat(chat::Search::new(Some(vec![&key]), None, None, chat::SearchLevel::default(), false), page, pool).await?;
 
 	match req_type {
 		ReqType::Empty => Ok(HttpResponse::Ok().json(serde_json::json!({

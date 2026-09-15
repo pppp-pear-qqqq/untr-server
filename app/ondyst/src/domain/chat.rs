@@ -2,12 +2,13 @@ use std::sync::OnceLock;
 
 use fxhash::FxHashSet as HashSet;
 use regex::Regex;
+use sqlx::Row;
 
 use crate::util::{APP_URL, Webhook};
 
 use super::*;
 
-#[derive(serde::Serialize, sqlx::FromRow)]
+#[derive(serde::Serialize)]
 pub struct Chat {
 	id: i64,
 	timestamp: i64,
@@ -15,10 +16,9 @@ pub struct Chat {
 	name: String,
 	icon: String,
 	body: String,
-	location: Option<String>,
+	location: (String, Option<String>),
 }
 
-#[derive(serde::Deserialize)]
 pub struct Search {
 	location: Option<Vec<String>>,
 	actor: Option<Vec<i64>>,
@@ -38,8 +38,28 @@ pub enum SearchLevel {
 }
 
 impl Search {
-	pub fn new(location: Option<Vec<String>>, actor: Option<Vec<i64>>, body: Option<String>, level: SearchLevel, force: bool) -> Self {
-		Self { location, actor, body, level, force }
+	pub fn new(location: Option<Vec<&str>>, actor: Option<Vec<i64>>, body: Option<&str>, level: SearchLevel, force: bool) -> Self {
+		Self {
+			location: location.map(|l| l.into_iter().map(|s| s.to_string()).collect()),
+			actor,
+			body: body.map(|s| s.to_string()),
+			level,
+			force,
+		}
+	}
+}
+impl TryFrom<Get> for Search {
+	type Error = std::num::ParseIntError;
+	fn try_from(info: Get) -> Result<Self, Self::Error> {
+		let location = info.location.map(|l| l.split(',').map(|s| s.to_string()).collect::<Vec<_>>());
+		let actor = if let Some(actor) = &info.actor { Some(actor.split(',').map(|s| s.parse::<i64>()).collect::<Result<Vec<i64>, _>>()?) } else { None };
+		Ok(Self {
+			location,
+			actor,
+			body: info.body.as_deref().map(|s| s.to_string()),
+			level: info.level,
+			force: info.force,
+		})
 	}
 }
 
@@ -48,7 +68,7 @@ pub async fn get_chat(info: Search, page: Pagination<20, 100>, pool: &Pool) -> R
 		return Ok(Vec::new());
 	}
 
-	let mut builder = sqlx::QueryBuilder::new("SELECT c.id,c.timestamp,c.actor,c.name,c.icon,c.body,l.name location FROM chat c LEFT JOIN location l ON c.location=l.key WHERE 1=1");
+	let mut builder = sqlx::QueryBuilder::new("SELECT c.id,c.timestamp,c.actor,c.name,c.icon,c.body,c.location,l.name FROM chat c LEFT JOIN location l ON c.location=l.key WHERE 1=1");
 
 	if let Some(location) = &info.location {
 		if !location.is_empty() {
@@ -119,15 +139,37 @@ pub async fn get_chat(info: Search, page: Pagination<20, 100>, pool: &Pool) -> R
 	builder.push(" OFFSET ");
 	builder.push_bind(page.offset as i64);
 
-	builder.build_query_as::<Chat>().fetch_all(pool).await
+	let result = builder.build().fetch_all(pool).await?;
+	Ok(result
+		.into_iter()
+		.map(|r| Chat {
+			id: r.get_unchecked(0),
+			timestamp: r.get_unchecked(1),
+			actor: r.get_unchecked(2),
+			name: r.get_unchecked(3),
+			icon: r.get_unchecked(4),
+			body: r.get_unchecked(5),
+			location: (r.get_unchecked(6), r.get_unchecked(7)),
+		})
+		.collect())
 }
 
 pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.service(web::resource("").get(get_chat_handler).post(post_chat));
 }
 
-async fn get_chat_handler(web::Query(info): web::Query<Search>, page: Pagination<20, 100>, _: StateHandle, pool: web::Data<Pool>) -> common::Result<impl Responder> {
-	let result = get_chat(info, page, &pool).await?;
+#[derive(serde::Deserialize)]
+pub struct Get {
+	location: Option<String>,
+	actor: Option<String>,
+	body: Option<String>,
+	#[serde(default)]
+	level: SearchLevel,
+	#[serde(default)]
+	force: bool,
+}
+async fn get_chat_handler(web::Query(info): web::Query<Get>, page: Pagination<20, 100>, _: StateHandle, pool: web::Data<Pool>) -> common::Result<impl Responder> {
+	let result = get_chat(info.try_into()?, page, &pool).await?;
 	Ok(HttpResponse::Ok().json(result))
 }
 

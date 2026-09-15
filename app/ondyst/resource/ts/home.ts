@@ -30,19 +30,27 @@ const container = document.getElementById('chat_list')!;
 const template = document.getElementById(`${container.id}-template`) as HTMLTemplateElement;
 
 async function reload(key: 'actor' | string, quiet: boolean = false) {
-	const target = key === 'actor' ? [...fav_actors].join('_') : key;
-	if (target !== '') try {
-		let ret = await new Ajax(`location/${target}`).send('json');
+	let query = new URLSearchParams();
+	if (key === 'actor') for (const actor of fav_actors) {
+		query.append('actor', actor);
+	} else {
+		query.append('location', key);
+	}
+	if (query) try {
+		let ret = await new Ajax('chat').query(query).send('json');
 		console.log(ret);
 		if (!quiet) toast.success('発言を読み込みました');
 		const fragment = document.createDocumentFragment();
-		ret.list.forEach((item: any) => {
+		ret.forEach((item: any) => {
 			const node = template.content.cloneNode(true) as DocumentFragment;
 			(node.firstElementChild as HTMLElement).dataset.id = item.id;
 			node.querySelector<HTMLImageElement>('.icon>img')!.src = item.icon;
 			node.querySelector('.name')!.textContent = item.name;
 			node.querySelector('.id')!.textContent += item.actor;
 			node.querySelector('.body')!.innerHTML = item.body;
+			const location = node.querySelector<HTMLAnchorElement>('.location')!;
+			location.href = `location/${item.location[0]}`;
+			location.textContent = item.location[1] ?? '';
 			node.querySelector('.timestamp')!.textContent = formatter.format(new Date(item.timestamp * 1000));
 			fragment.insertBefore(node, fragment.firstChild);
 		});

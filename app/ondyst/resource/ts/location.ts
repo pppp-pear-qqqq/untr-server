@@ -26,6 +26,7 @@ page.callback = (list: any[]) => {
 		node.querySelector('.name')!.textContent = item.name;
 		node.querySelector('.id')!.textContent += item.actor;
 		node.querySelector('.body')!.innerHTML = item.body;
+		node.querySelector('.location')!.textContent = item.location[1] ?? '';
 		node.querySelector('.timestamp')!.textContent = formatter.format(new Date(item.timestamp * 1000));
 		fragment.insertBefore(node, fragment.firstChild);
 	});

@@ -55,11 +55,14 @@ export async function sleep(ms: number) {
 	return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export const time_formatter = new Intl.DateTimeFormat('ja-JP', {
+const time_formatter = new Intl.DateTimeFormat('ja-JP', {
 	year: 'numeric', month: '2-digit', day: '2-digit',
 	hour: '2-digit', minute: '2-digit', second: '2-digit',
-	hour12: false
+	hour12: false,
 });
+export function format_time(timestamp: number): string {
+	return time_formatter.format(new Date(timestamp * 1000)).replaceAll('/', '-');
+}
 
 export function clamp(value: number, min: number, max: number): number {
 	return Math.max(min, Math.min(max, value));

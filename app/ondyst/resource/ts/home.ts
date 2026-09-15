@@ -1,5 +1,5 @@
 import { Ajax } from '/common/script/ajax.js';
-import { bake, time_formatter as formatter } from '/common/script/utils.js';
+import { bake, format_time } from '/common/script/utils.js';
 import { toast } from './util/toast.js';
 import { fav_actors, fav_locations } from './fav.js';
 
@@ -51,7 +51,7 @@ async function reload(key: 'actor' | string, quiet: boolean = false) {
 			const location = node.querySelector<HTMLAnchorElement>('.location')!;
 			location.href = `location/${item.location[0]}`;
 			location.textContent = item.location[1] ?? '';
-			node.querySelector('.timestamp')!.textContent = formatter.format(new Date(item.timestamp * 1000));
+			node.querySelector('.timestamp')!.textContent = format_time(item.timestamp);
 			fragment.insertBefore(node, fragment.firstChild);
 		});
 		container.replaceChildren(fragment);

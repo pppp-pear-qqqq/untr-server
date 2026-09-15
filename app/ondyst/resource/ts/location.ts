@@ -1,6 +1,6 @@
 import { Ajax } from '/common/script/ajax.js';
 import { Pagination } from '/common/script/pagination.js';
-import { time_formatter as formatter } from '/common/script/utils.js';
+import { format_time } from '/common/script/utils.js';
 import { toast } from './util/toast.js';
 import { Stream } from './util/stream.js';
 
@@ -27,7 +27,7 @@ page.callback = (list: any[]) => {
 		node.querySelector('.id')!.textContent += item.actor;
 		node.querySelector('.body')!.innerHTML = item.body;
 		node.querySelector('.location')!.textContent = item.location[1] ?? '';
-		node.querySelector('.timestamp')!.textContent = formatter.format(new Date(item.timestamp * 1000));
+		node.querySelector('.timestamp')!.textContent = format_time(item.timestamp);
 		fragment.insertBefore(node, fragment.firstChild);
 	});
 	container.replaceChildren(fragment);

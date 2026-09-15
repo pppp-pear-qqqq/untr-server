@@ -77,7 +77,7 @@
 	{% if actor %}
 	<div id="post">
 		<details id="preview">
-			<summary>Preview</summary>
+			<summary>プレビュー</summary>
 			<article class="chat">
 				<img class="icon">
 				<span class="name"></span>
@@ -93,8 +93,8 @@
 		</details>
 		<form class="chat" action="chat" method="post" data-encode="form">
 			<input type="hidden" name="location" value="{{location_key}}">
-			{% if icon_list %}
 			<dialog closedby="any">
+				{% if icon_list %}
 				<fieldset>
 					{% for icon in icon_list %}
 					<label>
@@ -103,11 +103,12 @@
 					</label>
 					{% endfor %}
 				</fieldset>
+				{% else %}
+				<input type="hidden" name="icon" value="">
+				<p>選択できるアイコンがありません</p>
+				{% endif %}
 			</dialog>
 			<button class="icon" type="button"><img src="{{actor.icon}}"></button>
-			{% else %}
-			<input type="hidden" name="icon" value="">
-			{% endif %}
 			<input class="name" type="text" name="name" maxlength="16" placeholder="名前" value="{{actor.name}}">
 			<span class="id">id: {{actor.id}}</span>
 			<textarea class="body insert-tag" name="body" maxlength="500" placeholder="本文"></textarea>

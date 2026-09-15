@@ -3,7 +3,7 @@ import { Pagination } from '/common/script/pagination.js';
 import { format_time } from '/common/script/utils.js';
 import { toast } from './util/toast.js';
 import { Stream } from './util/stream.js';
-import { to_html } from '../pkg/ondyst.js';
+import init, { to_html } from '../pkg/ondyst.js';
 
 // 要素取得
 const key = document.getElementById('location')!.dataset.key;
@@ -14,6 +14,7 @@ const size = Number(document.querySelector('.pagination>.size')!.textContent);
 
 const form = document.querySelector<HTMLFormElement>('#post form');
 const form_body = form?.children.namedItem('body') as HTMLTextAreaElement | null;
+const preview = document.getElementById('preview') as HTMLDetailsElement;
 
 // 再読み込み関連
 const page = new Pagination({ size: size, limit_default: 20, limit_max: 100 });
@@ -22,7 +23,9 @@ page.callback = (list: any[]) => {
 	list.forEach((item: any) => {
 		const node = template.content.cloneNode(true) as DocumentFragment;
 		(node.firstElementChild as HTMLElement).dataset.id = item.id;
-		node.querySelector<HTMLImageElement>('.icon>img')!.src = item.icon;
+		const icon = node.querySelector<HTMLAnchorElement>('.icon')!;
+		icon.href = `actor/${item.actor}`;
+		(icon.firstElementChild as HTMLImageElement).src = item.icon;
 		node.querySelector('.name')!.textContent = item.name;
 		node.querySelector('.id')!.textContent += item.actor;
 		node.querySelector('.body')!.innerHTML = item.body;
@@ -60,8 +63,10 @@ stream.onerror = function (error) {
 	console.error(error);
 };
 
-// 発言
+container.scroll({ top: container.scrollHeight, behavior: 'smooth' });
+
 if (form && form_body) {
+	// 発言
 	let force_submit = false;
 	form.addEventListener('submit', async (ev) => {
 		ev.preventDefault();
@@ -74,6 +79,7 @@ if (form && form_body) {
 			await new Ajax(form).send();
 			stream.ignore(1000);
 			force_submit = false;
+			preview.open = false;
 			form_body.value = '';
 			toast.success('発言しました');
 			page.reload();
@@ -111,6 +117,24 @@ if (form && form_body) {
 	}
 
 	setting_reply_buttons();
-}
 
-container.scroll({ top: container.scrollHeight, behavior: 'smooth' });
+	// プレビュー
+	await init();
+	const update_preview = (ev: Event) => {
+		if (preview.open) {
+			const t = ev.target;
+			if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement) switch (t.name) {
+				case 'name': preview.querySelector('.name')!.textContent = t.value; break;
+				case 'body': preview.querySelector('.body')!.innerHTML = to_html(form_body.value, false); break;
+				case 'icon': preview.querySelector<HTMLImageElement>('.icon')!.src = t.value; break;
+			} else if (t instanceof HTMLDetailsElement) {
+				preview.querySelector('.name')!.textContent = form.querySelector<HTMLInputElement>('input[name="name"]')!.value;
+				preview.querySelector('.body')!.innerHTML = to_html(form_body.value, false);
+				preview.querySelector<HTMLImageElement>('.icon')!.src = form.querySelector<HTMLInputElement>('input[name="icon"]')!.value;
+			}
+		}
+	}
+	// form.addEventListener('input', update_preview);
+	form.addEventListener('change', update_preview);	// 流石にinputで処理は重そう
+	preview.addEventListener('toggle', update_preview);
+}

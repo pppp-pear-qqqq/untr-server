@@ -35,7 +35,7 @@ document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('.insert-tag')
 	e.addEventListener('focusin', () => insert_target = e);
 	if (!insert_target) insert_target = e;
 });
-window.insert_tag = function (pre: string, suf: string, elem?: HTMLInputElement | HTMLTextAreaElement) {
+(window as any).insert_tag = function (pre: string, suf: string, elem?: HTMLInputElement | HTMLTextAreaElement) {
 	if (elem ??= insert_target) {
 		const start = elem.selectionStart, end = elem.selectionEnd;
 		if (start != null && end != null) {
@@ -43,7 +43,8 @@ window.insert_tag = function (pre: string, suf: string, elem?: HTMLInputElement 
 			elem.value = prev.slice(undefined, start) + pre + prev.slice(start, end) + suf + prev.slice(end);
 			elem.selectionStart = start + pre.length;
 			elem.selectionEnd = end + pre.length;
-			elem.dispatchEvent(new Event('change'));
+			elem.dispatchEvent(new Event('input', { bubbles: true }));
+			elem.dispatchEvent(new Event('change', { bubbles: true }));
 			elem.focus();
 		}
 	}

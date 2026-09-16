@@ -8,9 +8,11 @@ export class Stream {
 		this.auto_ignore = auto_ignore;
 	}
 	set onmessage(callback: (event: MessageEvent) => void) {
-		if (this._ignore) return;
-		this.ignore(this.auto_ignore);
-		this.event_source.onmessage = callback;
+		this.event_source.onmessage = (event: MessageEvent) => {
+			if (this._ignore) return;
+			this.ignore(this.auto_ignore);
+			callback(event);
+		};
 	}
 	set onerror(callback: (event: Event) => void) {
 		this.event_source.onerror = callback;

@@ -53,6 +53,13 @@
 		grid-area: bd;
 		width: 26rem;
 		border-bottom: 1px dotted var(--border-color);
+
+		img {
+			vertical-align: bottom;
+			zoom: 50%;
+			max-width: 52rem;
+			max-height: 26rem;
+		}
 	}
 	> .util {
 		grid-area: ut;

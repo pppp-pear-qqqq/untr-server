@@ -45,3 +45,16 @@ portrait_list.addEventListener('change', () => {
 		}));
 	});
 });
+
+// ローカル設定
+const stream = document.querySelector<HTMLSelectElement>('select[name="stream"]')!;
+const stream_mode = localStorage.getItem('stream');
+if (stream_mode) {
+	stream.value = stream_mode;
+} else {
+	stream.value = 'off';
+}
+stream.addEventListener('change', () => {
+	if (stream.value === 'off') localStorage.removeItem('stream');
+	else localStorage.setItem('stream', stream.value);
+});

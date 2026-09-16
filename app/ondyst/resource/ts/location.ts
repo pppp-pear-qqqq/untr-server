@@ -13,8 +13,6 @@ const template = document.getElementById(`${container.id}-template`) as HTMLTemp
 const size = Number(document.querySelector('.pagination>.size')!.textContent);
 
 const form = document.querySelector<HTMLFormElement>('#post form');
-const form_body = form?.children.namedItem('body') as HTMLTextAreaElement | null;
-const preview = document.getElementById('preview') as HTMLDetailsElement;
 
 // 再読み込み関連
 const page = new Pagination({ size: size, limit_default: 20, limit_max: 100 });
@@ -35,7 +33,7 @@ page.callback = (list: any[]) => {
 	});
 	container.replaceChildren(fragment);
 	setting_reply_buttons();
-	container.scroll({ top: container.scrollHeight, behavior: 'smooth' });
+	requestAnimationFrame(() => requestAnimationFrame(() => container.scroll({ top: container.scrollHeight, behavior: 'smooth' })));
 };
 page.error = (e) => toast.error(e.message);
 
@@ -55,17 +53,28 @@ function setting_reply_buttons() {
 }
 
 // サーバーとのストリーム接続
-const stream = new Stream(`/location/${key}/stream`);
-stream.onmessage = function () {
-	toast.info('新しい発言！');
-};
-stream.onerror = function (error) {
-	console.error(error);
-};
+const stream_option = localStorage.getItem('stream');
+if (stream_option && stream_option !== 'off') {
+	var stream = new Stream(`/location/${key}/stream`);
+	console.log('stream接続開始');
+	switch (stream_option) {
+		case 'reload': stream.onmessage = function () {
+			console.log('update');
+			if (new URLSearchParams(location.search).get('offset') == null) page.reload();
+		}; break;
+		case 'notice': stream.onmessage = function () {
+			console.log('update');
+			toast.info('新しい発言があります');
+		}; break;
+	}
+	stream.onerror = function (error) {
+		console.error(error);
+	};
+}
 
-container.scroll({ top: container.scrollHeight, behavior: 'smooth' });
-
-if (form && form_body) {
+if (form) {
+	var form_body = form?.children.namedItem('body') as HTMLTextAreaElement;
+	var preview = document.getElementById('preview') as HTMLDetailsElement;
 	// 発言
 	let force_submit = false;
 	form.addEventListener('submit', async (ev) => {
@@ -76,8 +85,8 @@ if (form && form_body) {
 			return;
 		}
 		try {
-			await new Ajax(form).send();
 			stream.ignore(1000);
+			await new Ajax(form).send();
 			force_submit = false;
 			preview.open = false;
 			form_body.value = '';
@@ -115,10 +124,16 @@ if (form && form_body) {
 		form_body.focus();
 		form_body.setSelectionRange(form_body.value.length, form_body.value.length);
 	}
+}
 
-	setting_reply_buttons();
+// 返信ボタンの設定
+setting_reply_buttons();
 
-	// プレビュー
+// スクロール
+container.scroll({ top: container.scrollHeight, behavior: 'smooth' });
+
+// プレビュー
+if (preview!) {
 	await init();
 	const update_preview = (ev: Event) => {
 		if (preview.open) {
@@ -126,15 +141,15 @@ if (form && form_body) {
 			if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement) switch (t.name) {
 				case 'name': preview.querySelector('.name')!.textContent = t.value; break;
 				case 'body': preview.querySelector('.body')!.innerHTML = to_html(form_body.value, false); break;
-				case 'icon': preview.querySelector<HTMLImageElement>('.icon')!.src = t.value; break;
+				case 'icon': preview.querySelector<HTMLImageElement>('.icon>img')!.src = t.value; break;
 			} else if (t instanceof HTMLDetailsElement) {
-				preview.querySelector('.name')!.textContent = form.querySelector<HTMLInputElement>('input[name="name"]')!.value;
+				preview.querySelector('.name')!.textContent = form!.querySelector<HTMLInputElement>('input[name="name"]')!.value;
 				preview.querySelector('.body')!.innerHTML = to_html(form_body.value, false);
-				preview.querySelector<HTMLImageElement>('.icon')!.src = form.querySelector<HTMLInputElement>('input[name="icon"]')!.value;
+				preview.querySelector<HTMLImageElement>('.icon>img')!.src = form!.querySelector<HTMLInputElement>('input[name="icon"]')!.value;
 			}
 		}
 	}
 	// form.addEventListener('input', update_preview);
-	form.addEventListener('change', update_preview);	// 流石にinputで処理は重そう
+	form!.addEventListener('change', update_preview);	// 流石にinputで処理は重そう
 	preview.addEventListener('toggle', update_preview);
 }

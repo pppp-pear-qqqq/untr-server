@@ -276,6 +276,7 @@ async fn post_chat(web::Form(info): web::Form<Post>, id: Identity, state: StateH
 	}
 	// チャンネル通知
 	if let Some(tx) = channel.read().unwrap().get(&info.location) {
+		debug!("stream send");
 		let _ = tx.send(());
 	}
 

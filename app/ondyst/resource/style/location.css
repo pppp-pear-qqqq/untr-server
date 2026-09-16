@@ -16,8 +16,9 @@ main {
 #timeline {
 	flex-grow: 1;
 	display: flex;
-	max-height: stretch;
 	flex-direction: column;
+	max-height: stretch;
+	padding-bottom: 0.5rlh;
 	align-items: center;
 	gap: 0.3rlh;
 
@@ -30,9 +31,6 @@ main {
 #chat_list {
 	flex-grow: 1;
 	padding: 0.2rlh 0;
-}
-#post {
-	padding-bottom: 0.5rlh;
 }
 #preview {
 	padding-bottom: 0.2rlh;

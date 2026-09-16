@@ -30,8 +30,12 @@ const template = document.getElementById(`${container.id}-template`) as HTMLTemp
 
 async function reload(key: 'actor' | string, quiet: boolean = false) {
 	let query = new URLSearchParams();
-	if (key === 'actor') for (const actor of fav_actors) {
-		query.append('actor', actor);
+	if (key === 'actor') {
+		if (fav_actors.size === 0) {
+			toast.warn('キャラクターをお気に入りに登録していません');
+			return;
+		};
+		query.append('actor', [...fav_actors].join(','));
 	} else {
 		query.append('location', key);
 	}
@@ -59,4 +63,5 @@ async function reload(key: 'actor' | string, quiet: boolean = false) {
 	}
 }
 
-reload('actor', true);
+if (fav_actors.size !== 0) reload('actor', true);
+else console.log('初回読み込みスキップ');

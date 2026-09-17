@@ -22,20 +22,26 @@
 		</small>
 		{% endif %}
 	</p>
-	<a href="location">一覧に戻る</a>
+	<a href="location">ロケーション一覧に戻る</a>
 	{% if item_list %}
 	<details>
 		<summary>アイテム</summary>
-		{% for item in item_list %}
-		<form action="location/item" method="post" data-encode="form">
+		<form id="items" action="location/item" method="post" data-encode="form">
 			<input type="hidden" name="location" value="{{location_key}}">
+			{% for item in item_list %}
 			<div class="item">
-				<span>{{item.name}}</span>
-				<span>{{item.lore|safe}}</span>
-				<button type="submit" name="id" value="{{item.id}}" {% if item.message %}data-message="{{item.message}}"{% endif %}>使用</button>
+				<span class="name">{{item.name}}</span>
+				{% if actor %}
+				{% if item.message %}
+				<button type="button" name="message" value="{{item.message}}">使用準備</button>
+				{% else %}
+				<button type="submit" name="id" value="{{item.id}}">使用</button>
+				{% endif %}
+				{% endif %}
+				<span class="lore">{{item.lore|safe}}</span>
 			</div>
+			{% endfor %}
 		</form>
-		{% endfor %}
 	</details>
 	{% endif %}
 </article>

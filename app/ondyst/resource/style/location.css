@@ -5,11 +5,44 @@ main {
 
 #location {
 	width: 30rem;
-	/* TODO */
+	margin: 0 auto;
 
 	> .name {
 		position: sticky;
 		top: 0;
+	}
+
+	> details {
+		margin-top: 1rlh;
+	}
+}
+
+#items {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rlh;
+	padding: 0 0.5rem;
+
+	.item {
+		display: flex;
+		flex-wrap: wrap;
+		border: 1px var(--border-color);
+		border-style: solid none;
+		justify-content: space-between;
+
+		> .name {
+			flex-grow: 1;
+			border-bottom: 1px dashed var(--border-color);
+		}
+		> .lore {
+			width: 100%;
+		}
+		> button {
+			justify-self: end;
+			border: 1px var(--border-color);
+			border-style: none solid solid;
+			border-radius: 0;
+		}
 	}
 }
 

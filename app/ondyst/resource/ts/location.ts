@@ -97,6 +97,36 @@ if (form) {
 		}
 	});
 
+	// アイテム使用
+	const items = document.getElementById('items');
+	if (items) {
+		// 使用準備
+		items.querySelectorAll<HTMLButtonElement>('[name="message"]').forEach((e) => {
+			e.addEventListener('click', () => {
+				form_body.value = `${form_body.value}${e.value}`;
+				form_body.focus();
+				form_body.setSelectionRange(form_body.value.length, form_body.value.length);
+				form_body.dispatchEvent(new Event('input'));
+				form_body.dispatchEvent(new Event('change'));
+				toast.info('アイテム使用時のメッセージを読み込みました');
+			});
+		});
+		// 使用
+		items.addEventListener('submit', async (ev) => {
+			try {
+				stream.ignore(1000);
+				await new Ajax(ev.currentTarget as HTMLFormElement).send();
+				force_submit = false;
+				preview.open = false;
+				form_body.value = '';
+				toast.success('アイテムを使用しました');
+				page.reload();
+			} catch (err: any) {
+				toast.error(err.message);
+			}
+		})
+	}
+
 	// アイコン選択
 	const icon_dialog = form.querySelector<HTMLDialogElement>('dialog');
 	if (icon_dialog) {

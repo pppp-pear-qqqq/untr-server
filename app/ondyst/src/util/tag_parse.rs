@@ -25,13 +25,10 @@ impl TagFormat for Ondyst {
 				}
 			}
 			"image" => format!("<img src=\"{}\">", tag.content.replace("\"", "%22")),
-			"" => {
+			"random" => {
 				let params = tag.content.split('|').collect::<Vec<_>>();
 				debug!("{params:?}");
-				match params.len() {
-					1 if tag.content == "br" => "<br>".into(),
-					_ => params.choose(&mut rng).unwrap().to_html(self, link),
-				}
+				format!("<random>{}</random>", params.choose(&mut rng).unwrap().to_html(self, link))
 			}
 			_ => format!("[{0}/{1}/{0}]", tag.name, tag.content.to_html(self, link)),
 		}

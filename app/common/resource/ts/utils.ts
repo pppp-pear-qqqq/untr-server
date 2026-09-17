@@ -67,3 +67,9 @@ export function format_time(timestamp: number): string {
 export function clamp(value: number, min: number, max: number): number {
 	return Math.max(min, Math.min(max, value));
 }
+
+export function pop_if<T>(arr: T[], predicate: (item: T) => boolean): T | null {
+	const index = arr.findIndex(predicate);
+	if (index === -1) return null;
+	return arr.splice(index, 1)[0];
+}

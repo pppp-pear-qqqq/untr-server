@@ -15,6 +15,7 @@ table item
 	name text
 	lore text
 	message text
+	direct bool default(false)
 	@init(master/item.csv)
 
 # キャラクター

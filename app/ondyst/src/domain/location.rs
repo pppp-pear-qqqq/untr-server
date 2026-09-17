@@ -10,6 +10,7 @@ use super::*;
 pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.route("", web::to(location_list));
 	cfg.route("new", web::post().to(new_location));
+	cfg.route("item", web::post().to(item));
 	cfg.service(web::scope("{key}").service(web::resource("").get(location)).route("stream", web::get().to(stream)));
 }
 
@@ -41,7 +42,7 @@ async fn location(key: web::Path<String>, page: Pagination<20, 100>, req_type: R
 		id: i64,
 		name: String,
 		lore: String,
-		message: String,
+		message: Option<String>,
 	}
 
 	let key = key.into_inner();
@@ -58,7 +59,7 @@ async fn location(key: web::Path<String>, page: Pagination<20, 100>, req_type: R
 		}))),
 		_ => {
 			let location = sqlx::query_as!(Location, "SELECT name,lore FROM location WHERE key=?", key).fetch_optional(pool).await?;
-			let item_list = sqlx::query_as!(Item, "SELECT id,name,lore,message FROM item WHERE location=?", key).fetch_all(pool).await?;
+			let item_list = sqlx::query_as!(Item, "SELECT id,name,lore,CASE WHEN direct THEN NULL ELSE message END \"message: _\" FROM item WHERE location=?", key).fetch_all(pool).await?;
 			let mut ctx = tera::Context::new();
 			if let Some(id) = &id {
 				let icon_list = sqlx::query_scalar!("SELECT icon_list FROM actor WHERE id=?", **id).fetch_one(pool).await?;
@@ -73,6 +74,41 @@ async fn location(key: web::Path<String>, page: Pagination<20, 100>, req_type: R
 			let body = Page::default().actor_data_opt(ActorData::load_opt(&id, &pool).await?).render_with_ctx("location.html", &tmpl, ctx)?;
 			Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 		}
+	}
+}
+
+#[derive(serde::Deserialize, Validate)]
+struct PostItem {
+	id: i64,
+	#[validate(length(max = 16, message = "16文字以内で入力してください"))]
+	location: String,
+}
+async fn item(web::Form(info): web::Form<PostItem>, id: Identity, state: StateHandle, pool: web::Data<Pool>, channel: web::Data<ChannelMap>) -> common::Result<impl Responder> {
+	let timestamp = chrono::Utc::now().timestamp();
+	state.get().only_active()?;
+	info.validate()?;
+
+	let pool = pool.as_ref();
+	let r = sqlx::query!(
+		"INSERT INTO chat(timestamp,location,actor,name,icon,body) VALUES(?1,?2,?3,(SELECT name FROM actor WHERE id=?3),(SELECT icon FROM actor WHERE id=?3),(SELECT message FROM item WHERE id=?4))",
+		timestamp,
+		info.location,
+		*id,
+		info.id
+	)
+	.execute(pool)
+	.await;
+	match r {
+		Ok(_) => {
+			// チャンネル通知
+			if let Some(tx) = channel.read().unwrap().get(&info.location) {
+				debug!("stream send");
+				let _ = tx.send(());
+			}
+			Ok(HttpResponse::NoContent().finish())
+		}
+		Err(sqlx::Error::Database(err)) if err.code().is_some_and(|code| code.contains("NOT NULL")) => Err(ErrorBadRequest("ログインセッションまたは選択したアイテムidが不正です").into()),
+		Err(err) => Err(err.into()),
 	}
 }
 

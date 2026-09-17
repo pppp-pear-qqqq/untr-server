@@ -24,15 +24,19 @@
 	</p>
 	<a href="location">一覧に戻る</a>
 	{% if item_list %}
-	<section id="item_list">
-		<h3>アイテム</h3>
+	<details>
+		<summary>アイテム</summary>
 		{% for item in item_list %}
-		<div class="item" data-id="{{item.id}}" data-message="{{item.message}}">
-			<span>{{item.name}}</span>
-			<span>{{item.lore|safe}}</span>
-		</div>
+		<form action="location/item" method="post" data-encode="form">
+			<input type="hidden" name="location" value="{{location_key}}">
+			<div class="item">
+				<span>{{item.name}}</span>
+				<span>{{item.lore|safe}}</span>
+				<button type="submit" name="id" value="{{item.id}}" {% if item.message %}data-message="{{item.message}}"{% endif %}>使用</button>
+			</div>
+		</form>
 		{% endfor %}
-	</section>
+	</details>
 	{% endif %}
 </article>
 <div id="timeline">

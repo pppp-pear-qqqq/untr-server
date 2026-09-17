@@ -35,10 +35,6 @@ body > header {
 main {
 	flex-grow: 1;
 	padding: 0 1dvw;
-	overflow-y: auto;
-	scrollbar-width: thin;
-	scrollbar-color: var(--border-color) transparent;
-	scroll-behavior: smooth;
 	view-transition-name: match-element;
 }
 
@@ -57,12 +53,9 @@ main {
 	height: calc(100dvh - var(--header-height));
 	padding: 2dvh 2dvw 2dvh 1dvw;
 	gap: 0.1rlh;
-	overflow-y: auto;
 	/* 装飾 */
 	border-left: 1px solid var(--border-color);
 	background-color: var(--surface-color);
-	scrollbar-width: thin;
-	scrollbar-color: var(--border-color) transparent;
 	/* アニメーション */
 	translate: 100%;
 	transition:
@@ -115,9 +108,6 @@ dialog {
 	border: 1px solid var(--border-color);
 	border-radius: 8px;
 	outline: none;
-	overflow-y: auto;
-	scrollbar-width: thin;
-	scrollbar-color: var(--border-color) transparent;
 }
 
 #background {

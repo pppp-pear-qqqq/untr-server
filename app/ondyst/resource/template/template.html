@@ -24,7 +24,7 @@
 	<body>
 		<header>
 			<button type="button" aria-controls="main-menu" aria-expanded="false"><span></span></button>
-			<nav id="main-menu">
+			<nav id="main-menu" class="scroll-y">
 				{% if state not in ["prepare", "maintenance"] %}
 				{% if actor %}
 				<a href="home"><ic class="ri-home-line"></ic>ホーム</a>
@@ -50,8 +50,8 @@
 			</a>
 			{% endif %}
 		</header>
-		<main>{% block content %}{% endblock %}</main>
-		<dialog id="help" closedby="any"></dialog>
+		<main class="scroll-y">{% block content %}{% endblock %}</main>
+		<dialog id="help" closedby="any" class="scroll-y"></dialog>
 		<canvas id="background"></canvas>
 	</body>
 </html>

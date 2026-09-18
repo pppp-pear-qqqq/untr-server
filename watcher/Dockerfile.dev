@@ -4,4 +4,4 @@ ENV SHELL=/bin/sh
 
 WORKDIR /app
 
-CMD ["chokidar", "app/*/resource/ts/**/*.ts", "app/*/resource/style/**/*.css", "-c", "sh compile.sh {path}", "--initial", "--polling"]
+CMD ["chokidar", "app/*/resource/ts/**/*.ts", "app/*/resource/style/**/*.css", "-c", "sh compile.sh {path} ${MINIFY:-false}", "--initial", "--polling"]

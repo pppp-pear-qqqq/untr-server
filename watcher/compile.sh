@@ -2,12 +2,13 @@
 set -e
 
 filepath=$1
+minify=${2:-false}
 
 if [ ! -s "$filepath" ]; then
     exit 0
 fi
 
-if [ "$MINIFY" = "true" ]; then
+if [ "$minify" = "true" ]; then
 	# tsとcssを受け取る
 	if ! echo "$filepath" | grep -E -q '\.(ts|css)$'; then
     	exit 0

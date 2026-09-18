@@ -17,5 +17,5 @@ tera.workspace = true
 validator.workspace = true
 
 [dependencies]
-cfg-if = "1.0.4"
+cfg-if = "1.0.5"
 regex.workspace = true

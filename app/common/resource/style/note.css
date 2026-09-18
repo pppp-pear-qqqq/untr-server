@@ -45,7 +45,12 @@ details {
 		grid-template-columns: auto 1fr;
 		column-gap: 0.5em;
 	}
+
+	input.sizing {
+		field-sizing: content;
+	}
 }
+
 article {
 	padding-bottom: 0.6lh;
 
@@ -53,6 +58,7 @@ article {
 		margin-top: 0.6lh;
 	}
 }
+
 section,
 form,
 details {

@@ -3,6 +3,7 @@ use super::*;
 /// リソース
 pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.route("", web::to(index));
+	cfg.route("log", web::to(get_log));
 	cfg.service(web::resource("setting").get(view_setting).patch(patch_setting));
 }
 
@@ -23,6 +24,16 @@ async fn index(id: Identity, _: StateHandle, pool: web::Data<Pool>, tmpl: web::D
 	ctx.insert("log_list", &log_list);
 	let body = Page::default().actor_data(ActorData::load(&id, pool).await?.ok_or(ErrorUnauthorized("ログインセッションが無効です"))?).render_with_ctx("home.html", &tmpl, ctx)?;
 	Ok(HttpResponse::Ok().body(body))
+}
+
+async fn get_log(page: common::Pagination<20, 100>, id: Identity, _: StateHandle, pool: web::Data<Pool>) -> common::Result<impl Responder> {
+	let offset = page.offset as i64;
+	let limit = page.limit as i64;
+
+	let pool = pool.as_ref();
+	let records = sqlx::query_as!(Log, "SELECT id,timestamp,body FROM log WHERE actor=? ORDER BY id DESC LIMIT ?,?", *id, offset, limit).fetch_all(pool).await?;
+
+	Ok(HttpResponse::Ok().json(records))
 }
 
 async fn view_setting(id: Identity, _: StateHandle, pool: web::Data<Pool>, tmpl: web::Data<tera::Tera>) -> common::Result<impl Responder> {

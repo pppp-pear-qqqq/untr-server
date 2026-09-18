@@ -1,6 +1,11 @@
 main {
 	display: flex;
 	flex-wrap: wrap;
+	scroll-snap-type: y mandatory;
+
+	> * {
+		scroll-snap-align: start;
+	}
 }
 
 #location {

@@ -3,27 +3,37 @@ import { bake, format_time } from '/common/script/utils.js';
 import { toast } from './util/toast.js';
 import { fav_actors, fav_locations } from './fav.js';
 
-const tabs = document.querySelector<HTMLElement>('#timeline>.tabs')!;
+Ajax.wait = 50;
+
+const tab_bar = document.querySelector<HTMLElement>('#timeline>.tab-bar')!;
 for (const location of fav_locations) {
-	tabs.appendChild(bake('label', (e) => {
+	tab_bar.appendChild(bake('label', (e) => {
+		e.classList.add('tab');
 		e.role = 'button';
 		e.append(
 			bake('input', (e) => {
 				e.type = 'radio';
 				e.name = 'tab';
 				e.value = location[0];
-				e.addEventListener('change', () => {
-					reload(e.value);
-				})
 			}),
-			document.createTextNode(location[1]),
+			bake('a', (e) => {
+				e.role = 'button';
+				e.href = `location/${location[0]}`;
+				e.textContent = location[1];
+				e.addEventListener('click', (ev) => {
+					const radio = (e.previousElementSibling as HTMLInputElement);
+					if (!radio.checked) {
+						ev.preventDefault();
+						radio.click();
+					}
+				});
+			}),
 		);
 	}));
-	tabs.appendChild(bake('a', (e) => {
-		e.href = `location/${location[0]}`;
-		e.textContent = location[1];
-	}));
 }
+document.querySelectorAll<HTMLInputElement>('.tab>input').forEach((e) => {
+	e.addEventListener('change', () => reload(e.value));
+});
 
 const container = document.getElementById('chat_list')!;
 const template = document.getElementById(`${container.id}-template`) as HTMLTemplateElement;
@@ -33,6 +43,7 @@ async function reload(key: 'actor' | string, quiet: boolean = false) {
 	if (key === 'actor') {
 		if (fav_actors.size === 0) {
 			toast.warn('キャラクターをお気に入りに登録していません');
+			container.replaceChildren();
 			return;
 		};
 		query.append('actor', [...fav_actors].join(','));
@@ -63,5 +74,8 @@ async function reload(key: 'actor' | string, quiet: boolean = false) {
 	}
 }
 
-if (fav_actors.size !== 0) reload('actor', true);
-else console.log('初回読み込みスキップ');
+setTimeout(() => {
+	const select_tab = document.querySelector<HTMLInputElement>('[name="tab"]:checked')?.value;
+	if (select_tab && (select_tab !== 'actor' || fav_actors.size !== 0)) reload(select_tab, true);
+	else console.log('初回読み込みスキップ');
+}, 1);

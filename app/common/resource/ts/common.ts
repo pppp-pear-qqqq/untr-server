@@ -28,6 +28,14 @@ document.querySelectorAll<HTMLElement>('.help').forEach(e => {
 dialog.addEventListener('close', () => {
 	dialog.innerHTML = '';
 });
+dialog.addEventListener('click', (ev) => {
+	if (dialog.open) {
+		const rect = dialog.getBoundingClientRect();
+		if (ev.clientX < rect.left || ev.clientX > rect.right || ev.clientY < rect.top || ev.clientY > rect.bottom) {
+			dialog.close();
+		}
+	}
+});
 
 // insert tag
 let insert_target: HTMLInputElement | HTMLTextAreaElement;

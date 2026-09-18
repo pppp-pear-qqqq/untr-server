@@ -85,7 +85,7 @@ if (form) {
 			return;
 		}
 		try {
-			stream.ignore(1000);
+			if(stream) stream.ignore(1000);
 			await new Ajax(form).send();
 			force_submit = false;
 			preview.open = false;
@@ -114,7 +114,7 @@ if (form) {
 		// 使用
 		items.addEventListener('submit', async (ev) => {
 			try {
-				stream.ignore(1000);
+				if(stream) stream.ignore(1000);
 				await new Ajax(ev.currentTarget as HTMLFormElement).send();
 				force_submit = false;
 				preview.open = false;

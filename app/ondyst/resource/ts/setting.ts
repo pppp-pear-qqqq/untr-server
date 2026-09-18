@@ -4,15 +4,17 @@ import { toast } from './util/toast.js';
 
 let data: Record<string, string> = {};
 const form = document.querySelector('form')!;
-form.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('[name]').forEach(e => {
-	e.addEventListener('change', () => {
-		e.classList.add('changed');
-		data[e.name] = e.value;
-	})
+form.addEventListener('change', (ev) => {
+	const e = ev.target as HTMLInputElement | HTMLTextAreaElement;
+	e.classList.add('changed');
+	data[e.name] = e.value;
 });
 form.addEventListener('submit', async (ev) => {
 	ev.preventDefault();
-	const form = ev.currentTarget as HTMLFormElement;
+	if (Object.keys(data).length === 0) {
+		toast.warn('更新内容がありません');
+		return;
+	}
 	try {
 		await new Ajax(form.action).method('PATCH').body(data, 'json').send();
 		toast.success('更新しました');
@@ -44,6 +46,26 @@ portrait_list.addEventListener('change', () => {
 			e.width = 384;
 		}));
 	});
+});
+
+// ハンドアウト
+const handout = document.getElementById('handout') as HTMLDataListElement;
+const ho_title = form.querySelector<HTMLInputElement>('[name="ho_title"]')!;
+const ho_body = form.querySelector<HTMLInputElement>('[name="ho_body"]')!;
+document.querySelector<HTMLButtonElement>('[name="handout-reroll"]')!.addEventListener('click', () => {
+	const ho = handout.options[Math.floor(Math.random() * handout.options.length)];
+	ho_title.value = ho.textContent;
+	ho_body.value = ho.value;
+	ho_title.dispatchEvent(new Event('change', { bubbles: true }));
+	ho_body.dispatchEvent(new Event('change', { bubbles: true }));
+});
+document.querySelector<HTMLButtonElement>('[name="handout-reset"]')!.addEventListener('click', () => {
+	ho_title.value = ho_title.dataset.init!;
+	ho_body.value = ho_body.dataset.init!;
+	ho_title.classList.remove('changed');
+	ho_body.classList.remove('changed');
+	delete data[ho_title.name];
+	delete data[ho_body.name];
 });
 
 // ローカル設定

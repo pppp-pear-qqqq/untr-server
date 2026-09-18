@@ -1,7 +1,10 @@
 use std::str::FromStr;
 
 use actix_session::Session;
-use rand::{RngExt, seq::IteratorRandom};
+use rand::{
+	RngExt,
+	seq::{IndexedRandom, IteratorRandom},
+};
 
 use crate::util::client;
 
@@ -27,9 +30,10 @@ async fn register(web::Form(info): web::Form<Auth>, session: Session, state: Sta
 
 	let user = user.to_bytes_le().to_vec();
 	let name = generate_random_unicode(0x30a0..=0x30ff, 2..=8);
+	let handout = crate::util::get_handout()?.choose(&mut rand::rng()).cloned().ok_or(std::io::Error::other("no handout"))?;
 
 	let pool = pool.as_ref();
-	let actor_id = match sqlx::query_scalar!("INSERT INTO actor(user,name) VALUES(?,?) RETURNING id", user, name).fetch_one(pool).await {
+	let actor_id = match sqlx::query_scalar!("INSERT INTO actor(user,name,ho_title,ho_body) VALUES(?,?,?,?) RETURNING id", user, name, handout.title, handout.body).fetch_one(pool).await {
 		Ok(r) => r,
 		Err(sqlx::Error::Database(err)) if err.is_unique_violation() => return Err(ErrorBadRequest("あなたは既にキャラクターを登録しています").into()),
 		Err(err) => return Err(err.into()),

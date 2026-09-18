@@ -16,6 +16,10 @@
 	{% if portrait %}
 	<img class="portrait" width="480" src="{{portrait}}">
 	{% endif %}
+	<section class="handout">
+		<h3>HO: {{ho_title}}</h3>
+		<p>{{ho_body}}</p>
+	</section>
 	{% for section in profile %}
 	<section>
 		<h3>{{section.title|default(value='Profile')|html|safe}}</h3>

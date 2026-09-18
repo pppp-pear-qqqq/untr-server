@@ -48,7 +48,7 @@ async fn actor(actor: web::Path<i64>, id: Option<Identity>, _: StateHandle, pool
 	let target_id = actor.into_inner();
 
 	let pool = pool.as_ref();
-	let record = sqlx::query!("SELECT name,profile,portrait_list FROM actor WHERE id=?", target_id).fetch_optional(pool).await?.ok_or(ErrorNotFound("対象のキャラクターは存在しません"))?;
+	let record = sqlx::query!("SELECT name,profile,portrait_list,ho_title,ho_body FROM actor WHERE id=?", target_id).fetch_optional(pool).await?.ok_or(ErrorNotFound("対象のキャラクターは存在しません"))?;
 
 	let mut section_iter = record.profile.split("\n# ");
 	let mut sections = Vec::new();
@@ -71,6 +71,9 @@ async fn actor(actor: web::Path<i64>, id: Option<Identity>, _: StateHandle, pool
 	ctx.insert("name", &record.name);
 	ctx.insert("profile", &sections);
 	ctx.insert("portrait", &portrait);
+	ctx.insert("ho_title", &record.ho_title);
+	ctx.insert("ho_body", &record.ho_body);
+
 	let body = Page::default().title(&format!("{} - one day's' talk", record.name)).actor_data_opt(ActorData::load_opt(&id, &pool).await?).render_with_ctx("actor.html", &tmpl, ctx)?;
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }

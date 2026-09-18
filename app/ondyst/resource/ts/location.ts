@@ -12,11 +12,13 @@ const container = document.getElementById('chat_list')!;
 const template = document.getElementById(`${container.id}-template`) as HTMLTemplateElement;
 const size = Number(document.querySelector('.pagination>.size')!.textContent);
 
+const reload = document.querySelector<HTMLElement>('.pagination .reload')!;
 const form = document.querySelector<HTMLFormElement>('#post form');
 
 // 再読み込み関連
 const page = new Pagination({ size: size, limit_default: 20, limit_max: 100 });
 page.callback = (list: any[]) => {
+	reload.classList.remove('active');
 	const fragment = document.createDocumentFragment();
 	list.forEach((item: any) => {
 		const node = template.content.cloneNode(true) as DocumentFragment;
@@ -64,6 +66,8 @@ if (stream_option && stream_option !== 'off') {
 		}; break;
 		case 'notice': stream.onmessage = function () {
 			console.log('update');
+			stream.ignore(0);
+			reload.classList.add('active');
 			toast.info('新しい発言があります');
 		}; break;
 	}

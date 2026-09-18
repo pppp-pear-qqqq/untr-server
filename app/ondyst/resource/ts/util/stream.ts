@@ -20,6 +20,6 @@ export class Stream {
 
 	ignore(ms: number) {
 		this._ignore = true;
-		setTimeout(() => this._ignore = false, ms);
+		if (ms > 0) setTimeout(() => this._ignore = false, ms);
 	}
 }

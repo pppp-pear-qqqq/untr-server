@@ -45,7 +45,6 @@ main {
 	border-top: 1px solid var(--border-color);
 	justify-content: space-evenly;
 	align-items: center;
-	overflow-y: hidden;
 
 	> * {
 		width: 1lh;
@@ -58,6 +57,5 @@ main {
 		font-size: 1.1rem;
 		font-weight: bolder;
 		text-align: center;
-		margin-top: -8px;
 	}
 }

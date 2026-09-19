@@ -8,6 +8,7 @@ table report
 	user ref(user.id).update(cascade).delete(setnull)
 	tag text
 	body text
+	user_agent text?
 	checked boolean default(FALSE)
 
 table user

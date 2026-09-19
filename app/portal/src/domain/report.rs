@@ -20,7 +20,7 @@ struct Post {
 	#[validate(length(min = 8, max = 1500, message = "8文字以上1500文字以内で入力してください"))]
 	body: String,
 }
-async fn post(web::Form(info): web::Form<Post>, id: Option<Identity>, state: StateHandle, pool: web::Data<Pool>) -> common::Result<impl Responder> {
+async fn post(req: actix_web::HttpRequest, web::Form(info): web::Form<Post>, id: Option<Identity>, state: StateHandle, pool: web::Data<Pool>) -> common::Result<impl Responder> {
 	let timestamp = chrono::Utc::now().timestamp();
 	state.get().only_active()?;
 	info.validate()?;
@@ -28,19 +28,16 @@ async fn post(web::Form(info): web::Form<Post>, id: Option<Identity>, state: Sta
 	let id = id.as_deref();
 	let tag = format!("{} {}", info.app_name, info.category);
 	let body = format!("## {}\n{}", info.title, info.body);
+	let user_agent = match req.headers().get(header::USER_AGENT) {
+		Some(ua) => Some(String::from(ua.to_str()?)),
+		None => None,
+	};
 
 	let pool = pool.as_ref();
-	sqlx::query!("INSERT INTO report(timestamp,user,tag,body) VALUES(?,?,?,?)", timestamp, id, tag, body).execute(pool).await?;
+	sqlx::query!("INSERT INTO report(timestamp,user,tag,body,user_agent) VALUES(?,?,?,?,?)", timestamp, id, tag, body, user_agent).execute(pool).await?;
 
 	if let Some(id) = id {
-		super::webhook::Content {
-			content: format!("連絡を受け付けました。\n>>> {}", body),
-			username: Some("untroche".into()),
-			avatar_url: None,
-		}
-		.target(vec![Uuid::from_slice(id)?])
-		.send(pool)
-		.await?;
+		super::webhook::Content { content: format!("連絡を受け付けました。\n>>> {}", body), username: Some("untroche".into()), avatar_url: None }.target(vec![Uuid::from_slice(id)?]).send(pool).await?;
 	}
 
 	Ok(HttpResponse::NoContent().finish())

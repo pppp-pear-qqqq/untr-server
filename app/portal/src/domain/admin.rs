@@ -53,7 +53,7 @@ async fn get_reports(web::Query(info): web::Query<GetReports>, pool: web::Data<P
 	struct Report {
 		id: i64,
 		timestamp: i64,
-		user: String,
+		user: Option<String>,
 		tag: String,
 		body: String,
 		checked: bool,
@@ -61,33 +61,11 @@ async fn get_reports(web::Query(info): web::Query<GetReports>, pool: web::Data<P
 
 	let pool = pool.as_ref();
 	let reports: Vec<_> = if info.ignore_checked {
-		sqlx::query!("SELECT r.id,r.timestamp,u.name AS user,r.tag,r.body FROM report r JOIN user u ON r.user=u.id WHERE checked=FALSE")
-			.fetch_all(pool)
-			.await?
-			.into_iter()
-			.map(|r| Report {
-				id: r.id,
-				timestamp: r.timestamp,
-				user: r.user,
-				tag: r.tag,
-				body: r.body,
-				checked: false,
-			})
-			.collect()
+		let r = sqlx::query!("SELECT r.id,r.timestamp,u.name AS user,r.tag,r.body FROM report r LEFT JOIN user u ON r.user=u.id WHERE checked=FALSE").fetch_all(pool).await?;
+		r.into_iter().map(|r| Report { id: r.id, timestamp: r.timestamp, user: r.user, tag: r.tag, body: r.body, checked: false }).collect()
 	} else {
-		sqlx::query!("SELECT r.id,r.timestamp,u.name AS user,r.tag,r.body,r.checked FROM report r JOIN user u ON r.user=u.id")
-			.fetch_all(pool)
-			.await?
-			.into_iter()
-			.map(|r| Report {
-				id: r.id,
-				timestamp: r.timestamp,
-				user: r.user,
-				tag: r.tag,
-				body: r.body,
-				checked: r.checked != 0,
-			})
-			.collect()
+		let r = sqlx::query!("SELECT r.id,r.timestamp,u.name AS user,r.tag,r.body,r.checked FROM report r LEFT JOIN user u ON r.user=u.id").fetch_all(pool).await?;
+		r.into_iter().map(|r| Report { id: r.id, timestamp: r.timestamp, user: r.user, tag: r.tag, body: r.body, checked: r.checked != 0 }).collect()
 	};
 	Ok(HttpResponse::Ok().json(reports))
 }

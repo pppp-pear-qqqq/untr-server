@@ -43,11 +43,13 @@ where
 	E: std::error::Error + 'static,
 {
 	fn from(err: E) -> Self {
-		error!("{:?}", err);
 		let boxed: Box<dyn std::error::Error> = Box::new(err);
 
 		if let Some(actix_err) = boxed.downcast_ref::<actix_web::Error>() {
 			let status = actix_err.as_response_error().status_code();
+			if status.is_server_error() {
+				error!("{:?}", actix_err);
+			}
 			Self { status, cause: boxed }
 		} else if let Some(validator_err) = boxed.downcast_ref::<ValidationErrors>() {
 			let mut messages = Vec::new();
@@ -64,15 +66,10 @@ where
 					}
 				}
 			}
-			Self {
-				status: StatusCode::BAD_REQUEST,
-				cause: Box::new(StringError(messages.join("\n"))),
-			}
+			Self { status: StatusCode::BAD_REQUEST, cause: Box::new(StringError(messages.join("\n"))) }
 		} else {
-			Self {
-				status: StatusCode::INTERNAL_SERVER_ERROR,
-				cause: boxed,
-			}
+			error!("{:?}", boxed);
+			Self { status: StatusCode::INTERNAL_SERVER_ERROR, cause: boxed }
 		}
 	}
 }

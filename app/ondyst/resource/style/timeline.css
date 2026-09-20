@@ -14,6 +14,8 @@
 .chat {
 	display: grid;
 	width: fit-content;
+	min-height: min-content;
+	overflow: hidden;
 	grid-template: "ic nm id" auto "ic bd bd" 1fr "ic ut ut" auto / auto 1fr max-content;
 	column-gap: 4px;
 	padding-right: 4px;

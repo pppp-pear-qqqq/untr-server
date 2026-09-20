@@ -54,7 +54,7 @@ services:
         environment:
             - APP_NAME=portal
             - SERVER_PORT=8000
-            - DATABASE_URL=sqlite:app/portal/database.db
+            - DATABASE_URL=sqlite:app/portal/portal.db
             - RUST_LOG=info,portal=debug,actix_web::middleware=warn
         networks: [untroche]
 
@@ -63,7 +63,7 @@ services:
     #     environment:
     #         - APP_NAME=erltod
     #         - SERVER_PORT=8005
-    #         - DATABASE_URL=sqlite:app/erltod/database.db
+    #         - DATABASE_URL=sqlite:app/erltod/erltod.db
     #     networks: [untroche]
 
     ondyst:
@@ -71,19 +71,19 @@ services:
         environment:
             - APP_NAME=ondyst
             - SERVER_PORT=8006
-            - DATABASE_URL=sqlite:app/ondyst/database.db
+            - DATABASE_URL=sqlite:app/ondyst/ondyst.db
             - RUST_LOG=info,ondyst=debug,actix_web::middleware=warn
         networks: [untroche]
 
     sqlite-web-portal:
         <<: *sqlite-web-base
         ports: ["127.0.0.1:3300:8080"]
-        volumes: [./app/portal/database.db:/data/database.db]
+        volumes: [./app/portal/portal.db:/data/database.db]
 
     sqlite-web-ondyst:
         <<: *sqlite-web-base
         ports: ["127.0.0.1:3306:8080"]
-        volumes: [./app/ondyst/database.db:/data/database.db]
+        volumes: [./app/ondyst/ondyst.db:/data/database.db]
 
 networks:
     untroche:

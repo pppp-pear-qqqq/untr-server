@@ -1,3 +1,5 @@
+use crate::util::State;
+
 use super::*;
 
 /// リソース
@@ -36,7 +38,9 @@ async fn get_log(page: common::Pagination<20, 100>, id: Identity, _: StateHandle
 	Ok(HttpResponse::Ok().json(records))
 }
 
-async fn view_setting(id: Identity, _: StateHandle, pool: web::Data<Pool>, tmpl: web::Data<tera::Tera>) -> common::Result<impl Responder> {
+async fn view_setting(id: Identity, state: StateHandle, pool: web::Data<Pool>, tmpl: web::Data<tera::Tera>) -> common::Result<impl Responder> {
+	let state = state.get();
+
 	let pool = pool.as_ref();
 	let record = sqlx::query!("SELECT comment,profile,icon_list,portrait_list,ho_title,ho_body FROM actor WHERE id=?", *id).fetch_one(pool).await?;
 
@@ -47,7 +51,9 @@ async fn view_setting(id: Identity, _: StateHandle, pool: web::Data<Pool>, tmpl:
 	ctx.insert("portrait_list", &record.portrait_list);
 	ctx.insert("ho_title", &record.ho_title);
 	ctx.insert("ho_body", &record.ho_body);
-	ctx.insert("handouts", &crate::util::get_handout()?);
+	if state != State::Active {
+		ctx.insert("handouts", &crate::util::get_handout()?);
+	}
 
 	let body = Page::default().actor_data(ActorData::load(&id, pool).await?.ok_or(ErrorUnauthorized("ログインセッションが無効です"))?).render_with_ctx("setting.html", &tmpl, ctx)?;
 	Ok(HttpResponse::Ok().body(body))
@@ -72,8 +78,13 @@ struct Setting {
 	ho_body: Option<String>,
 }
 async fn patch_setting(web::Json(info): web::Json<Setting>, id: Identity, state: StateHandle, pool: web::Data<Pool>) -> common::Result<impl Responder> {
-	state.get().only_open()?;
+	let state = state.get();
+	state.only_open()?;
 	info.validate()?;
+	if state == State::Active && (info.ho_title.is_some() || info.ho_body.is_some()) {
+		return Err(ErrorBadRequest("開催中はハンドアウトを変更できません").into());
+	}
+
 	let mut builder = sqlx::QueryBuilder::new("UPDATE actor SET ");
 	let mut sep = builder.separated(',');
 

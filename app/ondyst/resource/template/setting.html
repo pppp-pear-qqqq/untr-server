@@ -76,6 +76,7 @@
 		<summary>ハンドアウト</summary>
 		<label>タイトル<input type="text" name="ho_title" value="{{ho_title}}" data-init="{{ho_title}}" disabled></label>
 		<label>内容詳細<input type="text" name="ho_body" value="{{ho_body}}" data-init="{{ho_body}}" disabled></label>
+		{% if handouts %}
 		<datalist id="handout">
 			{% for ho in handouts %}
 			<option value="{{ho.body}}">{{ho.title}}</option>
@@ -83,6 +84,7 @@
 		</datalist>
 		<button type="button" name="handout-reroll">リロール</button>
 		<button type="button" name="handout-reset">元に戻す</button>
+		{% endif %}
 	</details>
 	<p>Webhook設定は<a target="_blank" href="https://untroche.com/home">ポータルサイト</a>側にて行ってください</p>
 	<p><a target="_blank" href="actor/{{actor.id}}">プロフィール閲覧</a></p>

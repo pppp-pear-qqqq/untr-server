@@ -25,7 +25,7 @@ page.callback = (list: any[]) => {
 		(node.firstElementChild as HTMLElement).dataset.id = item.id;
 		const icon = node.querySelector<HTMLAnchorElement>('.icon')!;
 		icon.href = `actor/${item.actor}`;
-		(icon.firstElementChild as HTMLImageElement).src = item.icon;
+		if (item.icon) (icon.firstElementChild as HTMLImageElement).src = item.icon;
 		node.querySelector('.name')!.textContent = item.name;
 		node.querySelector('.id')!.textContent += item.actor;
 		node.querySelector('.body')!.innerHTML = item.body;

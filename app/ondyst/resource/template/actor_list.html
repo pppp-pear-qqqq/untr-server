@@ -4,7 +4,7 @@
 <script type="module" src="script/actor_list.js"></script>
 {% endblock %}
 {% block content %}
-<div id="actor_list" class="scroll-y">
+<div id="actor_list" class="scroll-y scroll-gb">
 	{% for actor in actor_list %}
 	<div class="actor" data-id="{{actor.id}}">
 		<img class="icon" src="{{actor.icon}}">

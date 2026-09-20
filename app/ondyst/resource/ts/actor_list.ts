@@ -25,7 +25,7 @@ page.callback = (list) => {
 			e.dataset.id = item.id;
 			e.appendChild(bake('img', (e) => {
 				e.classList.add('icon');
-				e.src = item.icon;
+				if (item.icon) e.src = item.icon;
 			}))
 			e.appendChild(bake('a', (e) => {
 				e.classList.add('name');

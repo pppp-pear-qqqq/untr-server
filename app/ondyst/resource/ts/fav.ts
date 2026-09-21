@@ -1,6 +1,6 @@
 import { toast } from './util/toast.js';
 
-const key = {
+export const key = {
 	actor: 'fav/actor',
 	location: 'fav/location',
 };

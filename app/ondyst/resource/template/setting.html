@@ -105,5 +105,22 @@
 			<option value="off">無効</option>
 		</select>
 	</label>
+	<label>
+		キャラクターフォロー状態のリセット
+		<ic role="button" class="help ri-question-line"><template>
+			まれにフォロー状態を保存する変数が破損することがあるようで、このボタンはその状態をリセットするためのものです。<br>
+			全てのキャラクターへのフォローが解除されるのでお気を付けください。
+		</template></ic>
+		<button type="button" name="fav-reset-actor" class="danger">リセット</button>
+	</label>
+	<label>
+		ロケーションフォロー状態のリセット
+		<ic role="button" class="help ri-question-line"><template>
+			まれにフォロー状態を保存する変数が破損することがあるようで、このボタンはその状態をリセットするためのものです。<br>
+			全てのロケーションへのフォローが解除されるのでお気を付けください。<br>
+			現状ロケーションへのフォロー状態が破損したというご報告はいただいていませんが、一応ということで用意しています。
+		</template></ic>
+		<button type="button" name="fav-reset-location" class="danger">リセット</button>
+	</label>
 </form>
 {% endblock %}

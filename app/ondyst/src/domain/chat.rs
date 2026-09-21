@@ -52,7 +52,11 @@ impl TryFrom<Get> for Search {
 	type Error = std::num::ParseIntError;
 	fn try_from(info: Get) -> Result<Self, Self::Error> {
 		let location = info.location.map(|l| l.split(',').map(|s| s.to_string()).collect::<Vec<_>>());
-		let actor = if let Some(actor) = &info.actor { Some(actor.split(',').map(|s| s.parse::<i64>()).collect::<Result<Vec<i64>, _>>()?) } else { None };
+		let actor = if let Some(actor) = &info.actor {
+			Some(actor.split(',').map(|s| s.parse::<i64>()).collect::<Result<Vec<i64>, _>>()?)
+		} else {
+			None
+		};
 		Ok(Self {
 			location,
 			actor,
@@ -169,7 +173,7 @@ pub struct Get {
 	force: bool,
 }
 async fn get_chat_handler(web::Query(info): web::Query<Get>, page: Pagination<20, 100>, _: StateHandle, pool: web::Data<Pool>) -> common::Result<impl Responder> {
-	let result = get_chat(info.try_into()?, page, &pool).await?;
+	let result = get_chat(info.try_into().map_err(|_| ErrorBadRequest("キャラクターのフォロー状態が破損しています"))?, page, &pool).await?;
 	Ok(HttpResponse::Ok().json(result))
 }
 

@@ -1,6 +1,7 @@
 import { Ajax } from '/common/script/ajax.js';
 import { bake } from '/common/script/utils.js';
 import { toast } from './util/toast.js';
+import { key } from './fav.js';
 
 let data: Record<string, string> = {};
 const form = document.querySelector('form')!;
@@ -79,4 +80,12 @@ if (stream_mode) {
 stream.addEventListener('change', () => {
 	if (stream.value === 'off') localStorage.removeItem('stream');
 	else localStorage.setItem('stream', stream.value);
+});
+document.querySelector<HTMLButtonElement>('[name="fav-reset-actor"]')!.addEventListener('click', () => {
+	localStorage.removeItem(key.actor);
+	toast.success('キャラクターのフォロー状態をリセットしました');
+});
+document.querySelector<HTMLButtonElement>('[name="fav-reset-location"]')!.addEventListener('click', () => {
+	localStorage.removeItem(key.location);
+	toast.success('ロケーションのフォロー状態をリセットしました');
 });

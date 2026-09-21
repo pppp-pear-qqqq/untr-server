@@ -1,5 +1,5 @@
 form {
-	label {
+	label, p.item {
 		display: flex;
 		align-items: baseline;
 		gap: 4px;
@@ -24,6 +24,11 @@ form {
 			field-sizing: content;
 			resize: none;
 		}
+	}
+
+	button.danger {
+		background-color: #ff4d4f80;
+		color: #ffffff;
 	}
 
 	.toggle-visible {

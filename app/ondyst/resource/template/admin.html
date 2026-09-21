@@ -1,6 +1,7 @@
 {% extends "template.html" %}
 {% block head %}
 <link rel="stylesheet" href="style/note.css">
+<link rel="stylesheet" href="style/form.css">
 {% endblock %}
 {% block content %}
 <h2>admin</h2>
@@ -14,5 +15,41 @@
 		<a href="admin?state=closed">Closed</a><br>
 		<a href="admin?state=maintenance">Maintenance</a>
 	</p>
+</section>
+<section>
+	<h3>Location</h3>
+	{% for location in locations %}
+	<article>
+		<h4>{{location.name}}</h4>
+		<p>{{location.key}}</p>
+		<p>{{location.lore}}</p>
+	</article>
+	{% endfor %}
+	<form action="admin/add/location" method="post">
+		<label>名前<input type="text" name="name"></label>
+		<label>キー<input type="text" name="key"></label>
+		<label>説明<input type="text" name="lore"></label>
+		<button type="submit">追加</button>
+	</form>
+</section>
+<section>
+	<h3>Item</h3>
+	{% for item in items %}
+	<article>
+		<h4>{{item.id}}: {{item.name}}</h4>
+		<p>{{item.location}}</p>
+		<p>{{item.lore}}</p>
+		<p>{{item.message}}</p>
+		<input type="checkbox" {% if item.direct %}checked{% endif %}>
+	</article>
+	{% endfor %}
+	<form action="admin/add/item" method="post">
+		<label>名前<input type="text" name="name"></label>
+		<label>場所<input type="text" name="location"></label>
+		<label>説明<input type="text" name="lore"></label>
+		<label>使用<input type="text" name="message"></label>
+		<label><input type="checkbox" name="direct">直接使用</label>
+		<button type="submit">追加</button>
+	</form>
 </section>
 {% endblock %}

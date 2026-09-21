@@ -107,12 +107,16 @@ if (form) {
 		// 使用準備
 		items.querySelectorAll<HTMLButtonElement>('[name="message"]').forEach((e) => {
 			e.addEventListener('click', () => {
+				if (!e.value) {
+					toast.warn('使用時テキストがありません（未実装）');
+					return;
+				}
 				form_body.value = `${form_body.value}${e.value}`;
 				form_body.focus();
 				form_body.setSelectionRange(form_body.value.length, form_body.value.length);
 				form_body.dispatchEvent(new Event('input'));
 				form_body.dispatchEvent(new Event('change'));
-				toast.info('アイテム使用時のメッセージを読み込みました');
+				toast.info('使用時テキストを読み込みました');
 			});
 		});
 		// 使用

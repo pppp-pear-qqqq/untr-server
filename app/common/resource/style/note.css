@@ -4,7 +4,6 @@ form,
 details {
 	/*border-bottom: 1px solid var(--border-color);*/
 
-	h1,
 	h2,
 	h3,
 	h4,
@@ -18,7 +17,7 @@ details {
 		&::after {
 			content: "";
 			height: 0;
-			border-top: 1px solid var(--border-color);
+			border-top: 1px var(--border-color);
 		}
 		&::before {
 			width: 1em;
@@ -32,6 +31,21 @@ details {
 			font-size: 1rem;
 			font-weight: normal;
 			padding-top: 0.1lh;
+		}
+	}
+	h2,
+	h3 {
+		&::before,
+		&::after {
+			border-top-style: solid;
+		}
+	}
+	h4,
+	h5,
+	h6 {
+		&::before,
+		&::after {
+			border-top-style: dashed;
 		}
 	}
 

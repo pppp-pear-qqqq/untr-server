@@ -37,7 +37,7 @@
 			<div class="item">
 				<span class="name">{{item.name}}</span>
 				{% if actor %}
-				{% if item.message %}
+				{% if item.message is string %}
 				<button type="button" name="message" value="{{item.message}}">使用準備</button>
 				{% else %}
 				<button type="submit" name="id" value="{{item.id}}">使用</button>

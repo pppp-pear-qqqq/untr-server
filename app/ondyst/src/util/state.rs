@@ -55,7 +55,7 @@ impl State {
 	pub fn only_active(&self) -> Result<(), actix_web::Error> {
 		match self {
 			State::Active => Ok(()),
-			State::Prepare | State::Register => Err(actix_web::error::ErrorServiceUnavailable("準備中です。開催までお待ちください")),
+			State::Prepare | State::Register => Err(actix_web::error::ErrorForbidden("準備中です。開催までお待ちください")),
 			State::Closed => Err(actix_web::error::ErrorGone("当サイトの運営は終了しました")),
 			_ => unreachable!(),
 		}
@@ -63,7 +63,7 @@ impl State {
 	pub fn only_open(&self) -> Result<(), actix_web::Error> {
 		match self {
 			State::Register | State::Active => Ok(()),
-			State::Prepare => Err(actix_web::error::ErrorServiceUnavailable("準備中です。開催までお待ちください")),
+			State::Prepare => Err(actix_web::error::ErrorForbidden("準備中です。開催までお待ちください")),
 			State::Closed => Err(actix_web::error::ErrorGone("当サイトの運営は終了しました")),
 			_ => unreachable!(),
 		}

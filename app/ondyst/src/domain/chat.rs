@@ -20,6 +20,7 @@ pub struct Chat {
 }
 
 pub struct Search {
+	id: Option<i64>,
 	location: Option<Vec<String>>,
 	actor: Option<Vec<i64>>,
 	body: Option<String>,
@@ -40,6 +41,7 @@ pub enum SearchLevel {
 impl Search {
 	pub fn new(location: Option<Vec<&str>>, actor: Option<Vec<i64>>, body: Option<&str>, level: SearchLevel, force: bool) -> Self {
 		Self {
+			id: None,
 			location: location.map(|l| l.into_iter().map(|s| s.to_string()).collect()),
 			actor,
 			body: body.map(|s| s.to_string()),
@@ -47,6 +49,17 @@ impl Search {
 			force,
 		}
 	}
+
+	// pub fn from_id(id: i64) -> Self {
+	// 	Self {
+	// 		id: Some(id),
+	// 		location: None,
+	// 		actor: None,
+	// 		body: None,
+	// 		level: SearchLevel::default(),
+	// 		force: false,
+	// 	}
+	// }
 }
 impl TryFrom<Get> for Search {
 	type Error = std::num::ParseIntError;
@@ -58,6 +71,7 @@ impl TryFrom<Get> for Search {
 			None
 		};
 		Ok(Self {
+			id: info.id,
 			location,
 			actor,
 			body: info.body.as_deref().map(|s| s.to_string()),
@@ -74,74 +88,79 @@ pub async fn get_chat(info: Search, page: Pagination<20, 100>, pool: &Pool) -> R
 
 	let mut builder = sqlx::QueryBuilder::new("SELECT c.id,c.timestamp,c.actor,c.name,c.icon,c.body,c.location,l.name FROM chat c LEFT JOIN location l ON c.location=l.key WHERE 1=1");
 
-	if let Some(location) = &info.location {
-		if !location.is_empty() {
-			builder.push(" AND c.location IN(");
-			let mut sep = builder.separated(',');
-			for l in location {
-				sep.push_bind(l);
+	if let Some(id) = info.id {
+		builder.push(" AND c.id=");
+		builder.push_bind(id);
+	} else {
+		if let Some(location) = &info.location {
+			if !location.is_empty() {
+				builder.push(" AND c.location IN(");
+				let mut sep = builder.separated(',');
+				for l in location {
+					sep.push_bind(l);
+				}
+				builder.push(")");
 			}
-			builder.push(")");
+		} else if !info.force {
+			builder.push(" AND l.name IS NOT NULL");
 		}
-	} else if !info.force {
-		builder.push(" AND l.name IS NOT NULL");
-	}
-	if let Some(actor) = &info.actor {
-		if !actor.is_empty() {
-			builder.push(" AND (");
-			match info.level {
-				SearchLevel::Standalone => {
-					// 対象が発した発言 ＆ 誰への返信でもない
-					builder.push("c.actor IN(");
-					let mut sep = builder.separated(',');
-					for a in actor {
-						sep.push_bind(a);
+		if let Some(actor) = &info.actor {
+			if !actor.is_empty() {
+				builder.push(" AND (");
+				match info.level {
+					SearchLevel::Standalone => {
+						// 対象が発した発言 ＆ 誰への返信でもない
+						builder.push("c.actor IN(");
+						let mut sep = builder.separated(',');
+						for a in actor {
+							sep.push_bind(a);
+						}
+						builder.push(") AND NOT EXISTS (SELECT 1 FROM chat_anchor ca WHERE ca.source=c.id) AND NOT EXISTS (SELECT 1 FROM chat_mention cm WHERE cm.source=c.id)");
 					}
-					builder.push(") AND NOT EXISTS (SELECT 1 FROM chat_anchor ca WHERE ca.source=c.id) AND NOT EXISTS (SELECT 1 FROM chat_mention cm WHERE cm.source=c.id)");
+					SearchLevel::WithReplies => {
+						// 対象が発した発言 (返信を含む)
+						builder.push("c.actor IN(");
+						let mut sep = builder.separated(',');
+						for a in actor {
+							sep.push_bind(a);
+						}
+						builder.push(")");
+					}
+					SearchLevel::Conversation => {
+						// 対象の発言 OR 対象宛のメンション OR 対象の発言への返信
+						builder.push("c.actor IN(");
+						let mut sep = builder.separated(',');
+						for a in actor {
+							sep.push_bind(a);
+						}
+						builder.push(") OR EXISTS (SELECT 1 FROM chat_mention cm WHERE cm.source=c.id AND cm.target IN(");
+						let mut sep = builder.separated(',');
+						for a in actor {
+							sep.push_bind(a);
+						}
+						builder.push(")) OR EXISTS (SELECT 1 FROM chat_anchor ca JOIN chat tc ON ca.target=tc.id WHERE ca.source=c.id AND tc.actor IN(");
+						let mut sep = builder.separated(',');
+						for a in actor {
+							sep.push_bind(a);
+						}
+						builder.push("))");
+					}
 				}
-				SearchLevel::WithReplies => {
-					// 対象が発した発言 (返信を含む)
-					builder.push("c.actor IN(");
-					let mut sep = builder.separated(',');
-					for a in actor {
-						sep.push_bind(a);
-					}
-					builder.push(")");
-				}
-				SearchLevel::Conversation => {
-					// 対象の発言 OR 対象宛のメンション OR 対象の発言への返信
-					builder.push("c.actor IN(");
-					let mut sep = builder.separated(',');
-					for a in actor {
-						sep.push_bind(a);
-					}
-					builder.push(") OR EXISTS (SELECT 1 FROM chat_mention cm WHERE cm.source=c.id AND cm.target IN(");
-					let mut sep = builder.separated(',');
-					for a in actor {
-						sep.push_bind(a);
-					}
-					builder.push(")) OR EXISTS (SELECT 1 FROM chat_anchor ca JOIN chat tc ON ca.target=tc.id WHERE ca.source=c.id AND tc.actor IN(");
-					let mut sep = builder.separated(',');
-					for a in actor {
-						sep.push_bind(a);
-					}
-					builder.push("))");
-				}
+				builder.push(")");
 			}
-			builder.push(")");
 		}
-	}
-	if let Some(body) = &info.body {
-		if !body.is_empty() {
-			builder.push(" AND c.body LIKE ");
-			builder.push_bind(format!("%{}%", body));
+		if let Some(body) = &info.body {
+			if !body.is_empty() {
+				builder.push(" AND c.body LIKE ");
+				builder.push_bind(format!("%{}%", body));
+			}
 		}
+		builder.push(" ORDER BY c.id DESC");
+		builder.push(" LIMIT ");
+		builder.push_bind(page.limit as i64);
+		builder.push(" OFFSET ");
+		builder.push_bind(page.offset as i64);
 	}
-	builder.push(" ORDER BY c.id DESC");
-	builder.push(" LIMIT ");
-	builder.push_bind(page.limit as i64);
-	builder.push(" OFFSET ");
-	builder.push_bind(page.offset as i64);
 
 	let result = builder.build().fetch_all(pool).await?;
 	Ok(result
@@ -164,6 +183,7 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 
 #[derive(serde::Deserialize)]
 pub struct Get {
+	id: Option<i64>,
 	location: Option<String>,
 	actor: Option<String>,
 	body: Option<String>,
@@ -271,9 +291,13 @@ async fn post_chat(web::Form(info): web::Form<Post>, id: Identity, state: StateH
 
 		// webhook通知
 		let preview = raw_body.char_indices().nth(48).map(|(idx, _)| &raw_body[..idx]).unwrap_or(&raw_body);
-		let webhook = Webhook::new(format!("{}\n\n{}", preview, APP_URL)).username(format!("{} (one day's' talk)", info.name)).avatar_url(info.icon);
+		let webhook = Webhook::new(format!("{}\n\n{}", preview, APP_URL))
+			.username(format!("{} (one day's' talk)", info.name))
+			.avatar_url(info.icon)
+			.target(pool, targets)
+			.await?;
 		tokio::spawn(async move {
-			if let Err(err) = webhook.send(targets).await {
+			if let Err(err) = webhook.send().await {
 				error!("{:?}", err);
 			}
 		});

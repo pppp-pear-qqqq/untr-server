@@ -27,6 +27,7 @@ impl Content {
 }
 impl Webhook {
 	pub async fn send(self, pool: &Pool) -> Result<(), sqlx::Error> {
+		debug!("webhook send: target={:?}", self.target);
 		if self.target.is_empty() {
 			return Ok(());
 		}

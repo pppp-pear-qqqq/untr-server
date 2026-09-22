@@ -19,10 +19,12 @@ const form = document.querySelector<HTMLFormElement>('#post form');
 const page = new Pagination({ size: size, limit_default: 20, limit_max: 100 });
 page.callback = (list: any[]) => {
 	reload.classList.remove('active');
+	through = false;
 	const fragment = document.createDocumentFragment();
 	list.forEach((item: any) => {
 		const node = template.content.cloneNode(true) as DocumentFragment;
 		(node.firstElementChild as HTMLElement).dataset.id = item.id;
+		node.querySelector('.chat_id')!.textContent += item.id;
 		const icon = node.querySelector<HTMLAnchorElement>('.icon')!;
 		icon.href = `actor/${item.actor}`;
 		if (item.icon) (icon.firstElementChild as HTMLImageElement).src = item.icon;
@@ -56,6 +58,7 @@ function setting_reply_buttons() {
 
 // サーバーとのストリーム接続
 const stream_option = localStorage.getItem('stream');
+let through = false
 if (stream_option && stream_option !== 'off') {
 	var stream = new Stream(`/location/${key}/stream`);
 	console.log('stream接続開始');
@@ -66,7 +69,8 @@ if (stream_option && stream_option !== 'off') {
 		}; break;
 		case 'notice': stream.onmessage = function () {
 			console.log('update');
-			stream.ignore(0);
+			if (through) return;
+			through = true;
 			reload.classList.add('active');
 			toast.info('新しい発言があります');
 		}; break;

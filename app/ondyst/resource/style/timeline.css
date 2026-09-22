@@ -69,6 +69,13 @@
 		height: 1rlh;
 		margin-bottom: -2px;
 		gap: 0.5em;
+
+		span,
+		a,
+		time {
+			font-size: 0.8rem;
+			color: var(--border-color);
+		}
 	}
 
 	* {
@@ -76,10 +83,5 @@
 	}
 	button {
 		border: none;
-	}
-	.location,
-	time {
-		font-size: 0.8rem;
-		color: var(--border-color);
 	}
 }

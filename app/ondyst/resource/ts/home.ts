@@ -57,6 +57,7 @@ async function reload(key: 'actor' | string, quiet: boolean = false) {
 		ret.forEach((item: any) => {
 			const node = template.content.cloneNode(true) as DocumentFragment;
 			(node.firstElementChild as HTMLElement).dataset.id = item.id;
+			node.querySelector('.chat_id')!.textContent += item.id;
 			if (item.icon) node.querySelector<HTMLImageElement>('.icon>img')!.src = item.icon;
 			node.querySelector('.name')!.textContent = item.name;
 			node.querySelector('.id')!.textContent += item.actor;

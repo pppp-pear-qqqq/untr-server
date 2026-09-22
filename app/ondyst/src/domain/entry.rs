@@ -33,7 +33,10 @@ async fn register(web::Form(info): web::Form<Auth>, session: Session, state: Sta
 	let handout = crate::util::get_handout()?.choose(&mut rand::rng()).cloned().ok_or(std::io::Error::other("no handout"))?;
 
 	let pool = pool.as_ref();
-	let actor_id = match sqlx::query_scalar!("INSERT INTO actor(user,name,ho_title,ho_body) VALUES(?,?,?,?) RETURNING id", user, name, handout.title, handout.body).fetch_one(pool).await {
+	let actor_id = match sqlx::query_scalar!("INSERT INTO actor(user,name,ho_title,ho_body) VALUES(?,?,?,?) RETURNING id", user, name, handout.title, handout.body)
+		.fetch_one(pool)
+		.await
+	{
 		Ok(r) => r,
 		Err(sqlx::Error::Database(err)) if err.is_unique_violation() => return Err(ErrorBadRequest("あなたは既にキャラクターを登録しています").into()),
 		Err(err) => return Err(err.into()),
@@ -50,13 +53,21 @@ async fn login(web::Form(info): web::Form<Auth>, session: Session, _: StateHandl
 	let user = user.to_bytes_le().to_vec();
 
 	let pool = pool.as_ref();
-	let id = sqlx::query_scalar!("SELECT id FROM actor WHERE user=?", user).fetch_optional(pool).await?.ok_or(ErrorUnauthorized("idが違う、またはキャラクターを未登録です"))?;
+	let id = sqlx::query_scalar!("SELECT id FROM actor WHERE user=?", user)
+		.fetch_optional(pool)
+		.await?
+		.ok_or(ErrorUnauthorized("idが違う、またはキャラクターを未登録です"))?;
 	Identity::set(&session, id)?;
 	Ok(HttpResponse::Ok().content_type(header::ContentType::plaintext()).body(id.to_string()))
 }
 
 async fn auth(code: String) -> common::Result<Uuid> {
-	let res = client().post(if cfg!(debug_assertions) { "http://portal:8000/auth" } else { "http://localhost:8000/auth" }).json(&Auth { code }).send().await.and_then(|r| r.error_for_status())?;
+	let res = client()
+		.post(if cfg!(debug_assertions) { "http://portal:8000/auth" } else { "http://127.0.0.1:8000/auth" })
+		.json(&Auth { code })
+		.send()
+		.await
+		.and_then(|r| r.error_for_status())?;
 	let user_id = res.text().await?;
 	Ok(Uuid::from_str(&user_id)?)
 }

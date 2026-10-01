@@ -47,7 +47,7 @@ async fn main() -> Result<(), io::Error> {
 			.wrap(middleware::NormalizePath::trim())
 			.wrap(session)
 			.wrap(middleware::from_fn(common::mw_err_format::<util::Page>))
-			.default_service(web::to(|| HttpResponse::NotFound()))
+			.default_service(web::to(HttpResponse::NotFound))
 			.app_data(app_data.state)
 			.app_data(app_data.pool)
 			.app_data(app_data.tera)

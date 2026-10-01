@@ -3,6 +3,9 @@ name = "file-serve"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+test = []
+
 [dependencies]
 actix-files.workspace = true
 actix-session.workspace = true
@@ -12,6 +15,7 @@ base64.workspace = true
 chrono.workspace = true
 dashmap = { version = "6.2.1", features = ["serde"] }
 deoxys = "0.2.1"
+env_logger.workspace = true
 fxhash.workspace = true
 log.workspace = true
 rand.workspace = true

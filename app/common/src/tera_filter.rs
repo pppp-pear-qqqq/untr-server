@@ -1,25 +1,20 @@
-use std::collections::HashMap;
-
 use chrono::TimeZone;
 
 use crate::html_encode::*;
 
-pub fn html<T: TagFormat>(value: &tera::Value, args: &HashMap<String, tera::Value>) -> tera::Result<tera::Value> {
-	let input = value.as_str().ok_or(tera::Error::msg("html filter can only be applied to strings"))?;
-	let tag_format = T::from_args(args);
-	let link = args.get("link").and_then(|v| v.as_bool()).unwrap_or(false);
+pub fn html<T: TagFormat>(value: String, kwargs: tera::Kwargs, _state: &tera::State) -> tera::TeraResult<String> {
+	let link = kwargs.get("link")?.unwrap_or(false);
+	let tag_format = T::from_args(&kwargs);
 
-	Ok(tera::Value::String(input.to_html(&tag_format, link)))
+	Ok(value.to_html(&tag_format, link))
 }
 
-pub fn make_timestamp_filter<T: TimeZone + Send + Sync + 'static>(tz: T) -> impl tera::Filter
+pub fn make_timestamp_filter<T: TimeZone + Send + Sync + 'static>(tz: T) -> impl tera::Filter<i64, tera::TeraResult<String>>
 where
 	T::Offset: std::fmt::Display,
 {
-	move |value: &tera::Value, _args: &HashMap<String, tera::Value>| -> tera::Result<tera::Value> {
-		let timestamp = value.as_i64().ok_or_else(|| tera::Error::msg("timestamp filter can only be applied to integers"))?;
-		let dt = chrono::DateTime::from_timestamp_secs(timestamp).ok_or(tera::Error::msg("invalid timestamp value"))?.with_timezone(&tz);
-		let formatted = dt.format("%Y-%m-%d %H:%M:%S").to_string();
-		Ok(tera::Value::String(formatted))
+	move |timestamp: i64, _kwargs: tera::Kwargs, _state: &tera::State| -> tera::TeraResult<String> {
+		let dt = chrono::DateTime::from_timestamp_secs(timestamp).ok_or_else(|| tera::Error::message("invalid timestamp value"))?.with_timezone(&tz);
+		Ok(dt.format("%Y-%m-%d %H:%M:%S").to_string())
 	}
 }

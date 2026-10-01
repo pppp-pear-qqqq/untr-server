@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use common::{HTMLEncode, Tag, TagFormat};
 use log::debug;
 use rand::seq::IndexedRandom as _;
@@ -8,7 +6,7 @@ use rand::seq::IndexedRandom as _;
 pub struct Common;
 
 impl TagFormat for Common {
-	fn from_args(_args: &HashMap<String, tera::Value>) -> Self {
+	fn from_args(_args: &tera::Kwargs) -> Self {
 		Self
 	}
 

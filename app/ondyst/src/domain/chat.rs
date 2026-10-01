@@ -248,7 +248,7 @@ async fn post_chat(web::Form(info): web::Form<Post>, id: Identity, state: StateH
 	// メンション
 	let mentions = if !mentions.is_empty() {
 		let json = serde_json::to_string(&mentions).unwrap();
-		sqlx::query_scalar!("INSERT OR IGNORE INTO chat_mention(source,target) SELECT ?,actor.id FROM json_each(?) JOIN actor ON actor.id=value RETURNING target", chat_id, json)
+		sqlx::query_scalar!("INSERT OR IGNORE INTO chat_mention(source,target) SELECT ?,actor.id FROM json_each(?) JOIN actor ON actor.id=value RETURNING target 'v!'", chat_id, json)
 			.fetch_all(&mut *tx)
 			.await?
 	} else {
@@ -257,7 +257,7 @@ async fn post_chat(web::Form(info): web::Form<Post>, id: Identity, state: StateH
 	// アンカー
 	let anchors = if !anchors.is_empty() {
 		let json = serde_json::to_string(&anchors).unwrap();
-		sqlx::query_scalar!("INSERT OR IGNORE INTO chat_anchor(source,target) SELECT ?,chat.id FROM json_each(?) JOIN chat ON chat.id=value RETURNING target", chat_id, json)
+		sqlx::query_scalar!("INSERT OR IGNORE INTO chat_anchor(source,target) SELECT ?,chat.id FROM json_each(?) JOIN chat ON chat.id=value RETURNING target 'v!'", chat_id, json)
 			.fetch_all(&mut *tx)
 			.await?
 	} else {
@@ -291,11 +291,7 @@ async fn post_chat(web::Form(info): web::Form<Post>, id: Identity, state: StateH
 
 		// webhook通知
 		let preview = raw_body.char_indices().nth(48).map(|(idx, _)| &raw_body[..idx]).unwrap_or(&raw_body);
-		let webhook = Webhook::new(format!("{}\n\n{}", preview, APP_URL))
-			.username(format!("{} (one day's' talk)", info.name))
-			.avatar_url(info.icon)
-			.target(pool, targets)
-			.await?;
+		let webhook = Webhook::new(format!("{}\n\n{}", preview, APP_URL)).username(format!("{} (one day's' talk)", info.name)).avatar_url(info.icon).target(pool, targets).await?;
 		tokio::spawn(async move {
 			if let Err(err) = webhook.send().await {
 				error!("{:?}", err);

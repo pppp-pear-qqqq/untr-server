@@ -1,10 +1,7 @@
 use std::fs;
 
 use actix_session::Session;
-use argon2::{
-	Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
-	password_hash::{SaltString, rand_core::OsRng},
-};
+use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
 
 use super::*;
 
@@ -61,7 +58,7 @@ async fn register(web::Form(info): web::Form<Login>, session: Session, state: St
 	info.validate()?;
 	let id = Uuid::new_v4();
 	let id = id.as_bytes().as_slice();
-	let hashed = Argon2::default().hash_password(info.password.as_bytes(), &SaltString::generate(&mut OsRng))?.to_string();
+	let hashed = Argon2::default().hash_password(info.password.as_bytes())?.to_string();
 	let mutes = rkyv::to_bytes::<rkyv::rancor::Error>(&Vec::<String>::new())?;
 	let mutes = mutes.as_slice();
 

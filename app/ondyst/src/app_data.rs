@@ -3,14 +3,14 @@ use std::sync::RwLock;
 use actix_web::{cookie, web};
 use base64::prelude::*;
 use fxhash::FxHashMap as HashMap;
-use log::{error, info};
+use log::info;
 pub use sqlx::SqlitePool as Pool;
 pub use tera::Tera;
 use tokio::sync::broadcast;
 
 pub type ChannelMap = RwLock<HashMap<String, broadcast::Sender<()>>>;
 
-use crate::util::{self, State, StateHandle, tag_parse as tag};
+use crate::util::{State, StateHandle, tag_parse as tag};
 
 // 定数
 pub const STATE: &str = "STATE";
@@ -53,20 +53,11 @@ impl AppData {
 			Err(err) => panic!("{}", err),
 		};
 		// teraコア生成
-		info!("Tera: {}", util::resource("template/*.html"));
-		let tera = match Tera::new(&util::resource("template/*.html")) {
-			Ok(mut t) => {
-				t.register_filter("html", common::tera::html::<tag::Ondyst>);
-
-				let jst = chrono::FixedOffset::east_opt(9 * 3600).unwrap();
-				t.register_filter("time", common::tera::make_timestamp_filter(jst));
-				t
-			}
-			Err(e) => {
-				error!("Parsing error(s): {}", e);
-				std::process::exit(1);
-			}
-		};
+		let mut tera = Tera::default();
+		// 手動でglobとかしてテンプレートファイルの一覧を取得するらしい　対応面倒なのでちょっと置き
+		// tera.add_template_files(&util::resource("template/*.html"));
+		tera.register_filter("html", common::tera::html::<tag::Ondyst>);
+		tera.register_filter("time", common::tera::make_timestamp_filter(chrono::Local));
 		// チャンネル生成
 		let channels = RwLock::new(HashMap::default());
 

@@ -1,7 +1,6 @@
-mod account;
 mod admin;
+mod control;
 mod delivery;
-mod upload;
 
 use actix_web::{HttpResponse, Responder, error::*, http::header, web};
 use common::{PageRender, Pagination, ReqType};
@@ -18,9 +17,10 @@ pub fn make_cfg(admin_key: String) -> std::io::Result<impl FnOnce(&mut web::Serv
 
 	Ok(|cfg: &mut web::ServiceConfig| {
 		cfg.route("/", web::get().to(index));
-		cfg.service(web::scope("u/{username}").route("", web::to(upload::home)).route("{path}", web::get().to(delivery::plane)));
-		cfg.service(web::scope("b").route("{encoded}", web::get().to(delivery::b64)));
-		cfg.service(web::scope("e").route("{encoded}", web::get().to(delivery::encrypt)));
+		cfg.service(web::scope("control").configure(control::cfg));
+		cfg.route("u/{username}/{path:.+}", web::get().to(delivery::plane));
+		cfg.route("b/{encoded}", web::get().to(delivery::b64));
+		cfg.route("e/{encoded}", web::get().to(delivery::encrypt));
 		cfg.service(web::scope("admin").wrap(common::AdminGuardMiddleware(admin_key)).configure(admin::cfg));
 	})
 }

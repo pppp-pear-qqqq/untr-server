@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ja">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width">
+		<title>ろだ(仮名)</title>
+	</head>
+	<body>
+		<main>
+			<h1>ろだ(仮名)</h1>
+			<article>
+				<h2>画像の登録</h2>
+				<form>
+					<input type="file" name="file" multiple>
+				</form>
+				<details>
+					<summary>詳細設定</summary>
+					<form>
+						<input type="text" name="path">
+						<template>
+							<label class="dest">
+								アクセスタイプ
+								<select name="type">
+									<option value="none" selected>----</option>
+									<option>document</option>
+									<option>image</option>
+									<option>style</option>
+									<option>script</option>
+									<option>empty</option>
+									<option value="none">----</option>
+									<option>audio</option>
+									<option>audioworklet</option>
+									<option>embed</option>
+									<option>fencedframe</option>
+									<option>font</option>
+									<option>frame</option>
+									<option>iframe</option>
+									<option>manifest</option>
+									<option>object</option>
+									<option>paintworklet</option>
+									<option>report</option>
+									<option>serviceworker</option>
+									<option>sharedworker</option>
+									<option>track</option>
+									<option>video</option>
+									<option>webidentity</option>
+									<option>worker</option>
+									<option>xslt</option>
+								</select>
+							</label>
+							<div class="file">
+								<label>ファイルid<input type="text" name="key"></label>
+								<label>
+									ファイルタイプ
+									<select name="content_type">
+										<option value="none" selected>----</option>
+										<option>text/plain</option>
+										<option>text/html</option>
+										<option>text/css</option>
+										<option>text/javascript</option>
+										<option>application/json</option>
+										<option>application/xml</option>
+										<option>image/png</option>
+										<option>image/jpeg</option>
+										<option>image/gif</option>
+										<option>audio/mpeg</option>
+										<option>audio/ogg</option>
+										<option>video/mp4</option>
+										<option>video/webm</option>
+										<option value="other">その他</option>
+									</select>
+									<input type="text" name="content_type" hidden>
+								</label>
+								<label hidden>重み<input type="number" name="weight"></label>
+							</div>
+							<div class="font_render">
+								<label>フォントファイルid<input type="text" name="key"></label>
+								<label>文字幅<input type="number" name="weight"></label>
+								<label>文字高<input type="number" name="height"></label>
+								<label>1行あたりの文字数<input type="number" name="line_length"></label>
+							</div>
+						</template>
+					</form>
+				</details>
+			</article>
+			<article>
+				<h2>登録した画像</h2>
+				<div>
+					<template>
+						<div class="file image" data-key>
+							<span class="key"></span>
+							<img class="content" src>
+							<div class="path">
+							</div>
+						</div>
+						<div class="file other" data-key>
+							<span class="key"></span>
+							<ic class="content"></ic>
+							<div class="path">
+							</div>
+						</div>
+					</template>
+				</div>
+			</article>
+			<article>
+				<h2>設定したパス</h2>
+				<div>
+					<template>
+						<div class="path"></div>
+					</template>
+				</div>
+			</article>
+		</main>
+	</body>
+</html>

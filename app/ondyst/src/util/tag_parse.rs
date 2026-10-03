@@ -7,7 +7,7 @@ pub struct Ondyst;
 
 impl TagFormat for Ondyst {
 	#[cfg(not(target_arch = "wasm32"))]
-	fn from_args(_args: &std::collections::HashMap<String, tera::Value>) -> Self {
+	fn from_args(_args: &tera::Kwargs) -> Self {
 		Self
 	}
 

@@ -8,11 +8,11 @@ pub trait PageRender
 where
 	Self: serde::Serialize,
 {
-	fn ctx(&self) -> tera::Result<Context> {
+	fn ctx(&self) -> tera::TeraResult<Context> {
 		Context::from_serialize(self)
 	}
 
-	fn render(&self, tmpl_name: &str, engine: &Tera) -> tera::Result<Vec<u8>> {
+	fn render(&self, tmpl_name: &str, engine: &Tera) -> tera::TeraResult<Vec<u8>> {
 		let cfg = MINIFY_CFG.get_or_init(|| {
 			let mut cfg = minify_html::Cfg::new();
 			cfg.minify_css = true;
@@ -23,7 +23,7 @@ where
 		Ok(minify_html::minify(body.as_bytes(), cfg))
 	}
 
-	fn render_with_ctx(&self, tmpl_name: &str, engine: &Tera, mut ctx: Context) -> tera::Result<Vec<u8>> {
+	fn render_with_ctx(&self, tmpl_name: &str, engine: &Tera, mut ctx: Context) -> tera::TeraResult<Vec<u8>> {
 		let cfg = MINIFY_CFG.get_or_init(|| {
 			let mut cfg = minify_html::Cfg::new();
 			cfg.minify_css = true;

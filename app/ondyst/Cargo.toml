@@ -36,7 +36,7 @@ validator.workspace = true
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom_0_2 = { package = "getrandom", version = "0.2", features = ["js"] }
 getrandom_0_4 = { package = "getrandom", version = "0.4", features = ["wasm_js"] }
-wasm-bindgen = "0.2.128"
+wasm-bindgen = "0.2.129"
 
 [dependencies]
 common.workspace = true

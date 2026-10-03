@@ -6,7 +6,7 @@ pub trait TagFormat {
 	const START: u8 = b'[';
 
 	#[cfg(not(target_arch = "wasm32"))]
-	fn from_args(args: &std::collections::HashMap<String, tera::Value>) -> Self;
+	fn from_args(args: &tera::Kwargs) -> Self;
 
 	fn parse<'a>(&self, text: &'a str) -> Option<Tag<'a>> {
 		if text.as_bytes().first() != Some(&Self::START) {

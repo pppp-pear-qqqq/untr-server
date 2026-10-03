@@ -15,10 +15,11 @@ main {
 
 #timeline {
 	width: 30rem;
+	display: flex;
+	flex-direction: column;
 
 	> .tab-bar {
-		position: sticky;
-		top: 0;
+		flex-shrink: 0;
 		display: flex;
 		min-inline-size: auto;
 		padding: 0 2rem;
@@ -93,6 +94,7 @@ main {
 
 #chat_list {
 	margin: 0.4rlh 0;
+	flex-grow: 1;
 }
 
 main nav {

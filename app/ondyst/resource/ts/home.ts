@@ -58,6 +58,7 @@ async function reload(key: 'actor' | string, quiet: boolean = false) {
 			const node = template.content.cloneNode(true) as DocumentFragment;
 			(node.firstElementChild as HTMLElement).dataset.id = item.id;
 			node.querySelector('.chat_id')!.textContent += item.id;
+			node.querySelector<HTMLAnchorElement>('.icon')!.href = `actor/${item.actor}`;
 			if (item.icon) node.querySelector<HTMLImageElement>('.icon>img')!.src = item.icon;
 			node.querySelector('.name')!.textContent = item.name;
 			node.querySelector('.id')!.textContent += item.actor;
@@ -69,7 +70,7 @@ async function reload(key: 'actor' | string, quiet: boolean = false) {
 			fragment.insertBefore(node, fragment.firstChild);
 		});
 		container.replaceChildren(fragment);
-		container.scroll({ top: container.scrollHeight, behavior: 'smooth' });
+		requestAnimationFrame(() => requestAnimationFrame(() => container.scroll({ top: container.scrollHeight, behavior: 'smooth' })));
 	} catch (err: any) {
 		toast.error(err.message);
 	}

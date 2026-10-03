@@ -59,7 +59,9 @@ async fn location(key: web::Path<String>, page: Pagination<20, 100>, req_type: R
 		}))),
 		_ => {
 			let location = sqlx::query_as!(Location, "SELECT name,lore FROM location WHERE key=?", key).fetch_optional(pool).await?;
-			let item_list = sqlx::query_as!(Item, "SELECT id,name,lore,CASE WHEN direct THEN NULL ELSE message END \"message: _\" FROM item WHERE location=?", key).fetch_all(pool).await?;
+			let item_list = sqlx::query_as!(Item, "SELECT id,name,lore,CASE WHEN direct THEN NULL ELSE message END \"message: _\" FROM item WHERE location=?", key)
+				.fetch_all(pool)
+				.await?;
 			let mut ctx = tera::Context::new();
 			if let Some(id) = &id {
 				let icon_list = sqlx::query_scalar!("SELECT icon_list FROM actor WHERE id=?", **id).fetch_one(pool).await?;
@@ -89,12 +91,18 @@ async fn item(web::Form(info): web::Form<PostItem>, id: Identity, state: StateHa
 	info.validate()?;
 
 	let pool = pool.as_ref();
+
+	let message = match sqlx::query!("SELECT message FROM item WHERE id=?", info.id).fetch_one(pool).await {
+		Ok(r) => r.message.to_html(&tag::Ondyst, false),
+		Err(sqlx::Error::RowNotFound) => return Err(ErrorBadRequest("アイテムidが違います").into()),
+		Err(err) => return Err(err.into()),
+	};
 	let r = sqlx::query!(
-		"INSERT INTO chat(timestamp,location,actor,name,icon,body) VALUES(?1,?2,?3,(SELECT name FROM actor WHERE id=?3),(SELECT icon FROM actor WHERE id=?3),(SELECT message FROM item WHERE id=?4))",
+		"INSERT INTO chat(timestamp,location,actor,name,icon,body) VALUES(?1,?2,?3,(SELECT name FROM actor WHERE id=?3),(SELECT icon FROM actor WHERE id=?3),?4)",
 		timestamp,
 		info.location,
 		*id,
-		info.id
+		message
 	)
 	.execute(pool)
 	.await;
@@ -102,12 +110,11 @@ async fn item(web::Form(info): web::Form<PostItem>, id: Identity, state: StateHa
 		Ok(_) => {
 			// チャンネル通知
 			if let Some(tx) = channel.read().unwrap().get(&info.location) {
-				debug!("stream send");
 				let _ = tx.send(());
 			}
 			Ok(HttpResponse::NoContent().finish())
 		}
-		Err(sqlx::Error::Database(err)) if err.code().is_some_and(|code| code.contains("NOT NULL")) => Err(ErrorBadRequest("ログインセッションまたは選択したアイテムidが不正です").into()),
+		Err(sqlx::Error::Database(err)) if err.code().is_some_and(|code| code.contains("NOT NULL")) => Err(ErrorBadRequest("ログインセッションが不正です").into()),
 		Err(err) => Err(err.into()),
 	}
 }

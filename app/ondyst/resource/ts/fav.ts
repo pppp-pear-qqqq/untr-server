@@ -5,19 +5,19 @@ export const key = {
 	location: 'fav/location',
 };
 
-export const fav_actors = new Set<string>(localStorage.getItem(key.actor)?.split(','));
+export const fav_actors = new Set<number>(localStorage.getItem(key.actor)?.split(',').map(Number));
 export const fav_locations = new Map<string, string>(JSON.parse(localStorage.getItem(key.location) ?? '[]'));
 
 document.querySelectorAll<HTMLInputElement>('.fav>input').forEach((e) => {
 	switch (e.name) {
-		case 'actor': e.checked = fav_actors.has(e.value); break;
+		case 'actor': e.checked = fav_actors.has(Number(e.value)); break;
 		case 'location': e.checked = fav_locations.has(e.value); break;
 	}
 	e.addEventListener('change', () => {
 		switch (e.name) {
 			case 'actor':
-				if (e.checked) fav_actors.add(e.value);
-				else fav_actors.delete(e.value);
+				if (e.checked) fav_actors.add(Number(e.value));
+				else fav_actors.delete(Number(e.value));
 				localStorage.setItem(key.actor, [...fav_actors].join(','));
 				break;
 			case 'location':

@@ -93,7 +93,7 @@ if (form) {
 			return;
 		}
 		try {
-			if(stream) stream.ignore(1000);
+			if (stream) stream.ignore(1000);
 			await new Ajax(form).send();
 			force_submit = false;
 			preview.open = false;
@@ -125,9 +125,14 @@ if (form) {
 		});
 		// 使用
 		items.addEventListener('submit', async (ev) => {
+			ev.preventDefault();
+			const form = ev.currentTarget as HTMLFormElement;
+			const data = new FormData(form);
+			const target = ev.submitter as HTMLButtonElement;
+			data.append(target.name, target.value);
+			if (stream) stream.ignore(1000);
 			try {
-				if(stream) stream.ignore(1000);
-				await new Ajax(ev.currentTarget as HTMLFormElement).send();
+				await new Ajax(form.action).post(data, 'form').send();
 				force_submit = false;
 				preview.open = false;
 				form_body.value = '';

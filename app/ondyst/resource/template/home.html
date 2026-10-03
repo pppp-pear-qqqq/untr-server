@@ -5,7 +5,7 @@
 <script type="module" src="script/home.js"></script>
 {% endblock %}
 {% block content %}
-<div id="timeline" class="scroll-y">
+<div id="timeline">
 	<div class="tab-bar">
 		<label class="tab" role="button"><input type="radio" name="tab" value="actor" checked>キャラクター</label>
 	</div>
@@ -24,7 +24,7 @@
 			</footer>
 		</article>
 	</template>
-	<div id="chat_list"></div>
+	<div id="chat_list" class="scroll-y scroll-gb"></div>
 </div>
 <div>
 	<nav>

@@ -1,4 +1,4 @@
-use actix_web::http::header::ContentType;
+use actix_web::mime;
 use dashmap::DashMap;
 use fxhash::FxHashMap as HashMap;
 use uuid::Uuid;
@@ -8,6 +8,7 @@ pub type PathMap = HashMap<String, Setting>;
 pub type Setting = HashMap<Option<FetchDest>, Resource>;
 
 #[allow(non_camel_case_types)]
+#[derive(Debug, PartialEq, Eq, Hash, serde::Deserialize)]
 pub enum FetchDest {
 	audio,
 	audioworklet,
@@ -40,10 +41,10 @@ pub enum FetchDest {
 pub enum Resource {
 	File {
 		key: Uuid,
-		content_type: ContentType,
+		mime: mime::Mime,
 	},
 	RandomFile {
-		items: Vec<(Uuid, ContentType, u32)>, // key,content_type,weight
+		items: Vec<(Uuid, mime::Mime, u32)>, // key,mime,weight
 		cache: bool,
 	},
 	FontRender {

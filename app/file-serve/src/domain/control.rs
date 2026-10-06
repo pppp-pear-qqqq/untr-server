@@ -28,18 +28,25 @@ enum FormConfig {
 	},
 }
 
+// ==========================================
+// ハンドラ群
+// ==========================================
+
 #[derive(MultipartForm)]
 struct Post {
 	files: Vec<TempFile>,
 }
+
 /// ファイルの一括アップロード・リソース設定
 async fn post(MultipartForm(info): MultipartForm<Post>, id: Identity, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
 	let username = users.get_or_load(&*id).await?;
-
 	let mut setting = setting.entry(username).or_default();
 
 	let mut result = String::new();
-	let mut saved = Vec::new();
+	let mut prepared_files = Vec::new();
+	let mut resources_to_insert = Vec::new();
+
+	// バリデーションとファイルの準備（まだ保存しない）
 	for file in info.files {
 		if file.file_name.is_none() {
 			result.push_str("[ERROR] ファイル名を読み込めません\n");
@@ -52,22 +59,24 @@ async fn post(MultipartForm(info): MultipartForm<Post>, id: Identity, setting: w
 			continue;
 		}
 
-		// ファイルの保存処理
-		let (key, mime) = save_file(file)?;
-		saved.push((name, key, mime));
-	}
+		let prepared = PreparedFile::new(file);
 
-	// 1つもファイルが保存されなかった場合のエラーハンドリング
-	if saved.is_empty() {
-		return Err(ErrorBadRequest("ファイルがありません").into());
-	}
-
-	for (name, key, mime) in saved {
-		// デフォルトの設定作成
 		let mut value = util::Setting::default();
-		value.insert(None, util::Resource::File { key, mime });
+		value.insert(None, util::Resource::File { key: prepared.key, mime: prepared.mime.clone() });
 
-		// 更新
+		resources_to_insert.push((name, value));
+		prepared_files.push(prepared);
+	}
+
+	if prepared_files.is_empty() {
+		return Err(ErrorBadRequest("保存できるファイルがありません").into());
+	}
+
+	// ディスクへの一括保存（失敗時は自動ロールバック）
+	commit_files(prepared_files).await?;
+
+	// 全て成功したらマップを更新
+	for (name, value) in resources_to_insert {
 		setting.insert(name, value);
 	}
 
@@ -80,6 +89,7 @@ struct NewPath {
 	files: Vec<TempFile>,
 	config: form::text::Text<FormConfig>,
 }
+
 /// リソースの新規作成
 async fn path_post(path: web::Path<String>, MultipartForm(info): MultipartForm<NewPath>, id: Identity, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
 	let path = path.into_inner();
@@ -88,17 +98,27 @@ async fn path_post(path: web::Path<String>, MultipartForm(info): MultipartForm<N
 
 	let mut setting = setting.entry(username).or_default();
 	let setting = setting.entry(path).or_default();
+
 	if setting.contains_key(&fetch_dest) {
 		return Err(ErrorBadRequest("既に同名・同条件のパスが設定されています").into());
 	}
 
-	let mut saved = Vec::new();
+	// 準備
+	let mut prepared_files = Vec::new();
+	let mut file_infos = Vec::new();
 	for file in info.files {
-		saved.push(save_file(file)?);
+		let prepared = PreparedFile::new(file);
+		file_infos.push((prepared.key, prepared.mime.clone()));
+		prepared_files.push(prepared);
 	}
 
-	let resource = build_resource(info.config.into_inner(), saved)?;
+	// Resource構築（バリデーション）
+	let resource = build_resource(info.config.into_inner(), file_infos)?;
 
+	// 保存・コミット
+	commit_files(prepared_files).await?;
+
+	// マップ更新
 	setting.insert(fetch_dest, resource);
 
 	Ok(HttpResponse::Ok().finish())
@@ -112,17 +132,29 @@ async fn path_put(path: web::Path<String>, MultipartForm(info): MultipartForm<Ne
 
 	let mut setting = setting.entry(username).or_default();
 	let setting = setting.entry(path).or_default();
-	if let Some(cur) = setting.remove(&fetch_dest) {
-		todo!("curを削除（リソース解放）");
-	}
 
-	let mut saved = Vec::new();
+	// 準備とバリデーションを先に行う
+	let mut prepared_files = Vec::new();
+	let mut file_infos = Vec::new();
 	for file in info.files {
-		saved.push(save_file(file)?);
+		let prepared = PreparedFile::new(file);
+		file_infos.push((prepared.key, prepared.mime.clone()));
+		prepared_files.push(prepared);
 	}
 
-	let resource = build_resource(info.config.into_inner(), saved)?;
+	let resource = build_resource(info.config.into_inner(), file_infos)?;
 
+	// 保存・コミット
+	commit_files(prepared_files).await?;
+
+	// コミット成功後、安全に古いリソースを解放・削除
+	if let Some(cur) = setting.remove(&fetch_dest) {
+		for (key, _) in cur.key_and_mimes() {
+			let _ = tokio::fs::remove_file(format!("upload/{}", key)).await;
+		}
+	}
+
+	// 新しい設定を上書き
 	setting.insert(fetch_dest, resource);
 
 	Ok(HttpResponse::Ok().finish())
@@ -137,7 +169,6 @@ struct PathPatch {
 	config: Option<form::text::Text<FormConfig>>,
 }
 /// 既存リソースの設定変更
-// new_pathを指定した場合はfetch_destより上位を対象とするのに対して、add_filesやrem_files,configはfetch_dest以下と役割が異なるので分離すべきか
 async fn path_patch(path: web::Path<String>, MultipartForm(info): MultipartForm<PathPatch>, id: Identity, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
 	let mut path = path.into_inner();
 	let username = users.get_or_load(&*id).await?;
@@ -151,10 +182,7 @@ async fn path_patch(path: web::Path<String>, MultipartForm(info): MultipartForm<
 			return Err(ErrorBadRequest("変更先のパスは既に存在します").into());
 		}
 
-		// 既存の設定を取り出し（古いキーからは削除される）
 		let cur = setting.remove(&path).ok_or_else(|| ErrorNotFound("指定されたパスが存在しません"))?;
-
-		// 新しいパスで設定を保存
 		setting.insert(new_path.clone(), cur);
 		path = new_path;
 	}
@@ -162,36 +190,49 @@ async fn path_patch(path: web::Path<String>, MultipartForm(info): MultipartForm<
 	// # フェッチ先変更
 	let fetch_dest = info.fetch_dest.map(|x| x.into_inner());
 	let setting = setting.entry(path).or_default();
+
 	if let Some(cur) = setting.get_mut(&fetch_dest) {
 		// ## 既存設定の更新
-		// 物理ファイルの削除 (rem_files)
-		let rem_files = info.rem_files.into_iter().map(|k| k.into_inner()).collect::<Vec<_>>();
-		let (rem_files, saved): (Vec<_>, Vec<_>) = cur.key_and_mimes().into_iter().partition(|(key, _)| rem_files.contains(key));
-		for key in rem_files.into_iter().map(|(key, _)| key) {
-			let _ = tokio::fs::remove_file(format!("upload/{}", key)).await; // 失敗しても進行させる
-		}
+		let rem_files: Vec<Uuid> = info.rem_files.into_iter().map(|k| k.into_inner()).collect();
+		let (rem_targets, saved_infos): (Vec<_>, Vec<_>) = cur.key_and_mimes().into_iter().partition(|(key, _)| rem_files.contains(key));
 
-		let mut saved: Vec<_> = saved.into_iter().map(|(key, mime)| (*key, mime.to_owned())).collect();
-		// 新規ファイルの保存 (add_files)
+		// 存続するファイルの情報をクローンしておく
+		let mut final_file_infos: Vec<(Uuid, mime::Mime)> = saved_infos.into_iter().map(|(k, m)| (*k, m.clone())).collect();
+
+		// 追加ファイルの準備
+		let mut prepared_files = Vec::new();
 		for file in info.add_files {
-			saved.push(save_file(file)?);
+			let prepared = PreparedFile::new(file);
+			final_file_infos.push((prepared.key, prepared.mime.clone()));
+			prepared_files.push(prepared);
 		}
 
-		// Configの更新
 		if let Some(config) = info.config {
 			let config = config.into_inner();
+			let resource = build_resource(config, final_file_infos)?; // バリデーション
 
-			let resource = build_resource(config, saved)?;
+			commit_files(prepared_files).await?; // 保存
 
-			// 新しい設定を保存
-			*cur = resource;
+			// 物理ファイルの削除 (不要になったもの)
+			for (key, _) in rem_targets {
+				let _ = tokio::fs::remove_file(format!("upload/{}", key)).await;
+			}
+
+			*cur = resource; // インプレース上書き
 		} else {
-			// 既存の設定を更新
 			let count = cur.key_count();
-			if count != saved.len() {
+			if count != final_file_infos.len() {
 				return Err(ErrorBadRequest("ファイル数が一致しません").into());
 			}
-			cur.change_files(&saved);
+
+			commit_files(prepared_files).await?; // 保存
+
+			// 物理ファイルの削除 (不要になったもの)
+			for (key, _) in rem_targets {
+				let _ = tokio::fs::remove_file(format!("upload/{}", key)).await;
+			}
+
+			cur.change_files(&final_file_infos); // メタデータを維持して差し替え
 		}
 	} else {
 		// ## 新規作成
@@ -199,54 +240,106 @@ async fn path_patch(path: web::Path<String>, MultipartForm(info): MultipartForm<
 			return Err(ErrorBadRequest("条件を追加する場合はrem_filesは空になります").into());
 		}
 		let config = info.config.ok_or_else(|| ErrorBadRequest("条件を追加する場合はconfigが必須です"))?.into_inner();
-		let mut saved = Vec::new();
+
+		let mut prepared_files = Vec::new();
+		let mut file_infos = Vec::new();
 		for file in info.add_files {
-			saved.push(save_file(file)?);
+			let prepared = PreparedFile::new(file);
+			file_infos.push((prepared.key, prepared.mime.clone()));
+			prepared_files.push(prepared);
 		}
-		let resource = build_resource(config, saved)?;
+
+		let resource = build_resource(config, file_infos)?;
+		commit_files(prepared_files).await?;
+
 		setting.insert(fetch_dest, resource);
 	}
 
 	Ok(HttpResponse::Ok().finish())
 }
 
-async fn path_delete(path: web::Path<String>) -> common::Result<impl Responder> {
-	Ok("TODO")
+/// 指定パスのリソースをすべて削除
+async fn path_delete(path: web::Path<String>, id: Identity, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
+	let path = path.into_inner();
+	let username = users.get_or_load(&*id).await?;
+
+	let mut setting = setting.entry(username).or_default();
+
+	// パスごと一括削除し、ぶら下がっていた全ファイルを消去
+	if let Some(removed) = setting.remove(&path) {
+		for (_, resource) in removed {
+			for (key, _) in resource.key_and_mimes() {
+				let _ = tokio::fs::remove_file(format!("upload/{}", key)).await;
+			}
+		}
+		Ok(HttpResponse::Ok().finish())
+	} else {
+		Err(ErrorNotFound("指定されたパスが存在しません").into())
+	}
 }
 
-// ヘルパー
-/// アップロードされたファイルを保存し、その情報を返す
-fn save_file(file: TempFile) -> actix_web::Result<(Uuid, mime::Mime)> {
-	let key = Uuid::new_v4();
-	let mime = file.content_type.unwrap_or(mime::TEXT_PLAIN);
+// ==========================================
+// ヘルパー群
+// ==========================================
 
-	file.file.persist(resource(format!("upload/{}", key))).map_err(|e| ErrorInternalServerError(format!("File save error: {}", e)))?;
-
-	Ok((key, mime))
+/// 保存待ち状態のファイル情報
+struct PreparedFile {
+	key: Uuid,
+	mime: mime::Mime,
+	temp: TempFile,
+}
+impl PreparedFile {
+	fn new(temp: TempFile) -> Self {
+		let key = Uuid::new_v4();
+		let mime = temp.content_type.clone().unwrap_or(mime::TEXT_PLAIN);
+		Self { key, mime, temp }
+	}
 }
 
-/// FormConfigと保存済みファイルの情報からResourceを構築する
-fn build_resource(config: FormConfig, mut saved_files: Vec<(Uuid, mime::Mime)>) -> actix_web::Result<util::Resource> {
+/// 準備されたファイル群を一括で保存し、エラーがあれば自動で削除（ロールバック）する
+async fn commit_files(prepared_files: Vec<PreparedFile>) -> actix_web::Result<()> {
+	let mut successfully_saved = Vec::new();
+
+	for pf in prepared_files {
+		let dest = resource(format!("upload/{}", pf.key)); // 既存のヘルパー関数を使用
+		match pf.temp.file.persist(&dest) {
+			Ok(_) => {
+				successfully_saved.push(pf.key);
+			}
+			Err(e) => {
+				// ロールバック: 既に成功したファイルのみ削除する
+				for saved_key in successfully_saved {
+					let _ = tokio::fs::remove_file(format!("upload/{}", saved_key)).await;
+				}
+				return Err(ErrorInternalServerError(format!("File save error: {}", e)).into());
+			}
+		}
+	}
+	Ok(())
+}
+
+/// FormConfigと保存予定ファイルの情報からResourceを構築する（バリデーション兼任）
+fn build_resource(config: FormConfig, mut file_infos: Vec<(Uuid, mime::Mime)>) -> actix_web::Result<util::Resource> {
 	match config {
 		FormConfig::File => {
-			if saved_files.len() != 1 {
+			if file_infos.len() != 1 {
 				return Err(ErrorBadRequest("1 file required").into());
 			}
-			let (key, mime) = saved_files.pop().unwrap();
+			let (key, mime) = file_infos.pop().unwrap();
 			Ok(util::Resource::File { key, mime })
 		}
 		FormConfig::RandomFile { weights, cache } => {
-			if saved_files.len() != weights.len() {
+			if file_infos.len() != weights.len() {
 				return Err(ErrorBadRequest("Weights length mismatch").into());
 			}
-			let items = saved_files.into_iter().zip(weights).map(|((key, mime), weight)| (key, mime, weight)).collect();
+			let items = file_infos.into_iter().zip(weights).map(|((key, mime), weight)| (key, mime, weight)).collect();
 			Ok(util::Resource::RandomFile { items, cache })
 		}
 		FormConfig::FontRender { width, height, line_length } => {
-			if saved_files.len() != 1 {
+			if file_infos.len() != 1 {
 				return Err(ErrorBadRequest("1 file required").into());
 			}
-			let (key, _) = saved_files.pop().unwrap();
+			let (key, _) = file_infos.pop().unwrap();
 			Ok(util::Resource::FontRender { key, width, height, line_length })
 		}
 	}

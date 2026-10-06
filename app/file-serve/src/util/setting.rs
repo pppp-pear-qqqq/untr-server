@@ -3,7 +3,7 @@ use dashmap::DashMap;
 use fxhash::FxHashMap as HashMap;
 use uuid::Uuid;
 
-pub type UserMap = DashMap<String, PathMap>;
+pub type RouteMap = DashMap<String, PathMap>;
 pub type PathMap = HashMap<String, Setting>;
 pub type Setting = HashMap<Option<FetchDest>, Resource>;
 
@@ -38,6 +38,7 @@ pub enum FetchDest {
 // トレイト作って保持側はBox<dyn Resource>としてそれぞれ実装する形でもいい どうしよう
 // RandomFileをVec<(u32, File)>と実装できるのは多少綺麗かもしれないが、そのくらいなら個別実装でも良いような気もする
 // レスポンス作成関数の規模を確認してから？　もしくは設定アップロードの実装次第かも
+#[derive(Debug)]
 pub enum Resource {
 	File {
 		key: Uuid,
@@ -53,4 +54,36 @@ pub enum Resource {
 		height: u32,
 		line_length: u32,
 	},
+}
+
+impl Resource {
+	pub fn key_and_mimes(&self) -> Vec<(&Uuid, &mime::Mime)> {
+		match self {
+			Resource::File { key, mime, .. } => vec![(key, mime)],
+			Resource::RandomFile { items, .. } => items.iter().map(|(key, mime, ..)| (key, mime)).collect(),
+			Resource::FontRender { key, .. } => vec![(key, &mime::IMAGE_PNG)],
+		}
+	}
+	pub fn key_count(&self) -> usize {
+		match self {
+			Resource::File { .. } => 1,
+			Resource::RandomFile { items, .. } => items.len(),
+			Resource::FontRender { .. } => 1,
+		}
+	}
+	pub fn change_files(&mut self, files: &[(Uuid, mime::Mime)]) {
+		match self {
+			Resource::File { key, mime, .. } => {
+				*key = files[0].0.clone();
+				*mime = files[0].1.clone();
+			}
+			Resource::RandomFile { items, .. } => {
+				let mut weights = items.iter().map(|(_, _, weight)| *weight);
+				*items = files.iter().map(|(key, mime)| (key.clone(), mime.clone(), weights.next().unwrap_or(1))).collect();
+			}
+			Resource::FontRender { key, .. } => {
+				*key = files[0].0.clone();
+			}
+		}
+	}
 }

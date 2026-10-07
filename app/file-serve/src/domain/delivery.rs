@@ -1,4 +1,5 @@
 use super::*;
+use crate::util::RouteMap;
 
 use base64::prelude::*;
 use fxhash::FxHashMap as HashMap;
@@ -33,18 +34,18 @@ impl Addr {
 	}
 }
 
-pub async fn plane(path: web::Path<Addr>) -> common::Result<impl Responder> {
-	file(path.into_inner()).await
+pub async fn plane(path: web::Path<Addr>, setting: web::Data<RouteMap>) -> common::Result<impl Responder> {
+	file(path.into_inner(), setting).await
 }
-pub async fn b64(path: web::Path<String>, web::Query(query): web::Query<HashMap<String, String>>) -> common::Result<impl Responder> {
+pub async fn b64(path: web::Path<String>, web::Query(query): web::Query<HashMap<String, String>>, setting: web::Data<RouteMap>) -> common::Result<impl Responder> {
 	let decoded = BASE64_URL_SAFE.decode(&path.into_inner())?;
-	file(Addr::try_from_slice(&decoded)?.with(query)).await
+	file(Addr::try_from_slice(&decoded)?.with(query), setting).await
 }
-pub async fn encrypt(path: web::Path<String>, web::Query(query): web::Query<HashMap<String, String>>) -> common::Result<impl Responder> {
+pub async fn encrypt(path: web::Path<String>, web::Query(query): web::Query<HashMap<String, String>>, setting: web::Data<RouteMap>) -> common::Result<impl Responder> {
 	let decoded = BASE64_URL_SAFE.decode(&path.into_inner())?; // TODO
-	file(Addr::try_from_slice(&decoded)?.with(query)).await
+	file(Addr::try_from_slice(&decoded)?.with(query), setting).await
 }
 
-async fn file(addr: Addr) -> common::Result<impl Responder> {
+async fn file(addr: Addr, setting: web::Data<RouteMap>) -> common::Result<impl Responder> {
 	Ok("TODO")
 }

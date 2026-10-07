@@ -149,9 +149,7 @@ async fn path_put(path: web::Path<String>, MultipartForm(info): MultipartForm<Ne
 
 	// コミット成功後、安全に古いリソースを解放・削除
 	if let Some(cur) = setting.remove(&fetch_dest) {
-		for (key, _) in cur.key_and_mimes() {
-			let _ = tokio::fs::remove_file(format!("upload/{}", key)).await;
-		}
+		remove_files(cur.key_and_mimes().into_iter().map(|(key, _)| *key).collect()).await;
 	}
 
 	// 新しい設定を上書き
@@ -214,9 +212,7 @@ async fn path_patch(path: web::Path<String>, MultipartForm(info): MultipartForm<
 			commit_files(prepared_files).await?; // 保存
 
 			// 物理ファイルの削除 (不要になったもの)
-			for (key, _) in rem_targets {
-				let _ = tokio::fs::remove_file(format!("upload/{}", key)).await;
-			}
+			remove_files(rem_targets.into_iter().map(|(key, _)| *key).collect()).await;
 
 			*cur = resource; // インプレース上書き
 		} else {
@@ -228,9 +224,7 @@ async fn path_patch(path: web::Path<String>, MultipartForm(info): MultipartForm<
 			commit_files(prepared_files).await?; // 保存
 
 			// 物理ファイルの削除 (不要になったもの)
-			for (key, _) in rem_targets {
-				let _ = tokio::fs::remove_file(format!("upload/{}", key)).await;
-			}
+			remove_files(rem_targets.into_iter().map(|(key, _)| *key).collect()).await;
 
 			cur.change_files(&final_file_infos); // メタデータを維持して差し替え
 		}
@@ -268,9 +262,7 @@ async fn path_delete(path: web::Path<String>, id: Identity, setting: web::Data<R
 	// パスごと一括削除し、ぶら下がっていた全ファイルを消去
 	if let Some(removed) = setting.remove(&path) {
 		for (_, resource) in removed {
-			for (key, _) in resource.key_and_mimes() {
-				let _ = tokio::fs::remove_file(format!("upload/{}", key)).await;
-			}
+			remove_files(resource.key_and_mimes().into_iter().map(|(key, _)| *key).collect()).await;
 		}
 		Ok(HttpResponse::Ok().finish())
 	} else {
@@ -308,14 +300,18 @@ async fn commit_files(prepared_files: Vec<PreparedFile>) -> actix_web::Result<()
 			}
 			Err(e) => {
 				// ロールバック: 既に成功したファイルのみ削除する
-				for saved_key in successfully_saved {
-					let _ = tokio::fs::remove_file(format!("upload/{}", saved_key)).await;
-				}
+				remove_files(successfully_saved.into_iter().collect()).await;
 				return Err(ErrorInternalServerError(format!("File save error: {}", e)).into());
 			}
 		}
 	}
 	Ok(())
+}
+
+async fn remove_files(keys: Vec<Uuid>) {
+	for key in keys {
+		let _ = tokio::fs::remove_file(format!("upload/{}", key)).await;
+	}
 }
 
 /// FormConfigと保存予定ファイルの情報からResourceを構築する（バリデーション兼任）

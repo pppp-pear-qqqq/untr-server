@@ -119,7 +119,7 @@ async fn file(req: HttpRequest, addr: Addr, query: HashMap<String, String>, dest
 				}
 			}
 
-			// メモリ上でPNG形式にエンコード
+			// メモリ上でWEBP形式にエンコード
 			let mut buffer = Cursor::new(Vec::new());
 			img.write_to(&mut buffer, image::ImageFormat::WebP).map_err(|e| ErrorInternalServerError(format!("画像の生成に失敗しました: {}", e)))?;
 

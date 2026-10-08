@@ -80,7 +80,7 @@ async fn file(req: HttpRequest, addr: Addr, query: HashMap<String, String>, dest
 			let color = color.and_then(|c| parse_color(c).ok()).unwrap_or_else(|| Rgba([0, 0, 0, 255]));
 
 			// フォントファイルの読み込みと検証
-			let font_data = tokio::fs::read(resource(format!("upload/{key}"))).await.map_err(|_| ErrorInternalServerError("フォントファイルの読み込みに失敗しました"))?;
+			let font_data = tokio::fs::read(resource(format!("upload/{key}"))).await?;
 			let font = FontRef::try_from_slice(&font_data).map_err(|_| ErrorInternalServerError("無効なフォントファイルです"))?;
 
 			// 自動改行（折り返し）の計算
@@ -173,7 +173,6 @@ fn parse_color(hex: &str) -> Result<Rgba<u8>, ()> {
 			let a = parse_hex(&hex[6..8])?;
 			Ok(Rgba([r, g, b, a]))
 		}
-		// 解析不能な場合はデフォルト（黒・完全不透明）
 		_ => Err(()),
 	}
 }

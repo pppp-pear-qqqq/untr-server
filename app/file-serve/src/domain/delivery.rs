@@ -43,20 +43,20 @@ fn parse_addr(slice: &[u8], req_query: HashMap<String, String>) -> Option<(Addr,
 }
 
 pub async fn plane(req: HttpRequest, path: web::Path<Addr>, web::Query(query): web::Query<HashMap<String, String>>, dest: Option<FetchDest>, setting: web::Data<RouteMap>) -> common::Result<impl Responder> {
-	file(req, path.into_inner(), query, dest, setting).await
+	file(req, path.into_inner(), query, dest, &setting).await
 }
 pub async fn b64(req: HttpRequest, path: web::Path<String>, web::Query(query): web::Query<HashMap<String, String>>, dest: Option<FetchDest>, setting: web::Data<RouteMap>) -> common::Result<impl Responder> {
 	let decoded = BASE64_URL_SAFE.decode(&path.into_inner())?;
 	let (addr, query) = parse_addr(&decoded, query).ok_or_else(|| ErrorBadRequest("パスの形式が正しくありません"))?;
-	file(req, addr, query, dest, setting).await
+	file(req, addr, query, dest, &setting).await
 }
 pub async fn encrypt(req: HttpRequest, path: web::Path<String>, web::Query(query): web::Query<HashMap<String, String>>, dest: Option<FetchDest>, setting: web::Data<RouteMap>) -> common::Result<impl Responder> {
 	let decoded = BASE64_URL_SAFE.decode(&path.into_inner())?; // TODO
 	let (addr, query) = parse_addr(&decoded, query).ok_or_else(|| ErrorBadRequest("パスの形式が正しくありません"))?;
-	file(req, addr, query, dest, setting).await
+	file(req, addr, query, dest, &setting).await
 }
 
-async fn file(req: HttpRequest, addr: Addr, query: HashMap<String, String>, dest: Option<FetchDest>, setting: web::Data<RouteMap>) -> common::Result<HttpResponse> {
+async fn file(req: HttpRequest, addr: Addr, query: HashMap<String, String>, dest: Option<FetchDest>, setting: &RouteMap) -> common::Result<HttpResponse> {
 	let setting = setting.get(&addr.username).ok_or_else(|| ErrorNotFound("ファイルがありません"))?;
 	let setting = setting.get(&addr.path).ok_or_else(|| ErrorNotFound("ファイルがありません"))?;
 	let r = dest.and_then(|d| setting.get(&Some(d))).or_else(|| setting.get(&None)).ok_or_else(|| ErrorNotFound("ファイルがありません"))?;
@@ -80,7 +80,7 @@ async fn file(req: HttpRequest, addr: Addr, query: HashMap<String, String>, dest
 			let color = color.and_then(|c| parse_color(c).ok()).unwrap_or_else(|| Rgba([0, 0, 0, 255]));
 
 			// フォントファイルの読み込みと検証
-			let font_data = std::fs::read(resource(format!("upload/{key}"))).map_err(|_| ErrorInternalServerError("フォントファイルの読み込みに失敗しました"))?;
+			let font_data = tokio::fs::read(resource(format!("upload/{key}"))).await.map_err(|_| ErrorInternalServerError("フォントファイルの読み込みに失敗しました"))?;
 			let font = FontRef::try_from_slice(&font_data).map_err(|_| ErrorInternalServerError("無効なフォントファイルです"))?;
 
 			// 自動改行（折り返し）の計算

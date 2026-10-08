@@ -1,4 +1,6 @@
-use actix_web::mime;
+use std::str::FromStr;
+
+use actix_web::{FromRequest, error::ErrorBadRequest, mime};
 use dashmap::DashMap;
 use fxhash::FxHashMap as HashMap;
 use uuid::Uuid;
@@ -8,7 +10,8 @@ pub type PathMap = HashMap<String, Setting>;
 pub type Setting = HashMap<Option<FetchDest>, Resource>;
 
 #[allow(non_camel_case_types)]
-#[derive(Debug, PartialEq, Eq, Hash, serde::Deserialize)]
+#[derive(Debug, PartialEq, Eq, Hash, serde::Deserialize, strum::EnumString)]
+#[strum(serialize_all = "lowercase")]
 pub enum FetchDest {
 	audio,
 	audioworklet,
@@ -34,7 +37,25 @@ pub enum FetchDest {
 	worker,
 	xslt,
 }
+impl FromRequest for FetchDest {
+	type Error = actix_web::Error;
+	type Future = std::future::Ready<Result<Self, Self::Error>>;
 
+	fn from_request(req: &actix_web::HttpRequest, _: &mut actix_web::dev::Payload) -> Self::Future {
+		let header_value = match req.headers().get("sec-fetch-dest") {
+			Some(val) => val,
+			None => return std::future::ready(Err(ErrorBadRequest("Missing Sec-Fetch-Dest header"))),
+		};
+		let dest_str = match header_value.to_str() {
+			Ok(s) => s,
+			Err(_) => return std::future::ready(Err(ErrorBadRequest("Invalid Sec-Fetch-Dest encoding"))),
+		};
+		std::future::ready(match Self::from_str(dest_str) {
+			Ok(dest) => Ok(dest),
+			Err(_) => Err(ErrorBadRequest(format!("Unknown Sec-Fetch-Dest: {}", dest_str))),
+		})
+	}
+}
 // トレイト作って保持側はBox<dyn Resource>としてそれぞれ実装する形でもいい どうしよう
 // RandomFileをVec<(u32, File)>と実装できるのは多少綺麗かもしれないが、そのくらいなら個別実装でも良いような気もする
 // レスポンス作成関数の規模を確認してから？　もしくは設定アップロードの実装次第かも

@@ -308,6 +308,7 @@ async fn commit_files(prepared_files: Vec<PreparedFile>) -> actix_web::Result<()
 	Ok(())
 }
 
+/// ファイルを削除する
 async fn remove_files(keys: Vec<Uuid>) {
 	for key in keys {
 		let _ = tokio::fs::remove_file(format!("upload/{}", key)).await;

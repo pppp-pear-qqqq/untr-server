@@ -1,20 +1,20 @@
 [Unit]
-Description=Portal Service (Actix-web)
+Description=Game Service OneDaysTalk (Actix-web)
 After=network.target
 
 [Service]
 Type=simple
 User=root
-WorkingDirectory=/app/app
+WorkingDirectory=/app
 
 # docker-compose.yml の環境変数を指定
 Environment="SERVER_HOST=127.0.0.1"
-Environment="SERVER_PORT=8000"
-Environment="DATABASE_URL=sqlite:portal.db"
-Environment="RUST_LOG=info,portal=debug,actix_web::middleware=warn"
+Environment="SERVER_PORT=8006"
+Environment="DATABASE_URL=sqlite:/app/data/ondyst.db"
+Environment="RUST_LOG=info,actix_web::middleware=warn"
 
 # 実行ファイル
-ExecStart=/app/app/portal.exe
+ExecStart=/app/ondyst.exe
 
 # クラッシュ時の自動再起動設定
 Restart=always

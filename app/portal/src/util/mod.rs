@@ -14,14 +14,6 @@ pub use tag_parse as tag;
 pub type Identity = common::Identity<Vec<u8>>;
 pub type StateHandle = common::StateHandle<State>;
 
-#[allow(dead_code)]
-pub fn app(path: &str) -> String {
-	format!("{}/{}", env!("CARGO_MANIFEST_DIR"), path)
-}
-pub fn resource(path: &str) -> String {
-	if cfg!(debug_assertions) {
-		format!("{}/{}/{}", env!("CARGO_MANIFEST_DIR"), "resource", path)
-	} else {
-		format!("/app/app/portal/{}", path)
-	}
+pub fn resource(path: impl std::fmt::Display) -> String {
+	if cfg!(debug_assertions) { format!("resource/{path}") } else { format!("resource/portal/{path}") }
 }

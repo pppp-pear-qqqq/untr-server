@@ -20,7 +20,7 @@ async fn main() -> Result<(), io::Error> {
 	#[cfg(feature = "test")]
 	{
 		use dotenv;
-		if let Err(e) = dotenv::from_path(util::app(".env")) {
+		if let Err(e) = dotenv::from_path(".env") {
 			eprintln!("Failed to load .env file: {}", e);
 			std::process::exit(1);
 		}

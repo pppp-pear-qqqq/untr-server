@@ -26,11 +26,11 @@ services:
         volumes:
             - ./nginx/debug.nginx.conf:/etc/nginx/nginx.conf:ro
             - ./nginx/fragment:/etc/nginx/fragment:ro
-            - ./ssl:/app/ssl:ro
-            - ./app/common/resource:/app/app/common
-            - ./app/portal/resource:/app/app/portal
-            # - ./app/erltod/resource:/app/app/erltod
-            - ./app/ondyst/resource:/app/app/ondyst
+            - ./nginx/ssl:/etc/nginx/ssl:ro
+            - ./app/common/resource:/app/resource/common
+            - ./app/portal/resource:/app/resource/portal
+            # - ./app/erltod/resource:/app/resource/erltod
+            - ./app/ondyst/resource:/app/resource/ondyst
         depends_on:
             - portal
             # - erltod
@@ -45,7 +45,7 @@ services:
             - MINIFY=
         volumes:
             - ./app:/app/app
-            - ./tsconfig.json:/app/tsconfig.json:ro
+            - ./app/tsconfig.json:/app/tsconfig.json:ro
             - ./watcher/compile.sh:/app/compile.sh:ro
             - ./watcher/compile_all.sh:/app/compile_all.sh:ro
 
@@ -54,7 +54,7 @@ services:
         environment:
             - APP_NAME=portal
             - SERVER_PORT=8000
-            - DATABASE_URL=sqlite:app/portal/portal.db
+            - DATABASE_URL=sqlite:app/app/portal/portal.db
             - RUST_LOG=info,portal=debug,actix_web::middleware=warn
         networks: [untroche]
 
@@ -71,7 +71,7 @@ services:
         environment:
             - APP_NAME=ondyst
             - SERVER_PORT=8006
-            - DATABASE_URL=sqlite:app/ondyst/ondyst.db
+            - DATABASE_URL=sqlite:app/app/ondyst/ondyst.db
             - RUST_LOG=info,ondyst=debug,actix_web::middleware=warn
         networks: [untroche]
 

@@ -5,7 +5,7 @@
         "moduleResolution": "bundler",
         "baseUrl": ".",
         "paths": {
-            "/common/script/*": ["app/common/resource/ts/*"]
+            "/common/script/*": ["common/resource/ts/*"]
         },
 
         // "allowJs": true,

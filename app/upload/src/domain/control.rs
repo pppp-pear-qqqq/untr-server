@@ -36,7 +36,6 @@ enum FormConfig {
 struct Post {
 	files: Vec<TempFile>,
 }
-
 /// ファイルの一括アップロード・リソース設定
 async fn post(MultipartForm(info): MultipartForm<Post>, id: Identity, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
 	let username = users.get_or_load(&*id).await?;
@@ -89,73 +88,50 @@ struct NewPath {
 	files: Vec<TempFile>,
 	config: form::text::Text<FormConfig>,
 }
-
 /// リソースの新規作成
 async fn path_post(path: web::Path<String>, MultipartForm(info): MultipartForm<NewPath>, id: Identity, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
-	let path = path.into_inner();
 	let username = users.get_or_load(&*id).await?;
+	let value = path_set(username, path.into_inner(), info, setting, false).await?;
+	Ok(HttpResponse::Ok().json(value))
+}
+/// リソースの置き換え
+async fn path_put(path: web::Path<String>, MultipartForm(info): MultipartForm<NewPath>, id: Identity, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
+	let username = users.get_or_load(&*id).await?;
+	let value = path_set(username, path.into_inner(), info, setting, true).await?;
+	Ok(HttpResponse::Ok().json(value))
+}
+/// リソース設定
+async fn path_set(username: String, path: String, info: NewPath, setting: web::Data<RouteMap>, rewrite: bool) -> actix_web::Result<Vec<Uuid>> {
 	let fetch_dest = info.fetch_dest.map(|x| x.into_inner());
 
 	let mut setting = setting.entry(username).or_default();
 	let setting = setting.entry(path).or_default();
 
-	if setting.contains_key(&fetch_dest) {
+	// 上書き不可かつ既に存在する場合は早期リターン
+	if !rewrite && setting.contains_key(&fetch_dest) {
 		return Err(ErrorBadRequest("既に同名・同条件のパスが設定されています").into());
 	}
 
-	// 準備
-	let mut prepared_files = Vec::new();
-	let mut file_infos = Vec::new();
-	for file in info.files {
-		let prepared = PreparedFile::new(file);
-		file_infos.push((prepared.key, prepared.mime.clone()));
-		prepared_files.push(prepared);
-	}
+	// ファイルの準備
+	let prepared_files: Vec<_> = info.files.into_iter().map(PreparedFile::new).collect();
+	let file_infos: Vec<_> = prepared_files.iter().map(|p| (p.key, p.mime.clone())).collect();
 
-	// Resource構築（バリデーション）
+	// リソースの構築とバリデーション
 	let resource = build_resource(info.config.into_inner(), file_infos)?;
 
-	// 保存・コミット
+	// 返却用のUUIDリストを抽出
+	let saved_keys: Vec<Uuid> = resource.key_and_mimes().into_iter().map(|(key, _)| *key).collect();
+
+	// 物理ファイルの保存
 	commit_files(prepared_files).await?;
 
-	// マップ更新
-	setting.insert(fetch_dest, resource);
-
-	Ok(HttpResponse::Ok().finish())
-}
-
-/// リソースの置き換え 実装としては既存条件があるときにエラーではなく上書きするPOST
-async fn path_put(path: web::Path<String>, MultipartForm(info): MultipartForm<NewPath>, id: Identity, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
-	let path = path.into_inner();
-	let username = users.get_or_load(&*id).await?;
-	let fetch_dest = info.fetch_dest.map(|x| x.into_inner());
-
-	let mut setting = setting.entry(username).or_default();
-	let setting = setting.entry(path).or_default();
-
-	// 準備とバリデーションを先に行う
-	let mut prepared_files = Vec::new();
-	let mut file_infos = Vec::new();
-	for file in info.files {
-		let prepared = PreparedFile::new(file);
-		file_infos.push((prepared.key, prepared.mime.clone()));
-		prepared_files.push(prepared);
+	// 設定の上書き ＆ 古いファイルのクリーンアップ
+	if let Some(old) = setting.insert(fetch_dest, resource) {
+		let old_keys = old.key_and_mimes().into_iter().map(|(key, _)| *key).collect();
+		remove_files(old_keys).await;
 	}
 
-	let resource = build_resource(info.config.into_inner(), file_infos)?;
-
-	// 保存・コミット
-	commit_files(prepared_files).await?;
-
-	// コミット成功後、安全に古いリソースを解放・削除
-	if let Some(cur) = setting.remove(&fetch_dest) {
-		remove_files(cur.key_and_mimes().into_iter().map(|(key, _)| *key).collect()).await;
-	}
-
-	// 新しい設定を上書き
-	setting.insert(fetch_dest, resource);
-
-	Ok(HttpResponse::Ok().finish())
+	Ok(saved_keys)
 }
 
 #[derive(MultipartForm)]

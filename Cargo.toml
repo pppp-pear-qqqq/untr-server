@@ -1,6 +1,6 @@
 [workspace]
 package = { edition = "2024", authors = ["untroche"] }
-members = ["app/common", "app/upload", "app/ondyst", "app/portal"]
+members = ["app/common", "app/ondyst", "app/portal", "app/upload"]
 resolver = "3"
 
 [workspace.dependencies]
@@ -13,6 +13,7 @@ chrono = { version = "0.4.45", features = ["serde"] }
 common.path = "app/common"
 dotenv = "0.15.0"
 env_logger = "0.11.11"
+futures-util = "0.3.34"
 fxhash = "0.2.1"
 log = "0.4.34"
 minify-html = "0.18.1"

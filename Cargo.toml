@@ -1,6 +1,6 @@
 [workspace]
 package = { edition = "2024", authors = ["untroche"] }
-members = ["app/common", "app/file-serve", "app/ondyst", "app/portal"]
+members = ["app/common", "app/upload", "app/ondyst", "app/portal"]
 resolver = "3"
 
 [workspace.dependencies]

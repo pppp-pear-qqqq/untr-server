@@ -14,7 +14,7 @@ use uuid::Uuid;
 use validator::Validate;
 
 use crate::app_data::{ChannelMap, Pool, Tera};
-use crate::util::{ActorData, Identity, Page, StateHandle, resource, tag_parse as tag};
+use crate::util::{ActorData, Identity, Page, StateHandle, resource, tag};
 
 pub fn make_cfg(admin_key: String) -> impl FnOnce(&mut web::ServiceConfig) {
 	move |cfg| {

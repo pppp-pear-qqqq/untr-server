@@ -1,10 +1,11 @@
 use actix_web::{cookie, web};
 use base64::prelude::*;
+use glob::glob;
 use log::info;
 use sqlx::SqlitePool;
 use tera::Tera;
 
-use crate::util::{State, StateHandle, tag};
+use crate::util::{State, StateHandle, resource, tag};
 
 // 定数
 pub const STATE: &str = "STATE";
@@ -47,8 +48,9 @@ impl AppData {
 		};
 		// teraコア生成
 		let mut tera = Tera::default();
-		// 手動でglobとかしてテンプレートファイルの一覧を取得するらしい　対応面倒なのでちょっと置き
-		// tera.add_template_files(&util::resource("template/*.html"));
+		// tera.add_template_file("template.html", None).unwrap();
+		let files = glob(&resource("*.html")).unwrap().map(|path| (path.unwrap(), Option::<&str>::None));
+		tera.add_template_files(files).unwrap();
 		tera.register_filter("html", common::tera::html::<tag::Common>);
 		tera.register_filter("time", common::tera::make_timestamp_filter(chrono::Local));
 

@@ -10,7 +10,9 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 }
 
 async fn index() -> common::Result<impl Responder> {
-	Ok("TODO")
+	// TODO 多分登録済みのデータとか諸々をテンプレートに入れなきゃいけない
+	let file = actix_files::NamedFile::open(resource("home.html"))?.set_content_type(mime::TEXT_HTML_UTF_8);
+	Ok(file)
 }
 
 // ==========================================

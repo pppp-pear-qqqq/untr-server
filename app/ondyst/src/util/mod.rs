@@ -8,6 +8,7 @@ mod webhook;
 pub use client::client;
 pub use page::{ActorData, Page};
 pub use state::State;
+pub use tag_parse as tag;
 pub use webhook::Webhook;
 
 pub const APP_URL: &str = if cfg!(debug_assertions) { "http://ondyst.localhost" } else { "https://ondyst.untroche.com" };

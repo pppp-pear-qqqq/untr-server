@@ -19,3 +19,4 @@ validator.workspace = true
 [dependencies]
 cfg-if = "1.0.5"
 regex.workspace = true
+urlencoding = "2.1.3"

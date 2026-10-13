@@ -48,11 +48,16 @@ impl AppData {
 		};
 		// teraコア生成
 		let mut tera = Tera::default();
-		// tera.add_template_file("template.html", None).unwrap();
-		let files = glob(&resource("*.html")).unwrap().map(|path| (path.unwrap(), Option::<&str>::None));
-		tera.add_template_files(files).unwrap();
-		tera.register_filter("html", common::tera::html::<tag::Common>);
+		tera.register_filter("urlencode", common::tera::urlencode_filter);
+		tera.register_filter("html", common::tera::html_filter::<tag::Common>);
 		tera.register_filter("time", common::tera::make_timestamp_filter(chrono::Local));
+		tera.add_template_file(resource("template.html"), Some("template.html")).unwrap();
+		let files = glob(&resource("*.html")).unwrap().filter_map(|res| {
+			let path = res.unwrap();
+			let file_name = path.file_name().unwrap().to_str().unwrap();
+			if file_name != "template.html" { Some((path.to_owned(), Some(file_name.to_string()))) } else { None }
+		});
+		tera.add_template_files(files).unwrap();
 
 		AppData {
 			state: StateHandle::new(state),

@@ -46,10 +46,12 @@
 			</div>
 			{% endif %}
 		</header>
-		<main>{% block content %}{% endblock %}</main>
-		<dialog id="help" closedby="any"></dialog>
-		{% else %}
+		<main>
+		{% endif %}
 		{% block content %}{% endblock %}
+		{% if type != "min" %}
+		</main>
+		<dialog id="help" closedby="any"></dialog>
 		{% endif %}
 	</body>
 </html>

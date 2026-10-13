@@ -39,6 +39,8 @@ async fn main() -> Result<(), io::Error> {
 		// その辺り暗黙でよしなにできるんだったらやりたいが、仮にできたとしてもapp_dataが持たない設定の所在に困る
 		let app_data = app_data.clone();
 		let session = SessionMiddleware::builder(storage::CookieSessionStore::default(), app_data.session_key)
+			.cookie_http_only(true)
+			.cookie_secure(true)
 			.session_lifecycle(PersistentSession::default().session_ttl(cookie::time::Duration::days(14)).session_ttl_extension_policy(TtlExtensionPolicy::OnEveryRequest))
 			.build();
 		let app = App::new()

@@ -1,8 +1,10 @@
 //! アプリケーション全体で使用するような汎用構造体・関数
+mod client;
 mod setting;
 mod state;
 mod usermap;
 
+pub use client::client;
 pub use setting::*;
 pub use state::State;
 pub use usermap::UserMap;

@@ -4,8 +4,8 @@ use tera::Tera;
 use crate::util::{RouteMap, State, StateHandle, UserMap};
 
 // 定数
-pub const STATE: &str = "STATE";
-const KEY: &str = "KEY";
+pub const STATE: &str = "UPL_STATE";
+const KEY: &str = "UPL_KEY";
 
 #[derive(Clone)]
 pub struct AppData {

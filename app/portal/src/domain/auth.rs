@@ -49,8 +49,9 @@ async fn post(web::Json(info): web::Json<Post>, state: StateHandle, pool: web::D
 
 	match r {
 		Some(r) if r.timestamp > chrono::Utc::now().timestamp() => {
+			let name = sqlx::query_scalar!("SELECT name FROM user WHERE id=?", r.user).fetch_one(pool).await?;
 			let user = Uuid::from_slice(r.user.as_slice())?;
-			Ok(HttpResponse::Ok().content_type(header::ContentType::plaintext()).body(user.to_string()))
+			Ok(HttpResponse::Ok().content_type(header::ContentType::json()).json((user.to_string(), name)))
 		}
 		Some(_) => Err(ErrorUnauthorized("認証コードが期限切れです").into()),
 		None => Err(ErrorUnauthorized("認証コードが無効です").into()),

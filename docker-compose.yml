@@ -58,13 +58,14 @@ services:
             - RUST_LOG=info,portal=debug,actix_web::middleware=warn
         networks: [untroche]
 
-    # erltod:
-    #     <<: *rust-base
-    #     environment:
-    #         - APP_NAME=erltod
-    #         - SERVER_PORT=8005
-    #         - DATABASE_URL=sqlite:app/erltod/erltod.db
-    #     networks: [untroche]
+    upload:
+        <<: *rust-base
+        environment:
+            - APP_NAME=upload
+            - SERVER_PORT=8100
+            - DATABASE_URL=sqlite:app/app/portal/portal.db
+            - RUST_LOG=info,portal=debug,actix_web::middleware=warn
+        networks: [untroche]
 
     ondyst:
         <<: *rust-base

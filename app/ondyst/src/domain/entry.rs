@@ -26,14 +26,15 @@ struct Auth {
 async fn register(web::Form(info): web::Form<Auth>, session: Session, state: StateHandle, pool: web::Data<Pool>) -> common::Result<impl Responder> {
 	state.get().only_open()?;
 	info.validate()?;
-	let user = auth(info.code).await?;
 
-	let user = user.to_bytes_le().to_vec();
+	let (user_id, _) = auth(info.code).await?;
+	let user_id = user_id.to_bytes_le().to_vec();
+
 	let name = generate_random_unicode(0x30a0..=0x30ff, 2..=8);
 	let handout = crate::util::get_handout()?.choose(&mut rand::rng()).cloned().ok_or(std::io::Error::other("no handout"))?;
 
 	let pool = pool.as_ref();
-	let actor_id = match sqlx::query_scalar!("INSERT INTO actor(user,name,ho_title,ho_body) VALUES(?,?,?,?) RETURNING id", user, name, handout.title, handout.body)
+	let actor_id = match sqlx::query_scalar!("INSERT INTO actor(user,name,ho_title,ho_body) VALUES(?,?,?,?) RETURNING id", user_id, name, handout.title, handout.body)
 		.fetch_one(pool)
 		.await
 	{
@@ -48,12 +49,12 @@ async fn register(web::Form(info): web::Form<Auth>, session: Session, state: Sta
 
 async fn login(web::Form(info): web::Form<Auth>, session: Session, _: StateHandle, pool: web::Data<Pool>) -> common::Result<impl Responder> {
 	info.validate()?;
-	let user = auth(info.code).await?;
 
-	let user = user.to_bytes_le().to_vec();
+	let (user_id, _) = auth(info.code).await?;
+	let user_id = user_id.to_bytes_le().to_vec();
 
 	let pool = pool.as_ref();
-	let id = sqlx::query_scalar!("SELECT id FROM actor WHERE user=?", user)
+	let id = sqlx::query_scalar!("SELECT id FROM actor WHERE user=?", user_id)
 		.fetch_optional(pool)
 		.await?
 		.ok_or(ErrorUnauthorized("idが違う、またはキャラクターを未登録です"))?;
@@ -61,15 +62,15 @@ async fn login(web::Form(info): web::Form<Auth>, session: Session, _: StateHandl
 	Ok(HttpResponse::Ok().content_type(header::ContentType::plaintext()).body(id.to_string()))
 }
 
-async fn auth(code: String) -> common::Result<Uuid> {
+async fn auth(code: String) -> common::Result<(Uuid, String)> {
 	let res = client()
 		.post(if cfg!(debug_assertions) { "http://portal:8000/auth" } else { "http://127.0.0.1:8000/auth" })
 		.json(&Auth { code })
 		.send()
 		.await
 		.and_then(|r| r.error_for_status())?;
-	let user_id = res.text().await?;
-	Ok(Uuid::from_str(&user_id)?)
+	let ret: (String, String) = res.json().await?;
+	Ok((Uuid::from_str(&ret.0)?, ret.1))
 }
 
 async fn logout(session: Session) -> common::Result<impl Responder> {

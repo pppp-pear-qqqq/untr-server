@@ -37,8 +37,9 @@ struct Post {
 	files: Vec<TempFile>,
 }
 /// ファイルの一括アップロード・リソース設定
-async fn post(MultipartForm(info): MultipartForm<Post>, id: Identity, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
-	let username = users.get_or_load(&*id).await?;
+async fn post(MultipartForm(info): MultipartForm<Post>, id: Identity, state: StateHandle, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
+	state.get().only_active()?;
+	let username = users.get(&*id).ok_or_else(|| ErrorUnauthorized("ログインしてください"))?;
 	let mut setting = setting.entry(username).or_default();
 
 	let mut result = String::new();
@@ -89,14 +90,16 @@ struct NewPath {
 	config: form::text::Text<FormConfig>,
 }
 /// リソースの新規作成
-async fn path_post(path: web::Path<String>, MultipartForm(info): MultipartForm<NewPath>, id: Identity, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
-	let username = users.get_or_load(&*id).await?;
+async fn path_post(path: web::Path<String>, MultipartForm(info): MultipartForm<NewPath>, id: Identity, state: StateHandle, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
+	state.get().only_active()?;
+	let username = users.get(&*id).ok_or_else(|| ErrorUnauthorized("ログインしてください"))?;
 	let value = path_set(username, path.into_inner(), info, setting, false).await?;
 	Ok(HttpResponse::Ok().json(value))
 }
 /// リソースの置き換え
-async fn path_put(path: web::Path<String>, MultipartForm(info): MultipartForm<NewPath>, id: Identity, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
-	let username = users.get_or_load(&*id).await?;
+async fn path_put(path: web::Path<String>, MultipartForm(info): MultipartForm<NewPath>, id: Identity, state: StateHandle, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
+	state.get().only_active()?;
+	let username = users.get(&*id).ok_or_else(|| ErrorUnauthorized("ログインしてください"))?;
 	let value = path_set(username, path.into_inner(), info, setting, true).await?;
 	Ok(HttpResponse::Ok().json(value))
 }
@@ -143,9 +146,10 @@ struct PathPatch {
 	config: Option<form::text::Text<FormConfig>>,
 }
 /// 既存リソースの設定変更
-async fn path_patch(path: web::Path<String>, MultipartForm(info): MultipartForm<PathPatch>, id: Identity, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
+async fn path_patch(path: web::Path<String>, MultipartForm(info): MultipartForm<PathPatch>, id: Identity, state: StateHandle, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
+	state.get().only_active()?;
 	let mut path = path.into_inner();
-	let username = users.get_or_load(&*id).await?;
+	let username = users.get(&*id).ok_or_else(|| ErrorUnauthorized("ログインしてください"))?;
 
 	let mut setting = setting.entry(username).or_default();
 
@@ -229,9 +233,10 @@ async fn path_patch(path: web::Path<String>, MultipartForm(info): MultipartForm<
 }
 
 /// 指定パスのリソースをすべて削除
-async fn path_delete(path: web::Path<String>, id: Identity, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
+async fn path_delete(path: web::Path<String>, id: Identity, state: StateHandle, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
+	state.get().only_active()?;
 	let path = path.into_inner();
-	let username = users.get_or_load(&*id).await?;
+	let username = users.get(&*id).ok_or_else(|| ErrorUnauthorized("ログインしてください"))?;
 
 	let mut setting = setting.entry(username).or_default();
 

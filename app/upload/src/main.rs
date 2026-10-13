@@ -24,6 +24,8 @@ async fn main() -> Result<(), io::Error> {
 	let server = HttpServer::new(move || {
 		let app_data = app_data.clone();
 		let session = SessionMiddleware::builder(storage::CookieSessionStore::default(), app_data.session_key)
+			.cookie_http_only(true)
+			.cookie_secure(true)
 			.session_lifecycle(PersistentSession::default().session_ttl(cookie::time::Duration::days(14)).session_ttl_extension_policy(TtlExtensionPolicy::OnEveryRequest))
 			.build();
 		App::new()
@@ -34,6 +36,8 @@ async fn main() -> Result<(), io::Error> {
 			.default_service(web::to(HttpResponse::NotFound))
 			.app_data(app_data.state)
 			.app_data(app_data.tera)
+			.app_data(app_data.setting)
+			.app_data(app_data.users)
 			.configure(domain::make_cfg(app_data.admin_key).expect("file load error"))
 	});
 	server.bind(format!("{host}:{port}"))?.run().await

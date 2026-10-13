@@ -6,7 +6,7 @@ impl UserMap {
 	pub fn load() -> Self {
 		Self(DashMap::new())
 	}
-	pub fn save() {}
+	// pub fn save() {}
 	pub fn get(&self, key: &[u8]) -> Option<String> {
 		self.0.get(key).map(|v| v.value().clone())
 	}

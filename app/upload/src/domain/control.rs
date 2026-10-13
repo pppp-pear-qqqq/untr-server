@@ -1,5 +1,5 @@
 use super::*;
-use crate::util::{self, RouteMap, UserMap};
+use crate::util::{self, Resource, ResourceConfig, RouteMap, UserMap};
 
 use actix_multipart::form::{self, MultipartForm, tempfile::TempFile};
 use actix_web::mime;
@@ -11,21 +11,6 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 
 async fn index() -> common::Result<impl Responder> {
 	Ok("TODO")
-}
-
-#[derive(serde::Deserialize)]
-#[serde(tag = "type")]
-enum FormConfig {
-	File,
-	RandomFile {
-		weights: Vec<u32>, // ファイルの数と一致させる
-		cache: bool,
-	},
-	FontRender {
-		width: u32,
-		height: u32,
-		line_length: u32,
-	},
 }
 
 // ==========================================
@@ -87,7 +72,7 @@ async fn post(MultipartForm(info): MultipartForm<Post>, id: Identity, state: Sta
 struct NewPath {
 	fetch_dest: Option<form::text::Text<util::FetchDest>>,
 	files: Vec<TempFile>,
-	config: form::text::Text<FormConfig>,
+	config: form::text::Text<ResourceConfig>,
 }
 /// リソースの新規作成
 async fn path_post(path: web::Path<String>, MultipartForm(info): MultipartForm<NewPath>, id: Identity, state: StateHandle, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
@@ -120,7 +105,7 @@ async fn path_set(username: String, path: String, info: NewPath, setting: web::D
 	let file_infos: Vec<_> = prepared_files.iter().map(|p| (p.key, p.mime.clone())).collect();
 
 	// リソースの構築とバリデーション
-	let resource = build_resource(info.config.into_inner(), file_infos)?;
+	let resource = Resource::build(info.config.into_inner(), file_infos)?;
 
 	// 返却用のUUIDリストを抽出
 	let saved_keys: Vec<Uuid> = resource.key_and_mimes().into_iter().map(|(key, _)| *key).collect();
@@ -143,7 +128,7 @@ struct PathPatch {
 	fetch_dest: Option<form::text::Text<util::FetchDest>>,
 	add_files: Vec<TempFile>,
 	rem_files: Vec<form::text::Text<Uuid>>,
-	config: Option<form::text::Text<FormConfig>>,
+	config: Option<form::text::Text<ResourceConfig>>,
 }
 /// 既存リソースの設定変更
 async fn path_patch(path: web::Path<String>, MultipartForm(info): MultipartForm<PathPatch>, id: Identity, state: StateHandle, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
@@ -187,7 +172,7 @@ async fn path_patch(path: web::Path<String>, MultipartForm(info): MultipartForm<
 
 		if let Some(config) = info.config {
 			let config = config.into_inner();
-			let resource = build_resource(config, final_file_infos)?; // バリデーション
+			let resource = Resource::build(config, final_file_infos)?; // バリデーション
 
 			commit_files(prepared_files).await?; // 保存
 
@@ -223,7 +208,7 @@ async fn path_patch(path: web::Path<String>, MultipartForm(info): MultipartForm<
 			prepared_files.push(prepared);
 		}
 
-		let resource = build_resource(config, file_infos)?;
+		let resource = Resource::build(config, file_infos)?;
 		commit_files(prepared_files).await?;
 
 		setting.insert(fetch_dest, resource);
@@ -293,32 +278,5 @@ async fn commit_files(prepared_files: Vec<PreparedFile>) -> actix_web::Result<()
 async fn remove_files(keys: Vec<Uuid>) {
 	for key in keys {
 		let _ = tokio::fs::remove_file(format!("upload/{}", key)).await;
-	}
-}
-
-/// FormConfigと保存予定ファイルの情報からResourceを構築する（バリデーション兼任）
-fn build_resource(config: FormConfig, mut file_infos: Vec<(Uuid, mime::Mime)>) -> actix_web::Result<util::Resource> {
-	match config {
-		FormConfig::File => {
-			if file_infos.len() != 1 {
-				return Err(ErrorBadRequest("1 file required").into());
-			}
-			let (key, mime) = file_infos.pop().unwrap();
-			Ok(util::Resource::File { key, mime })
-		}
-		FormConfig::RandomFile { weights, cache } => {
-			if file_infos.len() != weights.len() {
-				return Err(ErrorBadRequest("Weights length mismatch").into());
-			}
-			let items = file_infos.into_iter().zip(weights).map(|((key, mime), weight)| (key, mime, weight)).collect();
-			Ok(util::Resource::RandomFile { items, cache })
-		}
-		FormConfig::FontRender { width, height, line_length } => {
-			if file_infos.len() != 1 {
-				return Err(ErrorBadRequest("1 file required").into());
-			}
-			let (key, _) = file_infos.pop().unwrap();
-			Ok(util::Resource::FontRender { key, width, height, line_length })
-		}
 	}
 }

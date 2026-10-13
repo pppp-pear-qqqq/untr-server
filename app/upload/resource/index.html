@@ -4,6 +4,10 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width">
 		<title>ろだ(仮名)</title>
+		<base href="/">
+		<link rel="stylesheet" href="style/note.css">
+		<link rel="stylesheet" href="style/form.css">
+		<script type="module" src="script/entry.js"></script>
 	</head>
 	<body>
 		<main>
@@ -44,6 +48,11 @@
 					運営者が怒られたら該当ファイルを削除し、上記の許可文章も消滅します。
 				</p>
 			</article>
+			<form id="login" action="login" method="post" data-encode="form">
+				<input type="hidden" name="code">
+				<p><a target="_blank" href="https://untroche.com">ポータルサイト</a>のアカウントを使用します</p>
+				<button type="submit">ログイン</button>
+			</form>
 		</main>
 	</body>
 </html>

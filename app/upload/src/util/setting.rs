@@ -77,7 +77,48 @@ pub enum Resource {
 	},
 }
 
+#[derive(serde::Deserialize)]
+#[serde(tag = "type")]
+pub enum ResourceConfig {
+	File,
+	RandomFile {
+		weights: Vec<u32>, // ファイルの数と一致させる
+		cache: bool,
+	},
+	FontRender {
+		width: u32,
+		height: u32,
+		line_length: u32,
+	},
+}
 impl Resource {
+	/// FormConfigと保存予定ファイルの情報からResourceを構築する（バリデーション兼任）
+	pub fn build(config: ResourceConfig, mut file_infos: Vec<(Uuid, mime::Mime)>) -> actix_web::Result<Self> {
+		match config {
+			ResourceConfig::File => {
+				if file_infos.len() != 1 {
+					return Err(ErrorBadRequest("1 file required").into());
+				}
+				let (key, mime) = file_infos.pop().unwrap();
+				Ok(Self::File { key, mime })
+			}
+			ResourceConfig::RandomFile { weights, cache } => {
+				if file_infos.len() != weights.len() {
+					return Err(ErrorBadRequest("Weights length mismatch").into());
+				}
+				let items = file_infos.into_iter().zip(weights).map(|((key, mime), weight)| (key, mime, weight)).collect();
+				Ok(Self::RandomFile { items, cache })
+			}
+			ResourceConfig::FontRender { width, height, line_length } => {
+				if file_infos.len() != 1 {
+					return Err(ErrorBadRequest("1 file required").into());
+				}
+				let (key, _) = file_infos.pop().unwrap();
+				Ok(Self::FontRender { key, width, height, line_length })
+			}
+		}
+	}
+
 	pub fn key_and_mimes(&self) -> Vec<(&Uuid, &mime::Mime)> {
 		match self {
 			Resource::File { key, mime, .. } => vec![(key, mime)],

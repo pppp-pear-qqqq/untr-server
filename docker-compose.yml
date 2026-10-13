@@ -54,7 +54,7 @@ services:
         environment:
             - APP_NAME=portal
             - SERVER_PORT=8000
-            - DATABASE_URL=sqlite:app/app/portal/portal.db
+            - DATABASE_URL=sqlite:/app/app/portal/portal.db
             - RUST_LOG=info,portal=debug,actix_web::middleware=warn
         networks: [untroche]
 
@@ -63,7 +63,7 @@ services:
         environment:
             - APP_NAME=upload
             - SERVER_PORT=8100
-            - DATABASE_URL=sqlite:app/app/portal/portal.db
+            - DATABASE_URL=sqlite:/app/app/portal/portal.db
             - RUST_LOG=info,portal=debug,actix_web::middleware=warn
         networks: [untroche]
 
@@ -72,7 +72,7 @@ services:
         environment:
             - APP_NAME=ondyst
             - SERVER_PORT=8006
-            - DATABASE_URL=sqlite:app/app/ondyst/ondyst.db
+            - DATABASE_URL=sqlite:/app/app/ondyst/ondyst.db
             - RUST_LOG=info,ondyst=debug,actix_web::middleware=warn
         networks: [untroche]
 

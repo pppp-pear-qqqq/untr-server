@@ -4,82 +4,84 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width">
 		<title>ろだ(仮名)</title>
+		<base href="/">
+		<link rel="stylesheet" href="style/note.css">
+		<script type="module" src="script/form.js"></script>
 	</head>
 	<body>
 		<main>
 			<h1>ろだ(仮名)</h1>
 			<article>
 				<h2>画像の登録</h2>
-				<form>
-					<input type="file" name="file" multiple>
+				<form id="bulk" action="control" method="post">
+					<h3>一括登録</h3>
+					<label>
+						ここにファイルをドロップ
+						<input type="file" name="files">
+					</label>
+					<output></output>
 				</form>
 				<details>
-					<summary>詳細設定</summary>
-					<form>
-						<input type="text" name="path">
-						<template>
-							<label class="dest">
-								アクセスタイプ
-								<select name="type">
-									<option value="none" selected>----</option>
-									<option>document</option>
-									<option>image</option>
-									<option>style</option>
-									<option>script</option>
-									<option>empty</option>
-									<option value="none">----</option>
-									<option>audio</option>
-									<option>audioworklet</option>
-									<option>embed</option>
-									<option>fencedframe</option>
-									<option>font</option>
-									<option>frame</option>
-									<option>iframe</option>
-									<option>manifest</option>
-									<option>object</option>
-									<option>paintworklet</option>
-									<option>report</option>
-									<option>serviceworker</option>
-									<option>sharedworker</option>
-									<option>track</option>
-									<option>video</option>
-									<option>webidentity</option>
-									<option>worker</option>
-									<option>xslt</option>
-								</select>
-							</label>
+					<summary>詳細・編集</summary>
+					<!--パス新規作成または置き換え-->
+					<form id="setting" action="control/" method="post">
+						<label>パス<input type="text" name="path"></label>
+						<label>
+							アクセスタイプ
+							<select name="fetch-dest">
+								<option value="none" selected>----</option>
+								<option>document</option>
+								<option>image</option>
+								<option>style</option>
+								<option>script</option>
+								<option>empty</option>
+								<option value="none">----</option>
+								<option>audio</option>
+								<option>audioworklet</option>
+								<option>embed</option>
+								<option>fencedframe</option>
+								<option>font</option>
+								<option>frame</option>
+								<option>iframe</option>
+								<option>manifest</option>
+								<option>object</option>
+								<option>paintworklet</option>
+								<option>report</option>
+								<option>serviceworker</option>
+								<option>sharedworker</option>
+								<option>track</option>
+								<option>video</option>
+								<option>webidentity</option>
+								<option>worker</option>
+								<option>xslt</option>
+							</select>
+						</label>
+						<label>単一ファイル<input type="radio" name="mode" value="file"></label>
+						<label>複数ファイル(ランダム)<input type="radio" name="mode" value="random-file"></label>
+						<label>フォントレンダリング<input type="radio" name="mode" value="font-render"></label>
+						<div class="file">
+							<label>ファイル<input type="file" name="files"></label>
+							<button type="submit" value="file"></button>
+						</div>
+						<div class="random-file">
 							<div class="file">
-								<label>ファイルid<input type="text" name="key"></label>
-								<label>
-									ファイルタイプ
-									<select name="content_type">
-										<option value="none" selected>----</option>
-										<option>text/plain</option>
-										<option>text/html</option>
-										<option>text/css</option>
-										<option>text/javascript</option>
-										<option>application/json</option>
-										<option>application/xml</option>
-										<option>image/png</option>
-										<option>image/jpeg</option>
-										<option>image/gif</option>
-										<option>audio/mpeg</option>
-										<option>audio/ogg</option>
-										<option>video/mp4</option>
-										<option>video/webm</option>
-										<option value="other">その他</option>
-									</select>
-									<input type="text" name="content_type" hidden>
-								</label>
-								<label hidden>重み<input type="number" name="weight"></label>
+								<label>ファイル<input type="file" name="file"></label>
+								<label>重み <input type="number" name="weight"></label>
 							</div>
-							<div class="font_render">
-								<label>フォントファイルid<input type="text" name="key"></label>
-								<label>文字幅<input type="number" name="weight"></label>
-								<label>文字高<input type="number" name="height"></label>
-								<label>1行あたりの文字数<input type="number" name="line_length"></label>
+							<div class="control">
+								<button type="button" name="control" value="add">追加</button>
+								<button type="button" name="control" value="remove">削除</button>
 							</div>
-						</template>
+							<label><input type="checkbox" name="cache">キャッシュ</label>
+							<button type="submit" value="random-file"></button>
+						</div>
+						<div class="font-render">
+							<label>ファイル<input type="file" name="files"></label>
+							<label>文字幅<input type="number" name="width"></label>
+							<label>文字高さ<input type="number" name="height"></label>
+							<label>1行あたり文字数<input type="number" name="line_length"></label>
+							<button type="submit" value="font-render"></button>
+						</div>
 					</form>
 				</details>
 			</article>

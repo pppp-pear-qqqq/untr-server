@@ -35,7 +35,6 @@ async fn main() -> Result<(), io::Error> {
 			// .wrap(middleware::from_fn(common::mw_err_format::<util::Page>)) // 今回はスモールプロジェクトなのでAjaxを使用せず、エラーメッセージは純テキストのみでいい
 			.default_service(web::to(HttpResponse::NotFound))
 			.app_data(app_data.state)
-			.app_data(app_data.tera)
 			.app_data(app_data.setting)
 			.app_data(app_data.users)
 			.configure(domain::make_cfg(app_data.admin_key).expect("file load error"))

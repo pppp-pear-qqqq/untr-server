@@ -4,10 +4,10 @@ mod delivery;
 mod login;
 
 use actix_web::{HttpResponse, Responder, error::*, http::header, web};
-use common::{PageRender, Pagination, ReqType};
+// use common::{PageRender, Pagination, ReqType};
 #[allow(unused_imports)]
 use log::{debug, error, info};
-use tera::Tera;
+// use tera::Tera;
 use uuid::Uuid;
 use validator::Validate;
 

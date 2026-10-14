@@ -7,17 +7,19 @@
 		<base href="/">
 		<link rel="stylesheet" href="style/note.css">
 		<link rel="stylesheet" href="style/form.css">
-		<script type="module" src="script/form.js"></script>
+		<link rel="stylesheet" href="style/control.css">
+		<script type="module" src="script/control.js"></script>
 	</head>
 	<body>
 		<main>
 			<h1>ろだ(仮名)</h1>
 			<article>
 				<h2>画像の登録</h2>
-				<form id="bulk" action="control" method="post">
+				<form id="bulk" action="control" method="post" enctype="multipart/form-data">
 					<h3>一括登録</h3>
-					<label>
-						ここにファイルをドロップ
+					<label class="drop-area">
+						ここにファイルをドロップ<br>
+						またはクリックしてファイルを選択
 						<input type="file" name="files" multiple>
 					</label>
 					<output></output>
@@ -25,7 +27,7 @@
 				<details>
 					<summary>詳細・編集</summary>
 					<!--パス新規作成または置き換え-->
-					<form id="setting" action="control/" method="post">
+					<form id="setting" action="control" method="post">
 						<label>パス<input type="text" name="path"></label>
 						<label>
 							アクセスタイプ
@@ -57,9 +59,11 @@
 								<option>xslt</option>
 							</select>
 						</label>
-						<label>単一ファイル<input type="radio" name="mode" value="file"></label>
-						<label>複数ファイル(ランダム)<input type="radio" name="mode" value="random-file"></label>
-						<label>フォントレンダリング<input type="radio" name="mode" value="font-render"></label>
+						<div class="tabs">
+							<label class="tab">単一ファイル<input type="radio" name="mode" value="file" checked></label>
+							<label class="tab">複数ファイル(ランダム)<input type="radio" name="mode" value="random-file"></label>
+							<label class="tab">フォントレンダリング<input type="radio" name="mode" value="font-render"></label>
+						</div>
 						<div class="file">
 							<label>ファイル<input type="file" name="files"></label>
 							<button type="submit" value="file">登録</button>

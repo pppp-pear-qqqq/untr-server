@@ -9,7 +9,7 @@ use actix_session::{
 	config::{PersistentSession, TtlExtensionPolicy},
 	storage,
 };
-use actix_web::{App, HttpResponse, HttpServer, cookie, middleware, web};
+use actix_web::{App, HttpResponse, HttpServer, cookie, dev::Service, http::header, middleware, web};
 
 #[actix_web::main]
 async fn main() -> Result<(), io::Error> {
@@ -33,6 +33,16 @@ async fn main() -> Result<(), io::Error> {
 			.wrap(middleware::NormalizePath::trim())
 			.wrap(session)
 			// .wrap(middleware::from_fn(common::mw_err_format::<util::Page>)) // 今回はスモールプロジェクトなのでAjaxを使用せず、エラーメッセージは純テキストのみでいい
+			.wrap_fn(|req, srv| {
+				let fut = srv.call(req);
+				async {
+					let mut res = fut.await?;
+					if !res.status().is_success() && !res.headers().contains_key(header::CONTENT_TYPE) {
+						res.headers_mut().insert(header::CONTENT_TYPE, header::HeaderValue::from_static("text/plain;charset=utf-8"));
+					}
+					Ok(res)
+				}
+			})
 			.default_service(web::to(HttpResponse::NotFound))
 			.app_data(app_data.state)
 			.app_data(app_data.setting)

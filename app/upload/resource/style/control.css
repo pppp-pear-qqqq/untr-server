@@ -1,0 +1,39 @@
+#bulk .drop-area {
+	display: block;
+	width: 20em;
+	height: 5lh;
+	border: 1px dashed #767676;
+	border-radius: 0.5em;
+	text-align: center;
+	align-content: center;
+
+	> input[type="file"] {
+		display: none;
+	}
+
+	&.file-hover {
+		background-color: #8080ff20;
+	}
+}
+
+.tabs {
+	display: flex;
+	gap: 0.5em;
+
+	> .tab input[type="radio"] {
+		display: none;
+	}
+	> .tab:has(input:checked) {
+		border-bottom: 1px solid #e0b000;
+	}
+
+	&:has(input[value="file"]:checked) ~ div:not(.file) {
+		display: none;
+	}
+	&:has(input[value="random-file"]:checked) ~ div:not(.random-file) {
+		display: none;
+	}
+	&:has(input[value="font-render"]:checked) ~ div:not(.font-render) {
+		display: none;
+	}
+}

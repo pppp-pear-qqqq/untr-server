@@ -5,7 +5,7 @@ setting.addEventListener('submit', ev => {
 	ev.preventDefault();
 	const path = setting.querySelector<HTMLInputElement>('[name="path"]')?.value;
 	if (path == null || path == '') return;
-	setting.action = `control/${path}`;
+	const action = `control/${path}`;
 	let fetch_dest = setting.querySelector<HTMLInputElement>('[name="fetch-dest"]')?.value ?? null;
 	if (fetch_dest === 'none') fetch_dest = null;
 	const ty = (ev.submitter as HTMLButtonElement).value;
@@ -44,7 +44,7 @@ setting.addEventListener('submit', ev => {
 	for (const file of files) form_data.append('files', file);
 	form_data.append('config', JSON.stringify(config));
 
-	new Ajax(setting.action).method('POST').body(form_data, 'form').send('json').then((res: string[]) => {
+	new Ajax(action).method('POST').body(form_data, 'form').send('json').then((res: string[]) => {
 		console.log(res);
 	})
 });

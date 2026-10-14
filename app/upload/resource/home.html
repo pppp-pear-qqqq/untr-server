@@ -6,6 +6,7 @@
 		<title>ろだ(仮名)</title>
 		<base href="/">
 		<link rel="stylesheet" href="style/note.css">
+		<link rel="stylesheet" href="style/form.css">
 		<script type="module" src="script/form.js"></script>
 	</head>
 	<body>
@@ -17,7 +18,7 @@
 					<h3>一括登録</h3>
 					<label>
 						ここにファイルをドロップ
-						<input type="file" name="files">
+						<input type="file" name="files" multiple>
 					</label>
 					<output></output>
 				</form>
@@ -61,7 +62,7 @@
 						<label>フォントレンダリング<input type="radio" name="mode" value="font-render"></label>
 						<div class="file">
 							<label>ファイル<input type="file" name="files"></label>
-							<button type="submit" value="file"></button>
+							<button type="submit" value="file">登録</button>
 						</div>
 						<div class="random-file">
 							<div class="file">
@@ -73,43 +74,21 @@
 								<button type="button" name="control" value="remove">削除</button>
 							</div>
 							<label><input type="checkbox" name="cache">キャッシュ</label>
-							<button type="submit" value="random-file"></button>
+							<button type="submit" value="random-file">登録</button>
 						</div>
 						<div class="font-render">
 							<label>ファイル<input type="file" name="files"></label>
 							<label>文字幅<input type="number" name="width"></label>
 							<label>文字高さ<input type="number" name="height"></label>
 							<label>1行あたり文字数<input type="number" name="line_length"></label>
-							<button type="submit" value="font-render"></button>
+							<button type="submit" value="font-render">登録</button>
 						</div>
 					</form>
 				</details>
 			</article>
 			<article>
-				<h2>登録した画像</h2>
-				<div>
-					<template>
-						<div class="file image" data-key>
-							<span class="key"></span>
-							<img class="content" src>
-							<div class="path">
-							</div>
-						</div>
-						<div class="file other" data-key>
-							<span class="key"></span>
-							<ic class="content"></ic>
-							<div class="path">
-							</div>
-						</div>
-					</template>
-				</div>
-			</article>
-			<article>
 				<h2>設定したパス</h2>
 				<div>
-					<template>
-						<div class="path"></div>
-					</template>
 				</div>
 			</article>
 		</main>

@@ -29,11 +29,11 @@ services:
             - ./nginx/ssl:/etc/nginx/ssl:ro
             - ./app/common/resource:/app/resource/common
             - ./app/portal/resource:/app/resource/portal
-            # - ./app/erltod/resource:/app/resource/erltod
+            - ./app/upload/resource:/app/resource/upload
             - ./app/ondyst/resource:/app/resource/ondyst
         depends_on:
             - portal
-            # - erltod
+            - upload
             - ondyst
         networks: [untroche]
 

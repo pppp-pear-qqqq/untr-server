@@ -1,3 +1,6 @@
+/**
+ * @deprecated 構造を刷新した新バージョン {@link ./http_client.ts|HttpClient} の利用を推奨
+ */
 export class Ajax {
 	private static actions = new Set<string>();
 	private static _wait = 1000;

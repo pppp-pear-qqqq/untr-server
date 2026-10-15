@@ -65,26 +65,44 @@
 							<label class="tab">フォントレンダリング<input type="radio" name="mode" value="font-render"></label>
 						</div>
 						<div class="file">
-							<label>ファイル<input type="file" name="files"></label>
+							<input type="file" name="file">
 							<button type="submit" value="file">登録</button>
 						</div>
 						<div class="random-file">
-							<div class="file">
-								<label>ファイル<input type="file" name="file"></label>
-								<label>重み <input type="number" name="weight"></label>
-							</div>
-							<div class="control">
-								<button type="button" name="control" value="add">追加</button>
-								<button type="button" name="control" value="remove">削除</button>
-							</div>
+							<table class="variable">
+								<tbody>
+									<tr class="file">
+										<td><input type="file" name="file"></td>
+										<td><label>重み <input type="number" name="weight"></label></td>
+									</tr>
+									<tr class="file">
+										<td><input type="file" name="file"></td>
+										<td><label>重み <input type="number" name="weight"></label></td>
+									</tr>
+								</tbody>
+								<template>
+									<tr class="file">
+										<td><input type="file" name="file"></td>
+										<td><label>重み <input type="number" name="weight"></label></td>
+										<td><button type="button" name="control" value="rem">削除</button></td>
+									</tr>
+								</template>
+								<tfoot class="control">
+									<tr>
+										<td colspan="3">
+											<button type="button" name="control" value="add">追加</button>
+										</td>
+									</tr>
+								</tfoot>
+							</table>
 							<label><input type="checkbox" name="cache">キャッシュ</label>
 							<button type="submit" value="random-file">登録</button>
 						</div>
 						<div class="font-render">
-							<label>ファイル<input type="file" name="files"></label>
-							<label>文字幅<input type="number" name="width"></label>
-							<label>文字高さ<input type="number" name="height"></label>
-							<label>1行あたり文字数<input type="number" name="line_length"></label>
+							<input type="file" name="file">
+							<label>文字幅<input type="number" name="width" placeholder="48"></label>
+							<label>文字高<input type="number" name="height" placeholder="48"></label>
+							<label>1行あたり文字数<input type="number" name="line_length" placeholder="18"></label>
 							<button type="submit" value="font-render">登録</button>
 						</div>
 					</form>

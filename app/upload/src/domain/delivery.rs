@@ -81,7 +81,7 @@ async fn file(req: HttpRequest, addr: Addr, query: HashMap<String, String>, dest
 
 			// フォントファイルの読み込みと検証
 			let font_data = tokio::fs::read(resource(format!("upload/{key}"))).await?;
-			let font = FontRef::try_from_slice(&font_data).map_err(|_| ErrorInternalServerError("無効なフォントファイルです"))?;
+			let font = FontRef::try_from_slice(&font_data).map_err(|_| ErrorFailedDependency("無効なフォントファイルです"))?;
 
 			// 自動改行（折り返し）の計算
 			let chars: Vec<_> = word.chars().collect();

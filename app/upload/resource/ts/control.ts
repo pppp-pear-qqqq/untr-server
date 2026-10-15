@@ -1,4 +1,6 @@
-import { Ajax } from '/common/script/ajax.js';
+import { HttpClient } from '/common/script/http_client.js';
+
+const client = new HttpClient();
 
 const ev_change = new Event('change', { bubbles: true });
 
@@ -25,7 +27,7 @@ drop_area.addEventListener('dragenter', ev => {
 drop_area.addEventListener('dragleave', () => drop_area.classList.remove('file-hover'))
 files.addEventListener('change', () => bulk.requestSubmit())
 bulk.addEventListener('submit', ev => {
-	// ev.preventDefault();
+	ev.preventDefault();
 	// console.log('submit');
 })
 
@@ -81,7 +83,35 @@ setting.addEventListener('submit', ev => {
 	for (const file of files) form_data.append('files', file);
 	form_data.append('config', JSON.stringify(config));
 
+	client.request(action, 'POST', { body: form_data, encode: 'multipart', ret_type: 'json' }).then((res) => {
+
+	})
+
 	new Ajax(action).method('POST').body(form_data, 'form').send('json').then((res: string[]) => {
 		console.log(res);
 	})
 });
+document.querySelectorAll<HTMLTableElement>('table.variable').forEach(table => {
+	const b = table.tBodies[0];
+	const tmpl = table.querySelector('template');
+	set_control(table);
+
+	function set_control(root: ParentNode) {
+		root.querySelectorAll<HTMLButtonElement>('[name="control"]').forEach(e => {
+			e.addEventListener('click', () => {
+				switch (e.value) {
+					case 'add': {
+						const t = tmpl?.content.querySelector('tr');
+						if (t) set_control(b.appendChild(t.cloneNode(true)) as ParentNode);
+						else b.insertRow();
+					} break;
+					case 'rem': {
+						const p = e.closest('tbody');
+						if (p) e.closest('tr')?.remove();
+						else b.deleteRow(-1);
+					} break;
+				}
+			})
+		})
+	}
+})

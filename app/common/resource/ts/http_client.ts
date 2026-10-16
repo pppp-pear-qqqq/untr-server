@@ -1,12 +1,11 @@
-type RequestMethod = 'GET' | 'HEAD' | 'QUERY' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
-type ResponseType = 'arrayBuffer' | 'blob' | 'bytes' | 'formData' | 'json' | 'text';
+type ResponseType = 'arrayBuffer' | 'bytes' | 'blob' | 'formData' | 'text' | 'json';
 type EncodeType = 'application/x-www-form-urlencoded' | 'form' | 'multipart/form-data' | 'multipart' | 'application/json' | 'json';
+type Method = 'GET' | 'HEAD' | 'QUERY' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
 export interface HttpRequestOptions {
 	query?: string | Record<string, string> | URLSearchParams | string[][];
 	body?: FormData | HTMLFormElement | Record<string, any>;
 	encode?: EncodeType;
-	ret_type?: ResponseType;
 	headers?: HeadersInit;
 }
 
@@ -23,11 +22,11 @@ export class HttpClient {
 	 */
 	public send(form: HTMLFormElement): Promise<Response>;
 	public send(form: HTMLFormElement, ret_type: 'arrayBuffer'): Promise<ArrayBuffer>;
+	public send(form: HTMLFormElement, ret_type: 'bytes'): Promise<ArrayBuffer>;
 	public send(form: HTMLFormElement, ret_type: 'blob'): Promise<Blob>;
-	public send(form: HTMLFormElement, ret_type: 'bytes'): Promise<Uint8Array>;
 	public send(form: HTMLFormElement, ret_type: 'formData'): Promise<FormData>;
-	public send<T = any>(form: HTMLFormElement, ret_type: 'json'): Promise<T>;
 	public send(form: HTMLFormElement, ret_type: 'text'): Promise<string>;
+	public send<T = any>(form: HTMLFormElement, ret_type: 'json'): Promise<T>;
 	public send(form: HTMLFormElement, ret_type?: ResponseType): Promise<any> {
 		if (!form.checkValidity()) return Promise.reject(new Error('フォームの制約が満たされていません'));
 
@@ -39,49 +38,48 @@ export class HttpClient {
 		switch (method) {
 			case 'GET': return this.request(url, 'GET', {
 				query: new URLSearchParams(new FormData(form) as any),
-				ret_type
-			});
+			}, ret_type);
 			case 'POST': return this.request(url, 'POST', {
 				body: form,
 				encode: enctype,
-				ret_type
-			});
+			}, ret_type);
 		}
 	}
 
-	public get(url: string, query?: HttpRequestOptions['query']): Promise<Response>;
-	public get(url: string, query: HttpRequestOptions['query'] | null | undefined, ret_type: 'arrayBuffer'): Promise<ArrayBuffer>;
-	public get(url: string, query: HttpRequestOptions['query'] | null | undefined, ret_type: 'blob'): Promise<Blob>;
-	public get(url: string, query: HttpRequestOptions['query'] | null | undefined, ret_type: 'bytes'): Promise<Uint8Array>;
-	public get(url: string, query: HttpRequestOptions['query'] | null | undefined, ret_type: 'formData'): Promise<FormData>;
-	public get<T = any>(url: string, query: HttpRequestOptions['query'] | null | undefined, ret_type: 'json'): Promise<T>;
-	public get(url: string, query: HttpRequestOptions['query'] | null | undefined, ret_type: 'text'): Promise<string>;
+	public get(url: string, query?: HttpRequestOptions['query'] ): Promise<Response>;
+	public get(url: string, query: HttpRequestOptions['query'] | undefined, ret_type: 'arrayBuffer'): Promise<ArrayBuffer>;
+	public get(url: string, query: HttpRequestOptions['query'] | undefined, ret_type: 'bytes'): Promise<ArrayBuffer>;
+	public get(url: string, query: HttpRequestOptions['query'] | undefined, ret_type: 'blob'): Promise<Blob>;
+	public get(url: string, query: HttpRequestOptions['query'] | undefined, ret_type: 'formData'): Promise<FormData>;
+	public get(url: string, query: HttpRequestOptions['query'] | undefined, ret_type: 'text'): Promise<string>;
+	public get<T = any>(url: string, query: HttpRequestOptions['query'] | undefined, ret_type: 'json'): Promise<T>;
 	public get(url: string, query?: HttpRequestOptions['query'], ret_type?: ResponseType): Promise<any> {
-		return this.request(url, 'GET', { query, ret_type });
+		return this.request(url, 'GET', { query }, ret_type);
 	}
 
-	public post(url: string, data?: HttpRequestOptions['body'], encode?: EncodeType): Promise<Response>;
-	public post(url: string, data: HttpRequestOptions['body'] | null | undefined, encode: EncodeType | null | undefined, ret_type: 'arrayBuffer'): Promise<ArrayBuffer>;
-	public post(url: string, data: HttpRequestOptions['body'] | null | undefined, encode: EncodeType | null | undefined, ret_type: 'blob'): Promise<Blob>;
-	public post(url: string, data: HttpRequestOptions['body'] | null | undefined, encode: EncodeType | null | undefined, ret_type: 'bytes'): Promise<Uint8Array>;
-	public post(url: string, data: HttpRequestOptions['body'] | null | undefined, encode: EncodeType | null | undefined, ret_type: 'formData'): Promise<FormData>;
-	public post<T = any>(url: string, data: HttpRequestOptions['body'] | null | undefined, encode: EncodeType | null | undefined, ret_type: 'json'): Promise<T>;
-	public post(url: string, data: HttpRequestOptions['body'] | null | undefined, encode: EncodeType | null | undefined, ret_type: 'text'): Promise<string>;
+	public post(url: string, data: HttpRequestOptions['body'], encode?: EncodeType): Promise<Response>;
+	public post(url: string, data: HttpRequestOptions['body'], encode: EncodeType | undefined, ret_type: 'arrayBuffer'): Promise<ArrayBuffer>;
+	public post(url: string, data: HttpRequestOptions['body'], encode: EncodeType | undefined, ret_type: 'bytes'): Promise<ArrayBuffer>;
+	public post(url: string, data: HttpRequestOptions['body'], encode: EncodeType | undefined, ret_type: 'blob'): Promise<Blob>;
+	public post(url: string, data: HttpRequestOptions['body'], encode: EncodeType | undefined, ret_type: 'formData'): Promise<FormData>;
+	public post(url: string, data: HttpRequestOptions['body'], encode: EncodeType | undefined, ret_type: 'text'): Promise<string>;
+	public post<T = any>(url: string, data: HttpRequestOptions['body'], encode: EncodeType | undefined, ret_type: 'json'): Promise<T>;
 	public post(url: string, data: HttpRequestOptions['body'], encode: EncodeType = 'application/json', ret_type?: ResponseType): Promise<any> {
-		return this.request(url, 'POST', { body: data, encode, ret_type });
+		return this.request(url, 'POST', { body: data, encode }, ret_type);
 	}
 
 	/**
 	 * 汎用リクエストメソッド
 	 */
-	public request(method: string, url: string, options?: Omit<HttpRequestOptions, 'ret_type'>): Promise<Response>;
-	public request(method: string, url: string, options: HttpRequestOptions & { ret_type: 'arrayBuffer' }): Promise<ArrayBuffer>;
-	public request(method: string, url: string, options: HttpRequestOptions & { ret_type: 'blob' }): Promise<Blob>;
-	public request(method: string, url: string, options: HttpRequestOptions & { ret_type: 'bytes' }): Promise<Uint8Array>;
-	public request(method: string, url: string, options: HttpRequestOptions & { ret_type: 'formData' }): Promise<FormData>;
-	public request<T = any>(method: string, url: string, options: HttpRequestOptions & { ret_type: 'json' }): Promise<T>;
-	public request(method: string, url: string, options: HttpRequestOptions & { ret_type: 'text' }): Promise<string>;
-	public request(url: string, method: RequestMethod, options: HttpRequestOptions = {}): Promise<any> {
+	public request(url: string, method: string, options?: HttpRequestOptions): Promise<Response>;
+	public request(url: string, method: string, options: HttpRequestOptions | undefined, ret_type: 'arrayBuffer'): Promise<ArrayBuffer>;
+	public request(url: string, method: string, options: HttpRequestOptions | undefined, ret_type: 'bytes'): Promise<ArrayBuffer>;
+	public request(url: string, method: string, options: HttpRequestOptions | undefined, ret_type: 'blob'): Promise<Blob>;
+	public request(url: string, method: string, options: HttpRequestOptions | undefined, ret_type: 'formData'): Promise<FormData>;
+	public request(url: string, method: string, options: HttpRequestOptions | undefined, ret_type: 'text'): Promise<string>;
+	public request<T = any>(url: string, method: string, options: HttpRequestOptions | undefined, ret_type: 'json'): Promise<T>;
+	public request(url: string, method: string, options?: HttpRequestOptions, ret_type?: ResponseType): Promise<any>;
+	public request(url: string, method: string, options: HttpRequestOptions = {}, ret_type?: ResponseType): Promise<any> {
 		const action_key = `${url}:${method}`;
 		if (this.actions.has(action_key)) return Promise.reject(new Error('既に同リクエストを処理中です'));
 
@@ -104,13 +102,13 @@ export class HttpClient {
 				});
 			}
 
-			switch (options.ret_type) {
+			switch (ret_type) {
 				case 'arrayBuffer': return r.arrayBuffer();
-				case 'blob': return r.blob();
 				case 'bytes': return r.bytes();
+				case 'blob': return r.blob();
 				case 'formData': return r.formData();
-				case 'json': return r.json();
 				case 'text': return r.text();
+				case 'json': return r.json();
 				default: return r; // 指定がない場合は Response オブジェクトをそのまま返す
 			}
 		});

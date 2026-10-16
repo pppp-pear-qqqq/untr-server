@@ -8,6 +8,7 @@ const ev_change = new Event('change', { bubbles: true });
 const bulk = document.getElementById('bulk') as HTMLFormElement;
 const drop_area = bulk.querySelector<HTMLElement>('.drop-area')!;
 const files = bulk.querySelector<HTMLInputElement>('[name="files"]')!;
+const bulk_output = bulk.querySelector('output')!;
 drop_area.addEventListener('drop', ev => {
 	const data = ev.dataTransfer?.files;
 	drop_area.classList.remove('file-hover');
@@ -28,7 +29,9 @@ drop_area.addEventListener('dragleave', () => drop_area.classList.remove('file-h
 files.addEventListener('change', () => bulk.requestSubmit())
 bulk.addEventListener('submit', ev => {
 	ev.preventDefault();
-	// console.log('submit');
+	client.send<string[]>(bulk, 'json').then(r => {
+		bulk_output.textContent! = r.join('\n');
+	})
 })
 
 // 詳細設定
@@ -83,12 +86,10 @@ setting.addEventListener('submit', ev => {
 	for (const file of files) form_data.append('files', file);
 	form_data.append('config', JSON.stringify(config));
 
-	client.request(action, 'POST', { body: form_data, encode: 'multipart', ret_type: 'json' }).then((res) => {
-
-	})
-
-	new Ajax(action).method('POST').body(form_data, 'form').send('json').then((res: string[]) => {
+	client.request<string[]>(action, 'POST', { body: form_data, encode: 'multipart' }, 'json').then(res => {
 		console.log(res);
+	}).catch(e => {
+		console.error(e.message);
 	})
 });
 document.querySelectorAll<HTMLTableElement>('table.variable').forEach(table => {

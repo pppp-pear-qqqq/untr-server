@@ -2,22 +2,36 @@ use super::*;
 use crate::util::{self, Resource, ResourceConfig, RouteMap, UserMap};
 
 use actix_multipart::form::{self, MultipartForm, tempfile::TempFile};
-use actix_web::mime;
+use actix_web::{HttpRequest, mime};
+use common::ReqType;
 
 pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.service(web::resource("").get(index).post(post));
 	cfg.service(web::resource("{path:.+}").post(path_post).put(path_put).patch(path_patch).delete(path_delete));
 }
 
-async fn index() -> common::Result<impl Responder> {
-	// TODO 多分登録済みのデータとか諸々をテンプレートに入れなきゃいけない
-	let file = actix_files::NamedFile::open(resource("control.html"))?.set_content_type(mime::TEXT_HTML_UTF_8);
-	Ok(file)
-}
-
 // ==========================================
 // ハンドラ群
 // ==========================================
+
+async fn index(req: HttpRequest, ty: ReqType, id: Identity, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
+	match ty {
+		ReqType::Empty => {
+			let username = users.get(&*id).ok_or_else(|| ErrorUnauthorized("ログインしてください"))?;
+			if let Some(setting) = setting.get(&username) {
+				let keys = setting.keys().collect::<Vec<_>>();
+				Ok(HttpResponse::Ok().json(keys))
+			} else {
+				Ok(HttpResponse::Ok().body("[]"))
+			}
+		}
+		_ => {
+			// TODO 多分登録済みのデータとか諸々をテンプレートに入れなきゃいけない
+			let file = actix_files::NamedFile::open(resource("control.html"))?.set_content_type(mime::TEXT_HTML_UTF_8);
+			Ok(file.into_response(&req))
+		}
+	}
+}
 
 #[derive(MultipartForm)]
 struct Post {
@@ -26,6 +40,7 @@ struct Post {
 /// ファイルの一括アップロード・リソース設定
 async fn post(MultipartForm(info): MultipartForm<Post>, id: Identity, state: StateHandle, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
 	state.get().only_active()?;
+	debug!("{setting:?}");
 	let username = users.get(&*id).ok_or_else(|| ErrorUnauthorized("ログインしてください"))?;
 	let mut setting = setting.entry(username).or_default();
 
@@ -63,11 +78,13 @@ async fn post(MultipartForm(info): MultipartForm<Post>, id: Identity, state: Sta
 	commit_files(prepared_files).await?;
 
 	// 全て成功したらマップを更新
+	let mut res = Vec::new();
 	for (name, value) in resources_to_insert {
+		res.push(name.clone());
 		setting.insert(name, value);
 	}
 
-	Ok(HttpResponse::Ok().finish())
+	Ok(HttpResponse::Ok().json(res))
 }
 
 #[derive(MultipartForm)]

@@ -31,7 +31,7 @@ async fn location_list(id: Option<Identity>, _: StateHandle, pool: web::Data<Poo
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }
 
-async fn location(key: web::Path<String>, page: Pagination<20, 100>, req_type: ReqType, id: Option<Identity>, _: StateHandle, pool: web::Data<Pool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
+async fn location(key: web::Path<String>, page: Pagination<20, 100>, dest: Option<FetchDest>, id: Option<Identity>, _: StateHandle, pool: web::Data<Pool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
 	#[derive(serde::Serialize)]
 	struct Location {
 		name: String,
@@ -52,8 +52,8 @@ async fn location(key: web::Path<String>, page: Pagination<20, 100>, req_type: R
 	let size = sqlx::query_scalar!("SELECT COUNT(*) FROM chat WHERE location=?", key).fetch_one(pool).await?;
 	let chat_list = chat::get_chat(chat::Search::new(Some(vec![&key]), None, None, chat::SearchLevel::default(), false), page, pool).await?;
 
-	match req_type {
-		ReqType::Empty => Ok(HttpResponse::Ok().json(serde_json::json!({
+	match dest {
+		Some(FetchDest::Empty) | None => Ok(HttpResponse::Ok().json(serde_json::json!({
 			"size": size,
 			"list": chat_list,
 		}))),

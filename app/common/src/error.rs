@@ -66,10 +66,16 @@ where
 					}
 				}
 			}
-			Self { status: StatusCode::BAD_REQUEST, cause: Box::new(StringError(messages.join("\n"))) }
+			Self {
+				status: StatusCode::BAD_REQUEST,
+				cause: Box::new(StringError(messages.join("\n"))),
+			}
 		} else {
 			error!("{:?}", boxed);
-			Self { status: StatusCode::INTERNAL_SERVER_ERROR, cause: boxed }
+			Self {
+				status: StatusCode::INTERNAL_SERVER_ERROR,
+				cause: boxed,
+			}
 		}
 	}
 }
@@ -97,8 +103,8 @@ pub async fn mw_err_format<Page: Default + crate::PageRender>(req: dev::ServiceR
 	// エラー整形
 	if let Some(err) = res.error() {
 		let mut payload = dev::Payload::None;
-		let req_type = crate::ReqType::from_request(&req, &mut payload).await?;
-		if req_type == crate::ReqType::Document {
+		let req_type = Option::<crate::FetchDest>::from_request(&req, &mut payload).await?;
+		if req_type == Some(crate::FetchDest::Document) {
 			let tmpl = req.app_data::<web::Data<Tera>>().ok_or(ErrorInternalServerError("Failed get template"))?;
 			let mut ctx = tera::Context::new();
 			ctx.insert("message", &err.to_string());

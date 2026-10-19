@@ -19,8 +19,8 @@ base64.workspace = true
 chrono.workspace = true
 dotenv = { workspace = true, optional = true }
 env_logger.workspace = true
-glob.workspace = true
 fxhash.workspace = true
+glob.workspace = true
 nanoid = "0.5.0"
 regex.workspace = true
 reqwest.workspace = true

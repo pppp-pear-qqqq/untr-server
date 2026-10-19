@@ -7,7 +7,7 @@ mod location;
 mod pages;
 
 use actix_web::{HttpResponse, Responder, error::*, http::header, web};
-use common::{HTMLEncode, PageRender, Pagination, ReqType};
+use common::{FetchDest, HTMLEncode, PageRender, Pagination};
 #[allow(unused_imports)]
 use log::{debug, error, info};
 use uuid::Uuid;

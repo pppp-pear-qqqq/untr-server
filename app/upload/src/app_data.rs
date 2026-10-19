@@ -47,9 +47,9 @@ impl AppData {
 			Err(err) => panic!("{}", err),
 		};
 		// setting
-		let setting = util::RouteMap::new(); // TODO
+		let setting = util::setting::load_or_default().await.unwrap();
 		// users
-		let users = util::UserMap::load();
+		let users = util::UserMap::new();
 
 		Self {
 			state: StateHandle::new(state),

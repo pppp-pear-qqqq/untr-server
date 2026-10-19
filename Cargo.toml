@@ -13,9 +13,9 @@ chrono = { version = "0.4.45", features = ["serde"] }
 common.path = "app/common"
 dotenv = "0.15.0"
 env_logger = "0.11.11"
-glob = "0.3.4"
 futures-util = "0.3.34"
 fxhash = "0.2.1"
+glob = "0.3.4"
 log = "0.4.34"
 minify-html = "0.18.1"
 rand = "0.10.3"
@@ -25,6 +25,7 @@ rkyv = { version = "0.8.18", features = ["unaligned"] }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.154"
 sqlx = { version = "0.9.0", features = ["sqlite", "chrono", "runtime-tokio"] }
+strum = { version = "0.28.0", features = ["derive"] }
 tera = "2.4.0"
 tokio = "1.53.2"
 uuid = { version = "1.28.0", features = ["serde", "v4"] }

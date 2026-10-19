@@ -7,7 +7,7 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.route("{actor}", web::get().to(actor));
 }
 
-async fn list(page: Pagination<100, 200>, req_type: ReqType, id: Option<Identity>, _: StateHandle, pool: web::Data<Pool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
+async fn list(page: Pagination<100, 200>, dest: Option<FetchDest>, id: Option<Identity>, _: StateHandle, pool: web::Data<Pool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
 	#[derive(serde::Serialize)]
 	struct Record {
 		id: i64,
@@ -23,8 +23,8 @@ async fn list(page: Pagination<100, 200>, req_type: ReqType, id: Option<Identity
 	let size = sqlx::query_scalar!("SELECT COUNT(*) FROM actor").fetch_one(pool).await?;
 	let records = sqlx::query_as!(Record, "SELECT id,name,comment,icon FROM actor LIMIT ?,?", offset, limit).fetch_all(pool).await?;
 
-	match req_type {
-		ReqType::Empty => Ok(HttpResponse::Ok().json(serde_json::json!({
+	match dest {
+		Some(FetchDest::Empty) | None => Ok(HttpResponse::Ok().json(serde_json::json!({
 			"size": size,
 			"list": records,
 		}))),
@@ -48,7 +48,10 @@ async fn actor(actor: web::Path<i64>, id: Option<Identity>, _: StateHandle, pool
 	let target_id = actor.into_inner();
 
 	let pool = pool.as_ref();
-	let record = sqlx::query!("SELECT name,profile,portrait_list,ho_title,ho_body FROM actor WHERE id=?", target_id).fetch_optional(pool).await?.ok_or(ErrorNotFound("対象のキャラクターは存在しません"))?;
+	let record = sqlx::query!("SELECT name,profile,portrait_list,ho_title,ho_body FROM actor WHERE id=?", target_id)
+		.fetch_optional(pool)
+		.await?
+		.ok_or(ErrorNotFound("対象のキャラクターは存在しません"))?;
 
 	let mut section_iter = record.profile.split("\n# ");
 	let mut sections = Vec::new();
@@ -74,6 +77,9 @@ async fn actor(actor: web::Path<i64>, id: Option<Identity>, _: StateHandle, pool
 	ctx.insert("ho_title", &record.ho_title);
 	ctx.insert("ho_body", &record.ho_body);
 
-	let body = Page::default().title(&format!("{} - one day's' talk", record.name)).actor_data_opt(ActorData::load_opt(&id, &pool).await?).render_with_ctx("actor.html", &tmpl, ctx)?;
+	let body = Page::default()
+		.title(&format!("{} - one day's' talk", record.name))
+		.actor_data_opt(ActorData::load_opt(&id, &pool).await?)
+		.render_with_ctx("actor.html", &tmpl, ctx)?;
 	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }

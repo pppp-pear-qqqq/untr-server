@@ -8,7 +8,7 @@ mod user;
 mod webhook;
 
 use actix_web::{HttpResponse, Responder, error::*, guard, http::header, web};
-use common::{PageRender, Pagination, ReqType};
+use common::{FetchDest, PageRender, Pagination};
 #[allow(unused_imports)]
 use log::{debug, error, info};
 use sqlx::SqlitePool as Pool;

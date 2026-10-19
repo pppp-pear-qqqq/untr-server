@@ -3,7 +3,7 @@ use crate::util::{self, Resource, ResourceConfig, RouteMap, UserMap};
 
 use actix_multipart::form::{self, MultipartForm, tempfile::TempFile};
 use actix_web::{HttpRequest, mime};
-use common::ReqType;
+use common::FetchDest;
 
 pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.service(web::resource("").get(index).post(post));
@@ -14,9 +14,9 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 // ハンドラ群
 // ==========================================
 
-async fn index(req: HttpRequest, ty: ReqType, id: Identity, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
-	match ty {
-		ReqType::Empty => {
+async fn index(req: HttpRequest, dest: Option<FetchDest>, id: Identity, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
+	match dest {
+		Some(FetchDest::Empty) | None => {
 			let username = users.get(&*id).ok_or_else(|| ErrorUnauthorized("ログインしてください"))?;
 			if let Some(setting) = setting.get(&username) {
 				let keys = setting.keys().collect::<Vec<_>>();
@@ -40,7 +40,6 @@ struct Post {
 /// ファイルの一括アップロード・リソース設定
 async fn post(MultipartForm(info): MultipartForm<Post>, id: Identity, state: StateHandle, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
 	state.get().only_active()?;
-	debug!("{setting:?}");
 	let username = users.get(&*id).ok_or_else(|| ErrorUnauthorized("ログインしてください"))?;
 	let mut setting = setting.entry(username).or_default();
 
@@ -89,7 +88,7 @@ async fn post(MultipartForm(info): MultipartForm<Post>, id: Identity, state: Sta
 
 #[derive(MultipartForm)]
 struct NewPath {
-	fetch_dest: Option<form::text::Text<util::FetchDest>>,
+	fetch_dest: Option<form::text::Text<FetchDest>>,
 	files: Vec<TempFile>,
 	config: form::text::Text<ResourceConfig>,
 }
@@ -144,7 +143,7 @@ async fn path_set(username: String, path: String, info: NewPath, setting: web::D
 #[derive(MultipartForm)]
 struct PathPatch {
 	new_path: Option<form::text::Text<String>>,
-	fetch_dest: Option<form::text::Text<util::FetchDest>>,
+	fetch_dest: Option<form::text::Text<FetchDest>>,
 	add_files: Vec<TempFile>,
 	rem_files: Vec<form::text::Text<Uuid>>,
 	config: Option<form::text::Text<ResourceConfig>>,
@@ -278,15 +277,25 @@ async fn commit_files(prepared_files: Vec<PreparedFile>) -> actix_web::Result<()
 	let mut successfully_saved = Vec::new();
 
 	for pf in prepared_files {
-		let dest = resource(format!("upload/{}", pf.key)); // 既存のヘルパー関数を使用
-		match pf.temp.file.persist(&dest) {
-			Ok(_) => {
-				successfully_saved.push(pf.key);
+		let dest = format!("{}/upload/{}", env!("CARGO_MANIFEST_DIR"), pf.key);
+		info!("{dest}");
+		if cfg!(debug_assertions) {
+			match tokio::fs::copy(pf.temp.file.path(), dest).await {
+				Ok(_) => successfully_saved.push(pf.key),
+				Err(e) => {
+					// ロールバック: 既に成功したファイルのみ削除する
+					remove_files(successfully_saved.into_iter().collect()).await;
+					return Err(ErrorInternalServerError(format!("File save error: {}", e)).into());
+				}
 			}
-			Err(e) => {
-				// ロールバック: 既に成功したファイルのみ削除する
-				remove_files(successfully_saved.into_iter().collect()).await;
-				return Err(ErrorInternalServerError(format!("File save error: {}", e)).into());
+		} else {
+			match pf.temp.file.persist(&dest) {
+				Ok(_) => successfully_saved.push(pf.key),
+				Err(e) => {
+					// ロールバック: 既に成功したファイルのみ削除する
+					remove_files(successfully_saved.into_iter().collect()).await;
+					return Err(ErrorInternalServerError(format!("File save error: {}", e)).into());
+				}
 			}
 		}
 	}

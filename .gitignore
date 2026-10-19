@@ -7,5 +7,4 @@ script/
 *.db*
 privkey.pem
 *.ps1
-
-_app/
+upload/

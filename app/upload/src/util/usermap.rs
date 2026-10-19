@@ -1,12 +1,12 @@
 use dashmap::DashMap;
 
+#[derive(Debug)]
 pub struct UserMap(DashMap<Vec<u8>, String>);
 
 impl UserMap {
-	pub fn load() -> Self {
+	pub fn new() -> Self {
 		Self(DashMap::new())
 	}
-	// pub fn save() {}
 	pub fn get(&self, key: &[u8]) -> Option<String> {
 		self.0.get(key).map(|v| v.value().clone())
 	}

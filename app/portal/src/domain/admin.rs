@@ -14,7 +14,7 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 struct Config {
 	state: Option<String>,
 }
-async fn index(web::Query(info): web::Query<Config>, req_type: common::ReqType, req: actix_web::HttpRequest, pool: web::Data<Pool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
+async fn index(web::Query(info): web::Query<Config>, dest: Option<FetchDest>, req: actix_web::HttpRequest, pool: web::Data<Pool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
 	let pool = pool.as_ref();
 
 	let state = if let Some(state) = info.state {
@@ -33,7 +33,7 @@ async fn index(web::Query(info): web::Query<Config>, req_type: common::ReqType, 
 		sqlx::query_scalar!("SELECT value FROM setting WHERE key=?", crate::app_data::STATE).fetch_one(pool).await?
 	};
 
-	if req_type == common::ReqType::Empty {
+	if dest.is_none() || dest == Some(FetchDest::Empty) {
 		Ok(HttpResponse::NoContent().finish())
 	} else {
 		let mut ctx = tera::Context::new();
@@ -63,10 +63,30 @@ async fn get_reports(web::Query(info): web::Query<GetReports>, pool: web::Data<P
 	let pool = pool.as_ref();
 	let reports: Vec<_> = if info.ignore_checked {
 		let r = sqlx::query!("SELECT r.*,u.name name FROM report r LEFT JOIN user u ON r.user=u.id WHERE checked=FALSE").fetch_all(pool).await?;
-		r.into_iter().map(|r| Report { id: r.id, timestamp: r.timestamp, name: r.name, tag: r.tag, body: r.body, user_agent: r.user_agent, checked: false }).collect()
+		r.into_iter()
+			.map(|r| Report {
+				id: r.id,
+				timestamp: r.timestamp,
+				name: r.name,
+				tag: r.tag,
+				body: r.body,
+				user_agent: r.user_agent,
+				checked: false,
+			})
+			.collect()
 	} else {
 		let r = sqlx::query!("SELECT r.*,u.name name FROM report r LEFT JOIN user u ON r.user=u.id").fetch_all(pool).await?;
-		r.into_iter().map(|r| Report { id: r.id, timestamp: r.timestamp, name: r.name, tag: r.tag, body: r.body, user_agent: r.user_agent, checked: r.checked != 0 }).collect()
+		r.into_iter()
+			.map(|r| Report {
+				id: r.id,
+				timestamp: r.timestamp,
+				name: r.name,
+				tag: r.tag,
+				body: r.body,
+				user_agent: r.user_agent,
+				checked: r.checked != 0,
+			})
+			.collect()
 	};
 	Ok(HttpResponse::Ok().json(reports))
 }

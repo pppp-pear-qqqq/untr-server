@@ -10,6 +10,7 @@ use actix_session::{
 	storage,
 };
 use actix_web::{App, HttpResponse, HttpServer, cookie, dev::Service, http::header, middleware, web};
+use log::{error, info};
 
 #[actix_web::main]
 async fn main() -> Result<(), io::Error> {
@@ -21,8 +22,24 @@ async fn main() -> Result<(), io::Error> {
 
 	let app_data = app_data::AppData::new().await;
 
+	let bg_setting = app_data.setting.clone();
+	tokio::spawn(async move {
+		let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(10 * 60));
+		interval.tick().await; // 初回の実行をスキップ
+		loop {
+			interval.tick().await;
+			info!("RouteMapの定期保存を開始");
+			if let Err(e) = util::setting::save(&bg_setting).await {
+				error!("保存失敗: {}", e);
+			} else {
+				info!("保存完了");
+			}
+		}
+	});
+	let s_app_data = app_data.clone();
+
 	let server = HttpServer::new(move || {
-		let app_data = app_data.clone();
+		let app_data = s_app_data.clone();
 		let session = SessionMiddleware::builder(storage::CookieSessionStore::default(), app_data.session_key)
 			.cookie_http_only(true)
 			.cookie_secure(true)
@@ -49,7 +66,12 @@ async fn main() -> Result<(), io::Error> {
 			.app_data(app_data.users)
 			.configure(domain::make_cfg(app_data.admin_key).expect("file load error"))
 	});
-	server.bind(format!("{host}:{port}"))?.run().await
+	server.bind(format!("{host}:{port}"))?.run().await?;
+
+	info!("RouteMapの保存");
+	util::setting::save(&app_data.setting).await?;
+
+	Ok(())
 }
 
 fn load_env(path: &str) -> String {

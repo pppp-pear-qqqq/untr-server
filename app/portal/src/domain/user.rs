@@ -5,15 +5,15 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.route("{user}", web::get().to(user));
 }
 
-async fn list(page: Pagination<100, 200>, req_type: ReqType, id: Option<Identity>, _: StateHandle, pool: web::Data<Pool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
+async fn list(page: Pagination<100, 200>, dest: Option<FetchDest>, id: Option<Identity>, _: StateHandle, pool: web::Data<Pool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
 	let offset = page.offset as i64;
 	let limit = page.limit.min(200) as i64;
 
 	let pool = pool.as_ref();
 	let records = sqlx::query_scalar!("SELECT name FROM user LIMIT ?,?", offset, limit).fetch_all(pool).await?;
 
-	match req_type {
-		ReqType::Empty => Ok(HttpResponse::Ok().json(records)),
+	match dest {
+		Some(FetchDest::Empty) | None => Ok(HttpResponse::Ok().json(records)),
 		_ => {
 			let mut ctx = tera::Context::new();
 			ctx.insert("user_list", &records);

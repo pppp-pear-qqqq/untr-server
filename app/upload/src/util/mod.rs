@@ -1,6 +1,7 @@
 //! アプリケーション全体で使用するような汎用構造体・関数
 mod client;
-mod setting;
+pub mod setting;
+mod setting_dto;
 mod state;
 mod usermap;
 
@@ -16,6 +17,6 @@ pub fn resource(path: impl std::fmt::Display) -> String {
 	if cfg!(debug_assertions) {
 		format!("{}/{}/{}", env!("CARGO_MANIFEST_DIR"), "resource", path)
 	} else {
-		format!("/app/app/uploader/{}", path)
+		format!("/app/app/upload/{}", path)
 	}
 }

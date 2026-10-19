@@ -5,7 +5,7 @@ cfg_if::cfg_if! {
 		mod identity;
 		mod page_render;
 		mod pagination;
-		mod req_type;
+		mod fetch_dest;
 		mod state;
 		pub mod tera_filter;
 
@@ -14,7 +14,7 @@ cfg_if::cfg_if! {
 		pub use identity::Identity;
 		pub use page_render::PageRender;
 		pub use pagination::Pagination;
-		pub use req_type::ReqType;
+		pub use fetch_dest::FetchDest;
 		pub use state::{IsMaintenance, StateHandle};
 		pub use tera_filter as tera;
 	}

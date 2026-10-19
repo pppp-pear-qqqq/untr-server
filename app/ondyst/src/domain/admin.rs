@@ -15,7 +15,7 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 struct Config {
 	state: Option<String>,
 }
-async fn index(web::Query(info): web::Query<Config>, req_type: common::ReqType, req: actix_web::HttpRequest, pool: web::Data<Pool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
+async fn index(web::Query(info): web::Query<Config>, dest: Option<FetchDest>, req: actix_web::HttpRequest, pool: web::Data<Pool>, tmpl: web::Data<Tera>) -> common::Result<impl Responder> {
 	#[derive(serde::Serialize)]
 	struct Location {
 		key: String,
@@ -50,7 +50,7 @@ async fn index(web::Query(info): web::Query<Config>, req_type: common::ReqType, 
 		State::from_str(&sqlx::query_scalar!("SELECT value FROM setting WHERE key=?", crate::app_data::STATE).fetch_one(pool).await?).map_err(|_| ErrorInternalServerError("サーバー状態が正しくない"))?
 	};
 
-	if req_type == common::ReqType::Empty {
+	if dest.is_none() || dest == Some(FetchDest::Empty) {
 		Ok(HttpResponse::NoContent().finish())
 	} else {
 		let location = sqlx::query_as!(Location, "SELECT * FROM location").fetch_all(pool).await?;
@@ -87,6 +87,8 @@ struct Item {
 }
 async fn add_item(web::Form(info): web::Form<Item>, pool: web::Data<Pool>) -> common::Result<impl Responder> {
 	let pool = pool.as_ref();
-	sqlx::query!("INSERT INTO item(location,name,lore,message,direct) VALUES(?,?,?,?,?)", info.location, info.name, info.lore, info.message, info.direct).execute(pool).await?;
+	sqlx::query!("INSERT INTO item(location,name,lore,message,direct) VALUES(?,?,?,?,?)", info.location, info.name, info.lore, info.message, info.direct)
+		.execute(pool)
+		.await?;
 	Ok(HttpResponse::NoContent().finish())
 }

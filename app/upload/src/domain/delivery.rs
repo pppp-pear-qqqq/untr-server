@@ -1,11 +1,12 @@
 use std::io::Cursor;
 
 use super::*;
-use crate::util::{FetchDest, Resource, RouteMap};
+use crate::util::{Resource, RouteMap};
 
 use ab_glyph::{FontRef, PxScale};
 use actix_web::HttpRequest;
 use base64::prelude::*;
+use common::FetchDest;
 use fxhash::FxHashMap as HashMap;
 use image::{Rgba, RgbaImage};
 use rand::seq::IndexedRandom;
@@ -62,12 +63,12 @@ async fn file(req: HttpRequest, addr: Addr, query: HashMap<String, String>, dest
 	let r = dest.and_then(|d| setting.get(&Some(d))).or_else(|| setting.get(&None)).ok_or_else(|| ErrorNotFound("ファイルがありません"))?;
 	let (mut res, cache) = match r {
 		Resource::File { key, mime } => {
-			let f = actix_files::NamedFile::open(resource(format!("upload/{key}")))?;
+			let f = actix_files::NamedFile::open(format!("upload/{key}"))?;
 			(f.set_content_type(mime.clone()).into_response(&req), true)
 		}
 		Resource::RandomFile { items, cache } => {
 			let (key, mime, _) = items.choose_weighted(&mut rand::rng(), |(_, _, w)| *w)?;
-			let f = actix_files::NamedFile::open(resource(format!("upload/{key}")))?;
+			let f = actix_files::NamedFile::open(format!("upload/{key}"))?;
 			(f.set_content_type(mime.clone()).into_response(&req), *cache)
 		}
 		Resource::FontRender { key, width, height, line_length } => {
@@ -80,7 +81,7 @@ async fn file(req: HttpRequest, addr: Addr, query: HashMap<String, String>, dest
 			let color = color.and_then(|c| parse_color(c).ok()).unwrap_or_else(|| Rgba([0, 0, 0, 255]));
 
 			// フォントファイルの読み込みと検証
-			let font_data = tokio::fs::read(resource(format!("upload/{key}"))).await?;
+			let font_data = tokio::fs::read(format!("upload/{key}")).await?;
 			let font = FontRef::try_from_slice(&font_data).map_err(|_| ErrorFailedDependency("無効なフォントファイルです"))?;
 
 			// 自動改行（折り返し）の計算

@@ -63,13 +63,25 @@ async fn file(req: HttpRequest, addr: Addr, query: HashMap<String, String>, dest
 	let r = dest.and_then(|d| setting.get(&Some(d))).or_else(|| setting.get(&None)).ok_or_else(|| ErrorNotFound("ファイルがありません"))?;
 	let (mut res, cache) = match r {
 		Resource::File { key, mime } => {
-			let f = actix_files::NamedFile::open(format!("upload/{key}"))?;
-			(f.set_content_type(mime.clone()).into_response(&req), true)
+			let res = actix_files::NamedFile::open(format!("upload/{key}"))?
+				.set_content_type(mime.clone())
+				.set_content_disposition(header::ContentDisposition {
+					disposition: header::DispositionType::Inline,
+					parameters: vec![],
+				})
+				.into_response(&req);
+			(res, true)
 		}
 		Resource::RandomFile { items, cache } => {
 			let (key, mime, _) = items.choose_weighted(&mut rand::rng(), |(_, _, w)| *w)?;
-			let f = actix_files::NamedFile::open(format!("upload/{key}"))?;
-			(f.set_content_type(mime.clone()).into_response(&req), *cache)
+			let res = actix_files::NamedFile::open(format!("upload/{key}"))?
+				.set_content_type(mime.clone())
+				.set_content_disposition(header::ContentDisposition {
+					disposition: header::DispositionType::Inline,
+					parameters: vec![],
+				})
+				.into_response(&req);
+			(res, *cache)
 		}
 		Resource::FontRender { key, width, height, line_length } => {
 			// クエリから描画する文字と文字色を取得

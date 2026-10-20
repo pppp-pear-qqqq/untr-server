@@ -2,7 +2,7 @@ use super::*;
 use crate::util::{self, Resource, ResourceConfig, RouteMap, UserMap};
 
 use actix_multipart::form::{self, MultipartForm, tempfile::TempFile};
-use actix_web::{HttpRequest, mime};
+use actix_web::mime;
 use common::FetchDest;
 
 pub fn cfg(cfg: &mut web::ServiceConfig) {
@@ -10,25 +10,26 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.service(web::resource("{path:.+}").post(path_post).put(path_put).patch(path_patch).delete(path_delete));
 }
 
-// ==========================================
-// ハンドラ群
-// ==========================================
-
-async fn index(req: HttpRequest, dest: Option<FetchDest>, id: Identity, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
+async fn index(dest: Option<FetchDest>, id: Identity, setting: web::Data<RouteMap>, users: web::Data<UserMap>, tera: web::Data<Tera>) -> common::Result<impl Responder> {
+	let username = users.get(&*id).ok_or_else(|| ErrorUnauthorized("ログインしてください"))?;
+	let setting = setting.get(&username);
 	match dest {
 		Some(FetchDest::Empty) | None => {
-			let username = users.get(&*id).ok_or_else(|| ErrorUnauthorized("ログインしてください"))?;
-			if let Some(setting) = setting.get(&username) {
-				let keys = setting.keys().collect::<Vec<_>>();
+			if let Some(s) = setting {
+				let keys = s.keys().collect::<Vec<_>>();
 				Ok(HttpResponse::Ok().json(keys))
 			} else {
-				Ok(HttpResponse::Ok().body("[]"))
+				Ok(HttpResponse::Ok().json(Vec::<String>::new()))
 			}
 		}
 		_ => {
-			// TODO 多分登録済みのデータとか諸々をテンプレートに入れなきゃいけない
-			let file = actix_files::NamedFile::open(resource("control.html"))?.set_content_type(mime::TEXT_HTML_UTF_8);
-			Ok(file.into_response(&req))
+			let mut ctx = tera::Context::new();
+			ctx.insert("username", &username);
+			if let Some(v) = setting {
+				ctx.insert("setting", &util::setting::pathmap_to_serializable(v.value()));
+			}
+			let body = tera.render("control.html", &ctx)?;
+			Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 		}
 	}
 }
@@ -278,7 +279,6 @@ async fn commit_files(prepared_files: Vec<PreparedFile>) -> actix_web::Result<()
 
 	for pf in prepared_files {
 		let dest = format!("{}/upload/{}", env!("CARGO_MANIFEST_DIR"), pf.key);
-		info!("{dest}");
 		if cfg!(debug_assertions) {
 			match tokio::fs::copy(pf.temp.file.path(), dest).await {
 				Ok(_) => successfully_saved.push(pf.key),

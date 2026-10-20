@@ -110,7 +110,56 @@
 			</article>
 			<article>
 				<h2>設定したパス</h2>
-				<div>
+				<div class="list">
+					<input type="hidden" name="username" value="{{username}}">
+					{% for path,dest_map in setting %}
+					<div class="card" data-path="{{path}}">
+						<h3 class="path">{{path}}</h3>
+						<input type="text" readonly class="path" name="u" value="u/{{username}}/{{path}}">
+						<input type="text" readonly class="path" name="b" placeholder="base64">
+						<input type="text" readonly class="path" name="e" placeholder="暗号化">
+						<ul class="dest-list">
+							{% for dest,resource in dest_map %}
+							<li>
+								<details>
+									<summary>
+										<span class="dest">{% if dest == "" %}*{% else %}{{dest}}{% endif %}</span>
+										{% if resource.File %}
+										<span class="type">単一ファイル</span>
+										{% elif resource.RandomFile %}
+										<span class="type">ランダムファイル</span>
+										{% elif resource.FontRender %}
+										<span class="type">フォントレンダリング</span>
+										{% endif %}
+									</summary>
+									{% if resource.File %}
+									<span class="key">{{resource.File.key}}</span>
+									<span class="mime">{{resource.File.mime}}</span>
+									{% elif resource.RandomFile %}
+									<span class="cache">{% if resource.RandomFile.cache %}キャッシュ有効{% endif %}</span>
+									<span class="length">{{resource.RandomFile.items|length}}</span>
+									<ul>
+										{% for item in resource.RandomFile.items %}
+										<li>
+											<span class="key">{{item[0]}}</span>
+											<span class="mime">{{item[1]}}</span>
+											<span class="weight">{{item[2]}}</span>
+										</li>
+										{% endfor %}
+									</ul>
+									{% elif resource.FontRender %}
+									<span class="key">{{resource.FontRender.key}}</span>
+									<span class="char-size">{{resource.FontRender.width}}x{{resource.FontRender.height}}</span>
+									<span class="line-length">{{resource.FontRender.line_length}}</span>
+									{% endif %}
+								</details>
+							</li>
+							{% endfor %}
+						</ul>
+					</div>
+					{% else %}
+					<p>現在、設定されているパスはありません</p>
+					{% endfor %}
 				</div>
 			</article>
 		</main>

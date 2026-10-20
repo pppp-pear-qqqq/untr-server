@@ -11,7 +11,7 @@ use fxhash::FxHashMap as HashMap;
 use image::{Rgba, RgbaImage};
 use rand::seq::IndexedRandom;
 
-#[derive(serde::Deserialize)]
+#[derive(Debug, serde::Deserialize)]
 pub struct Addr {
 	username: String,
 	path: String,
@@ -19,6 +19,7 @@ pub struct Addr {
 /// スライスからユーザー名、パス、およびマージ済みのクエリを抽出する
 fn parse_addr(slice: &[u8], req_query: HashMap<String, String>) -> Option<(Addr, HashMap<String, String>)> {
 	let text = String::from_utf8_lossy(slice);
+	debug!("{text}");
 	let (username, rest) = text.split_once('/')?;
 	let (path, query_str) = rest.split_once('?').unwrap_or((rest, ""));
 

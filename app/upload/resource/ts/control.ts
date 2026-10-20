@@ -116,3 +116,18 @@ document.querySelectorAll<HTMLTableElement>('table.variable').forEach(table => {
 		})
 	}
 })
+
+// パス表示
+const username = document.querySelector<HTMLInputElement>('input[name="username"]')!.value;
+document.querySelectorAll<HTMLInputElement>('input.path').forEach(e => {
+	if (e.name === 'b') {
+		const path = e.parentElement!.dataset.path!;
+		e.value = 'b/' + btoa(`${username}/${path}`);
+	}
+	e.addEventListener('click', () => {
+		if (e.value) {
+			console.log(location.origin + '/' + e.value);
+			navigator.clipboard.writeText(location.origin + '/' + e.value);
+		}
+	})
+})

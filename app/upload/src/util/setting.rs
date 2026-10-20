@@ -2,6 +2,7 @@ use actix_web::{error::ErrorBadRequest, mime};
 use common::FetchDest;
 use dashmap::DashMap;
 use fxhash::FxHashMap as HashMap;
+use serde_with::{DisplayFromStr, serde_as};
 use uuid::Uuid;
 
 pub use super::setting_dto::load_or_default;
@@ -11,36 +12,21 @@ pub type RouteMap = DashMap<String, PathMap>;
 pub type PathMap = HashMap<String, Setting>;
 pub type Setting = HashMap<Option<FetchDest>, Resource>;
 
-// トレイト作って保持側はBox<dyn Resource>としてそれぞれ実装する形でもいい どうしよう
-// RandomFileをVec<(u32, File)>と実装できるのは多少綺麗かもしれないが、そのくらいなら個別実装でも良いような気もする
-// レスポンス作成関数の規模を確認してから？　もしくは設定アップロードの実装次第かも
-#[derive(Debug)]
+#[serde_as]
+#[derive(Debug, serde::Serialize)]
 pub enum Resource {
 	File {
 		key: Uuid,
+		#[serde_as(as = "DisplayFromStr")]
 		mime: mime::Mime,
 	},
 	RandomFile {
+		#[serde_as(as = "Vec<(_, DisplayFromStr, _)>")]
 		items: Vec<(Uuid, mime::Mime, u32)>, // key,mime,weight
 		cache: bool,
 	},
 	FontRender {
 		key: Uuid,
-		width: u32,
-		height: u32,
-		line_length: u32,
-	},
-}
-
-#[derive(serde::Deserialize)]
-#[serde(tag = "type")]
-pub enum ResourceConfig {
-	File,
-	RandomFile {
-		weights: Vec<u32>, // ファイルの数と一致させる
-		cache: bool,
-	},
-	FontRender {
 		width: u32,
 		height: u32,
 		line_length: u32,
@@ -104,4 +90,32 @@ impl Resource {
 			}
 		}
 	}
+}
+
+#[derive(serde::Deserialize)]
+#[serde(tag = "type")]
+pub enum ResourceConfig {
+	File,
+	RandomFile {
+		weights: Vec<u32>, // ファイルの数と一致させる
+		cache: bool,
+	},
+	FontRender {
+		width: u32,
+		height: u32,
+		line_length: u32,
+	},
+}
+
+pub fn pathmap_to_serializable(map: &PathMap) -> HashMap<&String, HashMap<String, &Resource>> {
+	let mut parsed = HashMap::default();
+	for (path, path_map) in map {
+		let mut stringified = HashMap::default();
+		for (dest_opt, resource) in path_map.iter() {
+			let key_str = dest_opt.as_ref().map(|d| d.to_string()).unwrap_or_else(|| "".to_string());
+			stringified.insert(key_str, resource);
+		}
+		parsed.insert(path, stringified);
+	}
+	parsed
 }

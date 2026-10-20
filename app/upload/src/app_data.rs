@@ -1,9 +1,11 @@
 use actix_web::{cookie, web};
 use base64::prelude::*;
+use glob::glob;
 use log::info;
 use sqlx::SqlitePool;
+use tera::Tera;
 
-use crate::util::{self, RouteMap, State, StateHandle, UserMap};
+use crate::util::{self, RouteMap, State, StateHandle, UserMap, resource};
 
 // 定数
 pub const STATE: &str = "UPL_STATE";
@@ -12,11 +14,13 @@ const KEY: &str = "UPL_KEY";
 #[derive(Clone)]
 pub struct AppData {
 	pub state: StateHandle,
-	pub session_key: cookie::Key,
-	pub admin_key: String,
 
 	pub setting: web::Data<RouteMap>,
 	pub users: web::Data<UserMap>,
+	pub tera: web::Data<Tera>,
+
+	pub session_key: cookie::Key,
+	pub admin_key: String,
 }
 impl AppData {
 	pub async fn new() -> Self {
@@ -46,6 +50,17 @@ impl AppData {
 			}
 			Err(err) => panic!("{}", err),
 		};
+		// tera
+		let mut tera = Tera::default();
+		tera.register_filter("urlencode", common::tera::urlencode_filter);
+		tera.register_filter("time", common::tera::make_timestamp_filter(chrono::Local));
+		// tera.add_template_file(resource("template.html"), Some("template.html")).unwrap();
+		let files = glob(&resource("*.html")).unwrap().filter_map(|res| {
+			let path = res.unwrap();
+			let file_name = path.file_name().unwrap().to_str().unwrap();
+			if file_name != "template.html" { Some((path.to_owned(), Some(file_name.to_string()))) } else { None }
+		});
+		tera.add_template_files(files).unwrap();
 		// setting
 		let setting = util::setting::load_or_default().await.unwrap();
 		// users
@@ -53,10 +68,11 @@ impl AppData {
 
 		Self {
 			state: StateHandle::new(state),
-			session_key,
-			admin_key,
 			setting: web::Data::new(setting),
 			users: web::Data::new(users),
+			tera: web::Data::new(tera),
+			session_key,
+			admin_key,
 		}
 	}
 }

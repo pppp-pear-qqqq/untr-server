@@ -31,11 +31,11 @@ services:
             - ./app/common/resource:/app/resource/common
             - ./app/portal/resource:/app/resource/portal
             - ./app/upload/resource:/app/resource/upload
-            - ./app/ondyst/resource:/app/resource/ondyst
+            # - ./app/ondyst/resource:/app/resource/ondyst
         depends_on:
             - portal
             - upload
-            - ondyst
+            # - ondyst
         networks: [untroche]
 
     watcher:
@@ -68,24 +68,24 @@ services:
             - RUST_LOG=info,upload=debug,actix_web::middleware=warn
         networks: [untroche]
 
-    ondyst:
-        <<: *rust-base
-        environment:
-            - APP_NAME=ondyst
-            - SERVER_PORT=8006
-            - DATABASE_URL=sqlite:/app/app/ondyst/ondyst.db
-            - RUST_LOG=info,ondyst=debug,actix_web::middleware=warn
-        networks: [untroche]
+    # ondyst:
+    #     <<: *rust-base
+    #     environment:
+    #         - APP_NAME=ondyst
+    #         - SERVER_PORT=8006
+    #         - DATABASE_URL=sqlite:/app/app/ondyst/ondyst.db
+    #         - RUST_LOG=info,ondyst=debug,actix_web::middleware=warn
+    #     networks: [untroche]
 
     sqlite-web-portal:
         <<: *sqlite-web-base
         ports: ["127.0.0.1:3300:8080"]
         volumes: [./app/portal/portal.db:/data/database.db]
 
-    sqlite-web-ondyst:
-        <<: *sqlite-web-base
-        ports: ["127.0.0.1:3306:8080"]
-        volumes: [./app/ondyst/ondyst.db:/data/database.db]
+    # sqlite-web-ondyst:
+    #     <<: *sqlite-web-base
+    #     ports: ["127.0.0.1:3306:8080"]
+    #     volumes: [./app/ondyst/ondyst.db:/data/database.db]
 
 networks:
     untroche:

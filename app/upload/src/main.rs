@@ -64,6 +64,7 @@ async fn main() -> Result<(), io::Error> {
 			.app_data(app_data.state)
 			.app_data(app_data.setting)
 			.app_data(app_data.users)
+			.app_data(app_data.tera)
 			.configure(domain::make_cfg(app_data.admin_key).expect("file load error"))
 	});
 	server.bind(format!("{host}:{port}"))?.run().await?;

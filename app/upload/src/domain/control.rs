@@ -1,5 +1,5 @@
 use super::*;
-use crate::util::{self, Resource, ResourceConfig, RouteMap, UserMap};
+use crate::util::{self, Resource, ResourceConfig, RouteMap, UserMap, upload};
 
 use actix_multipart::form::{self, MultipartForm, tempfile::TempFile};
 use actix_web::mime;
@@ -64,7 +64,13 @@ async fn post(MultipartForm(info): MultipartForm<Post>, id: Identity, state: Sta
 		let prepared = PreparedFile::new(file);
 
 		let mut value = util::Setting::default();
-		value.insert(None, util::Resource::File { key: prepared.key, mime: prepared.mime.clone() });
+		value.insert(
+			None,
+			util::Resource::File {
+				key: prepared.key,
+				mime: prepared.mime.clone(),
+			},
+		);
 
 		resources_to_insert.push((name, value));
 		prepared_files.push(prepared);
@@ -278,7 +284,7 @@ async fn commit_files(prepared_files: Vec<PreparedFile>) -> actix_web::Result<()
 	let mut successfully_saved = Vec::new();
 
 	for pf in prepared_files {
-		let dest = format!("{}/upload/{}", env!("CARGO_MANIFEST_DIR"), pf.key);
+		let dest = upload(pf.key);
 		if cfg!(debug_assertions) {
 			match tokio::fs::copy(pf.temp.file.path(), dest).await {
 				Ok(_) => successfully_saved.push(pf.key),
@@ -305,6 +311,6 @@ async fn commit_files(prepared_files: Vec<PreparedFile>) -> actix_web::Result<()
 /// ファイルを削除する
 async fn remove_files(keys: Vec<Uuid>) {
 	for key in keys {
-		let _ = tokio::fs::remove_file(format!("upload/{}", key)).await;
+		let _ = tokio::fs::remove_file(upload(key)).await;
 	}
 }

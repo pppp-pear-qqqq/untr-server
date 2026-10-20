@@ -14,7 +14,7 @@ Environment="DATABASE_URL=sqlite:/app/data/portal.db"
 Environment="RUST_LOG=info,actix_web::middleware=warn"
 
 # 実行ファイル
-ExecStart=/app/portal.exe
+ExecStart=/app/portal
 
 # クラッシュ時の自動再起動設定
 Restart=always

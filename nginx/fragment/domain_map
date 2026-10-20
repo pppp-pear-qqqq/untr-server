@@ -1,7 +1,7 @@
 map $host $app_name {
 	localhost		portal;
 	untroche.com	portal;
-	pld.localhost	upload;
+	~^pld\.(localhost|untroche\.com)$	upload;
 	# ~^dpdpdp\.(localhost|untroche\.com)$	dpdpdp;
 	# ~^strings\.(localhost|untroche\.com)$	strings;
 	# ~^charadie\.(localhost|untroche\.com)$	charadie;
@@ -12,7 +12,7 @@ map $host $app_name {
 map $host $app_port {
 	localhost		8000;
 	untroche.com	8000;
-	pld.localhost	8100;
+	~^pld\.(localhost|untroche\.com)$	8100;
 	# ~^dpdpdp\.(localhost|untroche\.com)$	8001;
 	# ~^strings\.(localhost|untroche\.com)$	8002;
 	# ~^charadie\.(localhost|untroche\.com)$	8003;

@@ -1,7 +1,7 @@
 use std::io::Cursor;
 
 use super::*;
-use crate::util::{Resource, RouteMap};
+use crate::util::{Resource, RouteMap, upload};
 
 use ab_glyph::{FontRef, PxScale};
 use actix_web::HttpRequest;
@@ -64,7 +64,7 @@ async fn file(req: HttpRequest, addr: Addr, query: HashMap<String, String>, dest
 	let r = dest.and_then(|d| setting.get(&Some(d))).or_else(|| setting.get(&None)).ok_or_else(|| ErrorNotFound("ファイルがありません"))?;
 	let (mut res, cache) = match r {
 		Resource::File { key, mime } => {
-			let res = actix_files::NamedFile::open(format!("upload/{key}"))?
+			let res = actix_files::NamedFile::open(upload(key))?
 				.set_content_type(mime.clone())
 				.set_content_disposition(header::ContentDisposition {
 					disposition: header::DispositionType::Inline,
@@ -75,7 +75,7 @@ async fn file(req: HttpRequest, addr: Addr, query: HashMap<String, String>, dest
 		}
 		Resource::RandomFile { items, cache } => {
 			let (key, mime, _) = items.choose_weighted(&mut rand::rng(), |(_, _, w)| *w)?;
-			let res = actix_files::NamedFile::open(format!("upload/{key}"))?
+			let res = actix_files::NamedFile::open(upload(key))?
 				.set_content_type(mime.clone())
 				.set_content_disposition(header::ContentDisposition {
 					disposition: header::DispositionType::Inline,
@@ -94,7 +94,7 @@ async fn file(req: HttpRequest, addr: Addr, query: HashMap<String, String>, dest
 			let color = color.and_then(|c| parse_color(c).ok()).unwrap_or_else(|| Rgba([0, 0, 0, 255]));
 
 			// フォントファイルの読み込みと検証
-			let font_data = tokio::fs::read(format!("upload/{key}")).await?;
+			let font_data = tokio::fs::read(upload(key)).await?;
 			let font = FontRef::try_from_slice(&font_data).map_err(|_| ErrorFailedDependency("無効なフォントファイルです"))?;
 
 			// 自動改行（折り返し）の計算

@@ -1,0 +1,24 @@
+[Unit]
+Description=File Uploader
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/app
+
+# docker-compose.yml の環境変数を指定
+Environment="SERVER_HOST=127.0.0.1"
+Environment="SERVER_PORT=8100"
+Environment="DATABASE_URL=sqlite:/app/data/portal.db"
+Environment="RUST_LOG=info,actix_web::middleware=warn"
+
+# 実行ファイル
+ExecStart=/app/upload
+
+# クラッシュ時の自動再起動設定
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

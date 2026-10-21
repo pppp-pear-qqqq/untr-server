@@ -22,6 +22,8 @@ async fn main() -> Result<(), io::Error> {
 
 	let app_data = app_data::AppData::new().await;
 
+	info!("portal-admin: {}", app_data.admin_key);
+
 	let bg_setting = app_data.setting.clone();
 	tokio::spawn(async move {
 		let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(10 * 60));

@@ -19,7 +19,6 @@ pub struct Addr {
 /// スライスからユーザー名、パス、およびマージ済みのクエリを抽出する
 fn parse_addr(slice: &[u8], req_query: HashMap<String, String>) -> Option<(Addr, HashMap<String, String>)> {
 	let text = String::from_utf8_lossy(slice);
-	debug!("{text}");
 	let (username, rest) = text.split_once('/')?;
 	let (path, query_str) = rest.split_once('?').unwrap_or((rest, ""));
 
@@ -48,12 +47,12 @@ pub async fn plane(req: HttpRequest, path: web::Path<Addr>, web::Query(query): w
 	file(req, path.into_inner(), query, dest, &setting).await
 }
 pub async fn b64(req: HttpRequest, path: web::Path<String>, web::Query(query): web::Query<HashMap<String, String>>, dest: Option<FetchDest>, setting: web::Data<RouteMap>) -> common::Result<impl Responder> {
-	let decoded = BASE64_URL_SAFE.decode(&path.into_inner())?;
+	let decoded = BASE64_URL_SAFE_NO_PAD.decode(&path.into_inner())?;
 	let (addr, query) = parse_addr(&decoded, query).ok_or_else(|| ErrorBadRequest("パスの形式が正しくありません"))?;
 	file(req, addr, query, dest, &setting).await
 }
 pub async fn encrypt(req: HttpRequest, path: web::Path<String>, web::Query(query): web::Query<HashMap<String, String>>, dest: Option<FetchDest>, setting: web::Data<RouteMap>) -> common::Result<impl Responder> {
-	let decoded = BASE64_URL_SAFE.decode(&path.into_inner())?; // TODO
+	let decoded = BASE64_URL_SAFE_NO_PAD.decode(&path.into_inner())?; // TODO
 	let (addr, query) = parse_addr(&decoded, query).ok_or_else(|| ErrorBadRequest("パスの形式が正しくありません"))?;
 	file(req, addr, query, dest, &setting).await
 }
@@ -64,7 +63,7 @@ async fn file(req: HttpRequest, addr: Addr, query: HashMap<String, String>, dest
 	let r = dest.and_then(|d| setting.get(&Some(d))).or_else(|| setting.get(&None)).ok_or_else(|| ErrorNotFound("ファイルがありません"))?;
 	let (mut res, cache) = match r {
 		Resource::File { key, mime } => {
-			let res = actix_files::NamedFile::open(upload(key))?
+			let res = actix_files::NamedFile::open(upload(key, &addr.username))?
 				.set_content_type(mime.clone())
 				.set_content_disposition(header::ContentDisposition {
 					disposition: header::DispositionType::Inline,
@@ -75,7 +74,7 @@ async fn file(req: HttpRequest, addr: Addr, query: HashMap<String, String>, dest
 		}
 		Resource::RandomFile { items, cache } => {
 			let (key, mime, _) = items.choose_weighted(&mut rand::rng(), |(_, _, w)| *w)?;
-			let res = actix_files::NamedFile::open(upload(key))?
+			let res = actix_files::NamedFile::open(upload(key, &addr.username))?
 				.set_content_type(mime.clone())
 				.set_content_disposition(header::ContentDisposition {
 					disposition: header::DispositionType::Inline,
@@ -94,7 +93,7 @@ async fn file(req: HttpRequest, addr: Addr, query: HashMap<String, String>, dest
 			let color = color.and_then(|c| parse_color(c).ok()).unwrap_or_else(|| Rgba([0, 0, 0, 255]));
 
 			// フォントファイルの読み込みと検証
-			let font_data = tokio::fs::read(upload(key)).await?;
+			let font_data = tokio::fs::read(upload(key, &addr.username)).await?;
 			let font = FontRef::try_from_slice(&font_data).map_err(|_| ErrorFailedDependency("無効なフォントファイルです"))?;
 
 			// 自動改行（折り返し）の計算

@@ -16,6 +16,11 @@ pub async fn login(web::Form(info): web::Form<Auth>, session: Session, state: St
 	info.validate()?;
 
 	let (user_id, user_name) = auth(info.code).await?;
+	if user_name.contains(&['/', '\\', '?', '#', '%', '*', '<', '>', ':', '"', '|', '\0']) {
+		return Err(ErrorBadRequest("ユーザー名に使用不可文字が含まれているため当サービスを利用できません").into());
+	} else if user_name == "." || user_name == ".." {
+		return Err(ErrorBadRequest("ユーザー名が予約語であるため当サービスを利用できません").into());
+	}
 	let user_id = user_id.to_bytes_le().to_vec();
 
 	users.insert(&user_id, user_name);

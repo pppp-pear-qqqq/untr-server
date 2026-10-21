@@ -42,7 +42,7 @@ struct Post {
 async fn post(MultipartForm(info): MultipartForm<Post>, id: Identity, state: StateHandle, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
 	state.get().only_active()?;
 	let username = users.get(&*id).ok_or_else(|| ErrorUnauthorized("ログインしてください"))?;
-	let mut setting = setting.entry(username).or_default();
+	let mut setting = setting.entry(username.clone()).or_default();
 
 	let mut result = String::new();
 	let mut prepared_files = Vec::new();
@@ -64,13 +64,7 @@ async fn post(MultipartForm(info): MultipartForm<Post>, id: Identity, state: Sta
 		let prepared = PreparedFile::new(file);
 
 		let mut value = util::Setting::default();
-		value.insert(
-			None,
-			util::Resource::File {
-				key: prepared.key,
-				mime: prepared.mime.clone(),
-			},
-		);
+		value.insert(None, util::Resource::File { key: prepared.key, mime: prepared.mime.clone() });
 
 		resources_to_insert.push((name, value));
 		prepared_files.push(prepared);
@@ -81,7 +75,7 @@ async fn post(MultipartForm(info): MultipartForm<Post>, id: Identity, state: Sta
 	}
 
 	// ディスクへの一括保存（失敗時は自動ロールバック）
-	commit_files(prepared_files).await?;
+	commit_files(prepared_files, &username).await?;
 
 	// 全て成功したらマップを更新
 	let mut res = Vec::new();
@@ -117,7 +111,7 @@ async fn path_put(path: web::Path<String>, MultipartForm(info): MultipartForm<Ne
 async fn path_set(username: String, path: String, info: NewPath, setting: web::Data<RouteMap>, rewrite: bool) -> actix_web::Result<Vec<Uuid>> {
 	let fetch_dest = info.fetch_dest.map(|x| x.into_inner());
 
-	let mut setting = setting.entry(username).or_default();
+	let mut setting = setting.entry(username.clone()).or_default();
 	let setting = setting.entry(path).or_default();
 
 	// 上書き不可かつ既に存在する場合は早期リターン
@@ -136,12 +130,12 @@ async fn path_set(username: String, path: String, info: NewPath, setting: web::D
 	let saved_keys: Vec<Uuid> = resource.key_and_mimes().into_iter().map(|(key, _)| *key).collect();
 
 	// 物理ファイルの保存
-	commit_files(prepared_files).await?;
+	commit_files(prepared_files, &username).await?;
 
 	// 設定の上書き ＆ 古いファイルのクリーンアップ
 	if let Some(old) = setting.insert(fetch_dest, resource) {
 		let old_keys = old.key_and_mimes().into_iter().map(|(key, _)| *key).collect();
-		remove_files(old_keys).await;
+		remove_files(old_keys, &username).await;
 	}
 
 	Ok(saved_keys)
@@ -161,7 +155,7 @@ async fn path_patch(path: web::Path<String>, MultipartForm(info): MultipartForm<
 	let mut path = path.into_inner();
 	let username = users.get(&*id).ok_or_else(|| ErrorUnauthorized("ログインしてください"))?;
 
-	let mut setting = setting.entry(username).or_default();
+	let mut setting = setting.entry(username.clone()).or_default();
 
 	// # パス名変更
 	if let Some(new_path) = info.new_path {
@@ -199,10 +193,10 @@ async fn path_patch(path: web::Path<String>, MultipartForm(info): MultipartForm<
 			let config = config.into_inner();
 			let resource = Resource::build(config, final_file_infos)?; // バリデーション
 
-			commit_files(prepared_files).await?; // 保存
+			commit_files(prepared_files, &username).await?; // 保存
 
 			// 物理ファイルの削除 (不要になったもの)
-			remove_files(rem_targets.into_iter().map(|(key, _)| *key).collect()).await;
+			remove_files(rem_targets.into_iter().map(|(key, _)| *key).collect(), &username).await;
 
 			*cur = resource; // インプレース上書き
 		} else {
@@ -211,10 +205,10 @@ async fn path_patch(path: web::Path<String>, MultipartForm(info): MultipartForm<
 				return Err(ErrorBadRequest("ファイル数が一致しません").into());
 			}
 
-			commit_files(prepared_files).await?; // 保存
+			commit_files(prepared_files, &username).await?; // 保存
 
 			// 物理ファイルの削除 (不要になったもの)
-			remove_files(rem_targets.into_iter().map(|(key, _)| *key).collect()).await;
+			remove_files(rem_targets.into_iter().map(|(key, _)| *key).collect(), &username).await;
 
 			cur.change_files(&final_file_infos); // メタデータを維持して差し替え
 		}
@@ -234,7 +228,7 @@ async fn path_patch(path: web::Path<String>, MultipartForm(info): MultipartForm<
 		}
 
 		let resource = Resource::build(config, file_infos)?;
-		commit_files(prepared_files).await?;
+		commit_files(prepared_files, &username).await?;
 
 		setting.insert(fetch_dest, resource);
 	}
@@ -248,12 +242,12 @@ async fn path_delete(path: web::Path<String>, id: Identity, state: StateHandle, 
 	let path = path.into_inner();
 	let username = users.get(&*id).ok_or_else(|| ErrorUnauthorized("ログインしてください"))?;
 
-	let mut setting = setting.entry(username).or_default();
+	let mut setting = setting.entry(username.clone()).or_default();
 
 	// パスごと一括削除し、ぶら下がっていた全ファイルを消去
 	if let Some(removed) = setting.remove(&path) {
 		for (_, resource) in removed {
-			remove_files(resource.key_and_mimes().into_iter().map(|(key, _)| *key).collect()).await;
+			remove_files(resource.key_and_mimes().into_iter().map(|(key, _)| *key).collect(), &username).await;
 		}
 		Ok(HttpResponse::Ok().finish())
 	} else {
@@ -280,17 +274,17 @@ impl PreparedFile {
 }
 
 /// 準備されたファイル群を一括で保存し、エラーがあれば自動で削除（ロールバック）する
-async fn commit_files(prepared_files: Vec<PreparedFile>) -> actix_web::Result<()> {
+async fn commit_files(prepared_files: Vec<PreparedFile>, username: &str) -> actix_web::Result<()> {
 	let mut successfully_saved = Vec::new();
 
 	for pf in prepared_files {
-		let dest = upload(pf.key);
+		let dest = upload(username, pf.key);
 		if cfg!(debug_assertions) {
 			match tokio::fs::copy(pf.temp.file.path(), dest).await {
 				Ok(_) => successfully_saved.push(pf.key),
 				Err(e) => {
 					// ロールバック: 既に成功したファイルのみ削除する
-					remove_files(successfully_saved.into_iter().collect()).await;
+					remove_files(successfully_saved.into_iter().collect(), username).await;
 					return Err(ErrorInternalServerError(format!("File save error: {}", e)).into());
 				}
 			}
@@ -299,7 +293,7 @@ async fn commit_files(prepared_files: Vec<PreparedFile>) -> actix_web::Result<()
 				Ok(_) => successfully_saved.push(pf.key),
 				Err(e) => {
 					// ロールバック: 既に成功したファイルのみ削除する
-					remove_files(successfully_saved.into_iter().collect()).await;
+					remove_files(successfully_saved.into_iter().collect(), username).await;
 					return Err(ErrorInternalServerError(format!("File save error: {}", e)).into());
 				}
 			}
@@ -309,8 +303,8 @@ async fn commit_files(prepared_files: Vec<PreparedFile>) -> actix_web::Result<()
 }
 
 /// ファイルを削除する
-async fn remove_files(keys: Vec<Uuid>) {
+async fn remove_files(keys: Vec<Uuid>, username: &str) {
 	for key in keys {
-		let _ = tokio::fs::remove_file(upload(key)).await;
+		let _ = tokio::fs::remove_file(upload(username, key)).await;
 	}
 }

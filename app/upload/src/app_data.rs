@@ -1,5 +1,6 @@
 use actix_web::{cookie, web};
 use base64::prelude::*;
+use deoxys::{DeoxysII256, aead::Generate};
 use glob::glob;
 use log::info;
 use sqlx::SqlitePool;
@@ -10,6 +11,7 @@ use crate::util::{self, RouteMap, State, StateHandle, UserMap, resource};
 // 定数
 pub const STATE: &str = "UPL_STATE";
 const KEY: &str = "UPL_KEY";
+const ENC_KEY: &str = "UPL_ENC_KEY";
 
 #[derive(Clone)]
 pub struct AppData {
@@ -21,6 +23,7 @@ pub struct AppData {
 
 	pub session_key: cookie::Key,
 	pub admin_key: String,
+	pub enc_key: deoxys::Key<DeoxysII256>,
 }
 impl AppData {
 	pub async fn new() -> Self {
@@ -37,7 +40,7 @@ impl AppData {
 				sqlx::query!("INSERT INTO setting VALUES(?,?)", STATE, str).execute(&pool).await.unwrap();
 				state
 			}
-			Err(err) => panic!("{}", err),
+			Err(err) => panic!("{err}"),
 		};
 		// Key読み込み
 		let (session_key, admin_key) = match sqlx::query_scalar!("SELECT value FROM setting WHERE key=?", KEY).fetch_one(&pool).await {
@@ -48,7 +51,20 @@ impl AppData {
 				sqlx::query_scalar!("INSERT INTO setting VALUES(?,?)", KEY, admin_key).execute(&pool).await.unwrap();
 				(session_key, admin_key)
 			}
-			Err(err) => panic!("{}", err),
+			Err(err) => panic!("{err}"),
+		};
+		let enc_key = match sqlx::query_scalar!("SELECT value FROM setting WHERE key=?", ENC_KEY).fetch_one(&pool).await {
+			Ok(r) => {
+				let rest = BASE64_STANDARD_NO_PAD.decode(r.as_bytes()).unwrap();
+				deoxys::Key::<DeoxysII256>::try_from(rest.as_slice()).unwrap()
+			}
+			Err(sqlx::Error::RowNotFound) => {
+				let key = deoxys::Key::<DeoxysII256>::generate();
+				let sav = BASE64_STANDARD_NO_PAD.encode(key.as_slice());
+				sqlx::query!("INSERT INTO setting VALUES(?,?)", ENC_KEY, sav).execute(&pool).await.unwrap();
+				key
+			}
+			Err(err) => panic!("{err}"),
 		};
 		// tera
 		let mut tera = Tera::default();
@@ -73,6 +89,7 @@ impl AppData {
 			tera: web::Data::new(tera),
 			session_key,
 			admin_key,
+			enc_key,
 		}
 	}
 }

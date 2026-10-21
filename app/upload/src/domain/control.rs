@@ -3,11 +3,14 @@ use crate::util::{self, Resource, ResourceConfig, RouteMap, UserMap, upload_crea
 
 use actix_multipart::form::{self, MultipartForm, tempfile::TempFile};
 use actix_web::mime;
+use aead::{Aead, KeyInit};
+use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
 use common::FetchDest;
+use deoxys::{DeoxysII256, aead::Generate};
 
 pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.service(web::resource("").get(index).post(post));
-	cfg.service(web::resource("{path:.+}").post(path_post).put(path_put).patch(path_patch).delete(path_delete));
+	cfg.service(web::resource("{path:.+}").get(path_get_encrypt).post(path_post).put(path_put).patch(path_patch).delete(path_delete));
 }
 
 async fn index(dest: Option<FetchDest>, id: Identity, setting: web::Data<RouteMap>, users: web::Data<UserMap>, tera: web::Data<Tera>) -> common::Result<impl Responder> {
@@ -85,6 +88,17 @@ async fn post(MultipartForm(info): MultipartForm<Post>, id: Identity, state: Sta
 	}
 
 	Ok(HttpResponse::Ok().json(res))
+}
+
+/// 暗号化したパスを取得
+async fn path_get_encrypt(path: web::Path<String>, enc_key: web::Data<deoxys::Key<DeoxysII256>>) -> common::Result<impl Responder> {
+	let cipher = DeoxysII256::new(&enc_key);
+	let nonce = deoxys::Nonce::generate();
+	let ciphertext = cipher.encrypt(&nonce, path.as_bytes())?;
+	let mut combined = Vec::with_capacity(nonce.len() + ciphertext.len());
+	combined.extend_from_slice(&nonce);
+	combined.extend_from_slice(&ciphertext);
+	Ok(HttpResponse::Ok().content_type(header::ContentType::plaintext()).body(URL_SAFE_NO_PAD.encode(combined)))
 }
 
 #[derive(MultipartForm)]

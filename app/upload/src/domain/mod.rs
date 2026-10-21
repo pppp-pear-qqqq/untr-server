@@ -18,9 +18,9 @@ pub fn make_cfg(admin_key: String) -> std::io::Result<impl FnOnce(&mut web::Serv
 
 	Ok(|cfg: &mut web::ServiceConfig| {
 		cfg.route("/", web::get().to(index));
-		cfg.service(web::scope("control").configure(control::cfg));
 		cfg.route("login", web::to(entry::login));
 		cfg.route("logout", web::to(entry::logout));
+		cfg.service(web::scope("control").configure(control::cfg));
 		cfg.route("u/{username}/{path:.+}", web::get().to(delivery::plane));
 		cfg.route("b/{encoded}", web::get().to(delivery::b64));
 		cfg.route("e/{encoded}", web::get().to(delivery::encrypt));

@@ -33,8 +33,6 @@ async fn main() -> Result<(), io::Error> {
 			info!("RouteMapの定期保存を開始");
 			if let Err(e) = util::setting::save(&bg_setting).await {
 				error!("保存失敗: {}", e);
-			} else {
-				info!("保存完了");
 			}
 		}
 	});

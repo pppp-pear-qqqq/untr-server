@@ -37,6 +37,7 @@ bulk.addEventListener('submit', ev => {
 // 詳細設定
 const setting = document.getElementById('setting') as HTMLFormElement;
 setting.addEventListener('submit', ev => {
+	console.log('submit');
 	ev.preventDefault();
 	const path = setting.querySelector<HTMLInputElement>('[name="path"]')?.value;
 	if (path == null || path == '') return;
@@ -48,7 +49,7 @@ setting.addEventListener('submit', ev => {
 	let config;
 	switch (ty) {
 		case 'file': {
-			const e = setting.querySelector('file')!;
+			const e = setting.querySelector('&>.file')!;
 			const file = e.querySelector<HTMLInputElement>('[name="file"]')?.files?.[0];
 			if (!file) {
 				return;
@@ -57,17 +58,17 @@ setting.addEventListener('submit', ev => {
 			config = { type: "File" };
 		} break;
 		case 'random-file': {
-			const e = setting.querySelector('random-file')!;
+			const e = setting.querySelector('&>.random-file')!;
 			files = Array.from(e.querySelectorAll<HTMLInputElement>('[name="file"]')).map(e => e.files?.item(0) ?? null).filter(f => f != null);
-			const weights = Array.from(e.querySelectorAll<HTMLInputElement>('[name="weight"]')).map(e => Number(e.value));
+			const weights = Array.from(e.querySelectorAll<HTMLInputElement>('[name="weight"]')).map(e => Number(e.value !== '' ? e.value : 1));
 			if (files.length !== weights.length) {
 				return;
 			}
-			const cache = Boolean(e.querySelector<HTMLInputElement>('[name="cache"]')?.value ?? true);
+			const cache = Boolean(e.querySelector<HTMLInputElement>('[name="cache"]')?.checked ?? false);
 			config = { type: "RandomFile", weights, cache };
 		} break;
 		case 'font-render': {
-			const e = setting.querySelector('font-render')!;
+			const e = setting.querySelector('&>.font-render')!;
 			const file = e.querySelector<HTMLInputElement>('[name="file"]')?.files?.[0];
 			if (!file) {
 				return;
@@ -85,6 +86,8 @@ setting.addEventListener('submit', ev => {
 	if (fetch_dest) form_data.append('fetch_dest', fetch_dest);
 	for (const file of files) form_data.append('files', file);
 	form_data.append('config', JSON.stringify(config));
+
+	console.log(...form_data.entries());
 
 	client.request<string[]>(action, 'POST', { body: form_data, encode: 'multipart' }, 'json').then(res => {
 		console.log(res);

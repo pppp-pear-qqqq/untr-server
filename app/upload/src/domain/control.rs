@@ -1,5 +1,5 @@
 use super::*;
-use crate::util::{self, Resource, ResourceConfig, RouteMap, UserMap, upload};
+use crate::util::{self, Resource, ResourceConfig, RouteMap, UserMap, upload_create_dir, upload_dir};
 
 use actix_multipart::form::{self, MultipartForm, tempfile::TempFile};
 use actix_web::mime;
@@ -91,7 +91,7 @@ async fn post(MultipartForm(info): MultipartForm<Post>, id: Identity, state: Sta
 struct NewPath {
 	fetch_dest: Option<form::text::Text<FetchDest>>,
 	files: Vec<TempFile>,
-	config: form::text::Text<ResourceConfig>,
+	config: form::text::Text<String>,
 }
 /// リソースの新規作成
 async fn path_post(path: web::Path<String>, MultipartForm(info): MultipartForm<NewPath>, id: Identity, state: StateHandle, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
@@ -110,6 +110,7 @@ async fn path_put(path: web::Path<String>, MultipartForm(info): MultipartForm<Ne
 /// リソース設定
 async fn path_set(username: String, path: String, info: NewPath, setting: web::Data<RouteMap>, rewrite: bool) -> actix_web::Result<Vec<Uuid>> {
 	let fetch_dest = info.fetch_dest.map(|x| x.into_inner());
+	let config: ResourceConfig = serde_json::from_str(&info.config).map_err(|_| ErrorBadRequest("configのパースに失敗"))?;
 
 	let mut setting = setting.entry(username.clone()).or_default();
 	let setting = setting.entry(path).or_default();
@@ -124,7 +125,7 @@ async fn path_set(username: String, path: String, info: NewPath, setting: web::D
 	let file_infos: Vec<_> = prepared_files.iter().map(|p| (p.key, p.mime.clone())).collect();
 
 	// リソースの構築とバリデーション
-	let resource = Resource::build(info.config.into_inner(), file_infos)?;
+	let resource = Resource::build(config, file_infos)?;
 
 	// 返却用のUUIDリストを抽出
 	let saved_keys: Vec<Uuid> = resource.key_and_mimes().into_iter().map(|(key, _)| *key).collect();
@@ -278,7 +279,7 @@ async fn commit_files(prepared_files: Vec<PreparedFile>, username: &str) -> acti
 	let mut successfully_saved = Vec::new();
 
 	for pf in prepared_files {
-		let dest = upload(username, pf.key);
+		let dest = upload_create_dir(username, pf.key).await?;
 		if cfg!(debug_assertions) {
 			match tokio::fs::copy(pf.temp.file.path(), dest).await {
 				Ok(_) => successfully_saved.push(pf.key),
@@ -305,6 +306,6 @@ async fn commit_files(prepared_files: Vec<PreparedFile>, username: &str) -> acti
 /// ファイルを削除する
 async fn remove_files(keys: Vec<Uuid>, username: &str) {
 	for key in keys {
-		let _ = tokio::fs::remove_file(upload(username, key)).await;
+		let _ = tokio::fs::remove_file(upload_dir(username, key)).await;
 	}
 }

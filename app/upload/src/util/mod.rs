@@ -19,7 +19,17 @@ pub fn resource(path: impl std::fmt::Display) -> String {
 	if cfg!(debug_assertions) { format!("resource/{path}") } else { format!("resource/upload/{path}") }
 }
 
-pub fn upload<T: AsRef<[u8]>>(username: T, key: impl std::fmt::Display) -> String {
+pub async fn upload_create_dir<T: AsRef<[u8]>>(username: T, key: impl std::fmt::Display) -> std::io::Result<String> {
 	let username = BASE64_URL_SAFE_NO_PAD.encode(username);
-	if cfg!(debug_assertions) { format!("upload/{username}/{key}") } else { format!("data/upload/{username}/{key}") }
+	if cfg!(debug_assertions) {
+		tokio::fs::create_dir_all(&format!("upload/{username}")).await?;
+		Ok(format!("upload/{username}/{key}"))
+	} else {
+		tokio::fs::create_dir_all(&format!("data/upload/{username}")).await?;
+		Ok(format!("data/upload/{username}/{key}"))
+	}
+}
+pub fn upload_dir<T: AsRef<[u8]>>(username: T, key: impl std::fmt::Display) -> String {
+	let enc = BASE64_URL_SAFE_NO_PAD.encode(username);
+	if cfg!(debug_assertions) { format!("upload/{enc}/{key}") } else { format!("data/upload/{enc}/{key}") }
 }

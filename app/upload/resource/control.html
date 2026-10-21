@@ -73,17 +73,17 @@
 								<tbody>
 									<tr class="file">
 										<td><input type="file" name="file"></td>
-										<td><label>重み <input type="number" name="weight"></label></td>
+										<td><label>重み <input type="number" name="weight" placeholder="1"></label></td>
 									</tr>
 									<tr class="file">
 										<td><input type="file" name="file"></td>
-										<td><label>重み <input type="number" name="weight"></label></td>
+										<td><label>重み <input type="number" name="weight" placeholder="1"></label></td>
 									</tr>
 								</tbody>
 								<template>
 									<tr class="file">
 										<td><input type="file" name="file"></td>
-										<td><label>重み <input type="number" name="weight"></label></td>
+										<td><label>重み <input type="number" name="weight" placeholder="1"></label></td>
 										<td><button type="button" name="control" value="rem">削除</button></td>
 									</tr>
 								</template>
@@ -112,7 +112,7 @@
 				<h2>設定したパス</h2>
 				<div class="list">
 					<input type="hidden" name="username" value="{{username}}">
-					{% for path,dest_map in setting %}
+					{% for path,dest_map in setting|default(value={}) %}
 					<div class="card" data-path="{{path}}">
 						<h3 class="path">{{path}}</h3>
 						<input type="text" readonly class="path" name="u" value="u/{{username}}/{{path}}">

@@ -73,3 +73,7 @@ export function pop_if<T>(arr: T[], predicate: (item: T) => boolean): T | null {
 	if (index === -1) return null;
 	return arr.splice(index, 1)[0];
 }
+
+export function btoa(text: string): string {
+	return window.btoa(Array.from(new TextEncoder().encode(text), byte => String.fromCharCode(byte)).join());
+}

@@ -1,4 +1,5 @@
 import { HttpClient } from '/common/script/http_client.js';
+import { btoa } from '/common/script/utils.js';
 
 const client = new HttpClient();
 
@@ -131,6 +132,14 @@ document.querySelectorAll<HTMLInputElement>('input.path').forEach(e => {
 		if (e.value) {
 			console.log(location.origin + '/' + e.value);
 			navigator.clipboard.writeText(location.origin + '/' + e.value);
+		}
+	})
+	if (e.name === 'e') e.addEventListener('click', () => {
+		if (!e.value) {
+			const path = e.parentElement!.dataset.path!;
+			client.get(`control/${username}/${path}`, undefined, 'text').then(ret => {
+				e.value = 'e/' + ret;
+			})
 		}
 	})
 })

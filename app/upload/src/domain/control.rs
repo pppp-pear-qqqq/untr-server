@@ -1,5 +1,8 @@
 use super::*;
-use crate::util::{self, Resource, ResourceConfig, RouteMap, UserMap, upload_create_dir, upload_dir};
+use crate::{
+	app_data::DeoxysKey,
+	util::{self, Resource, ResourceConfig, RouteMap, UserMap, upload_create_dir, upload_dir},
+};
 
 use actix_multipart::form::{self, MultipartForm, tempfile::TempFile};
 use actix_web::mime;
@@ -67,7 +70,13 @@ async fn post(MultipartForm(info): MultipartForm<Post>, id: Identity, state: Sta
 		let prepared = PreparedFile::new(file);
 
 		let mut value = util::Setting::default();
-		value.insert(None, util::Resource::File { key: prepared.key, mime: prepared.mime.clone() });
+		value.insert(
+			None,
+			util::Resource::File {
+				key: prepared.key,
+				mime: prepared.mime.clone(),
+			},
+		);
 
 		resources_to_insert.push((name, value));
 		prepared_files.push(prepared);
@@ -91,7 +100,7 @@ async fn post(MultipartForm(info): MultipartForm<Post>, id: Identity, state: Sta
 }
 
 /// 暗号化したパスを取得
-async fn path_get_encrypt(path: web::Path<String>, enc_key: web::Data<deoxys::Key<DeoxysII256>>) -> common::Result<impl Responder> {
+async fn path_get_encrypt(path: web::Path<String>, enc_key: web::Data<DeoxysKey>) -> common::Result<impl Responder> {
 	let cipher = DeoxysII256::new(&enc_key);
 	let nonce = deoxys::Nonce::generate();
 	let ciphertext = cipher.encrypt(&nonce, path.as_bytes())?;
@@ -294,23 +303,12 @@ async fn commit_files(prepared_files: Vec<PreparedFile>, username: &str) -> acti
 
 	for pf in prepared_files {
 		let dest = upload_create_dir(username, pf.key).await?;
-		if cfg!(debug_assertions) {
-			match tokio::fs::copy(pf.temp.file.path(), dest).await {
-				Ok(_) => successfully_saved.push(pf.key),
-				Err(e) => {
-					// ロールバック: 既に成功したファイルのみ削除する
-					remove_files(successfully_saved.into_iter().collect(), username).await;
-					return Err(ErrorInternalServerError(format!("File save error: {}", e)).into());
-				}
-			}
-		} else {
-			match pf.temp.file.persist(&dest) {
-				Ok(_) => successfully_saved.push(pf.key),
-				Err(e) => {
-					// ロールバック: 既に成功したファイルのみ削除する
-					remove_files(successfully_saved.into_iter().collect(), username).await;
-					return Err(ErrorInternalServerError(format!("File save error: {}", e)).into());
-				}
+		match tokio::fs::copy(pf.temp.file.path(), dest).await {
+			Ok(_) => successfully_saved.push(pf.key),
+			Err(e) => {
+				// ロールバック: 既に成功したファイルのみ削除する
+				remove_files(successfully_saved.into_iter().collect(), username).await;
+				return Err(ErrorInternalServerError(format!("File save error: {}", e)).into());
 			}
 		}
 	}

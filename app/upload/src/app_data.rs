@@ -8,6 +8,8 @@ use tera::Tera;
 
 use crate::util::{self, RouteMap, State, StateHandle, UserMap, resource};
 
+pub type DeoxysKey = deoxys::Key<DeoxysII256>;
+
 // 定数
 pub const STATE: &str = "UPL_STATE";
 const KEY: &str = "UPL_KEY";
@@ -20,10 +22,10 @@ pub struct AppData {
 	pub setting: web::Data<RouteMap>,
 	pub users: web::Data<UserMap>,
 	pub tera: web::Data<Tera>,
+	pub enc_key: web::Data<DeoxysKey>,
 
 	pub session_key: cookie::Key,
 	pub admin_key: String,
-	pub enc_key: deoxys::Key<DeoxysII256>,
 }
 impl AppData {
 	pub async fn new() -> Self {
@@ -56,10 +58,10 @@ impl AppData {
 		let enc_key = match sqlx::query_scalar!("SELECT value FROM setting WHERE key=?", ENC_KEY).fetch_one(&pool).await {
 			Ok(r) => {
 				let rest = BASE64_STANDARD_NO_PAD.decode(r.as_bytes()).unwrap();
-				deoxys::Key::<DeoxysII256>::try_from(rest.as_slice()).unwrap()
+				DeoxysKey::try_from(rest.as_slice()).unwrap()
 			}
 			Err(sqlx::Error::RowNotFound) => {
-				let key = deoxys::Key::<DeoxysII256>::generate();
+				let key = DeoxysKey::generate();
 				let sav = BASE64_STANDARD_NO_PAD.encode(key.as_slice());
 				sqlx::query!("INSERT INTO setting VALUES(?,?)", ENC_KEY, sav).execute(&pool).await.unwrap();
 				key
@@ -87,9 +89,9 @@ impl AppData {
 			setting: web::Data::new(setting),
 			users: web::Data::new(users),
 			tera: web::Data::new(tera),
+			enc_key: web::Data::new(enc_key),
 			session_key,
 			admin_key,
-			enc_key,
 		}
 	}
 }

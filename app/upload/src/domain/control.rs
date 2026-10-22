@@ -1,19 +1,13 @@
 use super::*;
-use crate::{
-	app_data::DeoxysKey,
-	util::{self, Resource, ResourceConfig, RouteMap, UserMap, upload_create_dir, upload_dir},
-};
+use crate::util::{self, Resource, ResourceConfig, RouteMap, UserMap, upload_create_dir, upload_dir};
 
 use actix_multipart::form::{self, MultipartForm, tempfile::TempFile};
 use actix_web::mime;
-use aead::{Aead, KeyInit};
-use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
 use common::FetchDest;
-use deoxys::{DeoxysII256, aead::Generate};
 
 pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.service(web::resource("").get(index).post(post));
-	cfg.service(web::resource("{path:.+}").get(path_get_encrypt).post(path_post).put(path_put).patch(path_patch).delete(path_delete));
+	cfg.service(web::resource("{path:.+}").get(path_get).post(path_post).put(path_put).patch(path_patch).delete(path_delete));
 }
 
 async fn index(dest: Option<FetchDest>, id: Identity, route_map: web::Data<RouteMap>, users: web::Data<UserMap>, tera: web::Data<Tera>) -> common::Result<impl Responder> {
@@ -31,6 +25,7 @@ async fn index(dest: Option<FetchDest>, id: Identity, route_map: web::Data<Route
 		_ => {
 			let mut ctx = tera::Context::new();
 			ctx.insert("username", &username);
+			// TODO settingは遅延読み込みに変更
 			if let Some(v) = setting {
 				ctx.insert("setting", &v.value());
 			}
@@ -38,6 +33,11 @@ async fn index(dest: Option<FetchDest>, id: Identity, route_map: web::Data<Route
 			Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 		}
 	}
+}
+
+/// パス情報、または設定ページ
+async fn path_get(path: web::Path<String>) -> common::Result<impl Responder> {
+	Ok("TODO")
 }
 
 #[derive(MultipartForm)]
@@ -91,17 +91,6 @@ async fn post(MultipartForm(info): MultipartForm<Post>, id: Identity, state: Sta
 	}
 
 	Ok(HttpResponse::Ok().json(res))
-}
-
-/// 暗号化したパスを取得
-async fn path_get_encrypt(path: web::Path<String>, enc_key: web::Data<DeoxysKey>) -> common::Result<impl Responder> {
-	let cipher = DeoxysII256::new(&enc_key);
-	let nonce = deoxys::Nonce::generate();
-	let ciphertext = cipher.encrypt(&nonce, path.as_bytes())?;
-	let mut combined = Vec::with_capacity(nonce.len() + ciphertext.len());
-	combined.extend_from_slice(&nonce);
-	combined.extend_from_slice(&ciphertext);
-	Ok(HttpResponse::Ok().content_type(header::ContentType::plaintext()).body(URL_SAFE_NO_PAD.encode(combined)))
 }
 
 #[derive(MultipartForm)]
@@ -181,7 +170,6 @@ async fn path_patch(path: web::Path<String>, MultipartForm(info): MultipartForm<
 		if path != new_path && setting.contains_key(&new_path) {
 			return Err(ErrorBadRequest("変更先のパスは既に存在します").into());
 		}
-
 		let cur = setting.remove(&path).ok_or_else(|| ErrorNotFound("指定されたパスが存在しません"))?;
 		setting.insert(new_path.clone(), cur);
 		path = new_path;
@@ -273,9 +261,7 @@ async fn path_delete(path: web::Path<String>, id: Identity, state: StateHandle, 
 	}
 }
 
-// ==========================================
-// ヘルパー群
-// ==========================================
+// ==== ヘルパー ====
 
 /// 保存待ち状態のファイル情報
 struct PreparedFile {

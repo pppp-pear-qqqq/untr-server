@@ -12,12 +12,10 @@ actix-files.workspace = true
 actix-multipart = "0.8.5"
 actix-session.workspace = true
 actix-web.workspace = true
-aead = "0.6.1"
 base64.workspace = true
 chrono.workspace = true
 common.workspace = true
 dashmap = { version = "6.2.1", features = ["serde"] }
-deoxys = "0.2.1"
 env_logger.workspace = true
 fxhash.workspace = true
 glob.workspace = true

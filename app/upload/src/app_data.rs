@@ -1,6 +1,5 @@
 use actix_web::{cookie, web};
 use base64::prelude::*;
-use deoxys::{DeoxysII256, aead::Generate};
 use glob::glob;
 use log::info;
 use sqlx::SqlitePool;
@@ -8,12 +7,9 @@ use tera::Tera;
 
 use crate::util::{self, IdMap, RouteMap, State, StateHandle, UserMap, resource};
 
-pub type DeoxysKey = deoxys::Key<DeoxysII256>;
-
 // 定数
 pub const STATE: &str = "UPL_STATE";
 const KEY: &str = "UPL_KEY";
-const ENC_KEY: &str = "UPL_ENC_KEY";
 
 #[derive(Clone)]
 pub struct AppData {
@@ -22,8 +18,8 @@ pub struct AppData {
 	pub route_map: web::Data<RouteMap>,
 	pub id_map: web::Data<IdMap>,
 	pub users: web::Data<UserMap>,
+
 	pub tera: web::Data<Tera>,
-	pub enc_key: web::Data<DeoxysKey>,
 
 	pub session_key: cookie::Key,
 	pub admin_key: String,
@@ -56,19 +52,6 @@ impl AppData {
 			}
 			Err(err) => panic!("{err}"),
 		};
-		let enc_key = match sqlx::query_scalar!("SELECT value FROM setting WHERE key=?", ENC_KEY).fetch_one(&pool).await {
-			Ok(r) => {
-				let rest = BASE64_STANDARD_NO_PAD.decode(r.as_bytes()).unwrap();
-				DeoxysKey::try_from(rest.as_slice()).unwrap()
-			}
-			Err(sqlx::Error::RowNotFound) => {
-				let key = DeoxysKey::generate();
-				let sav = BASE64_STANDARD_NO_PAD.encode(key.as_slice());
-				sqlx::query!("INSERT INTO setting VALUES(?,?)", ENC_KEY, sav).execute(&pool).await.unwrap();
-				key
-			}
-			Err(err) => panic!("{err}"),
-		};
 		// tera
 		let mut tera = Tera::default();
 		tera.register_filter("urlencode", common::tera::urlencode_filter);
@@ -91,7 +74,6 @@ impl AppData {
 			id_map: web::Data::new(id_map),
 			users: web::Data::new(users),
 			tera: web::Data::new(tera),
-			enc_key: web::Data::new(enc_key),
 			session_key,
 			admin_key,
 		}

@@ -11,7 +11,6 @@ use tera::Tera;
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::app_data::DeoxysKey;
 use crate::util::{Identity, StateHandle, resource};
 
 pub fn make_cfg(admin_key: String) -> std::io::Result<impl FnOnce(&mut web::ServiceConfig)> {
@@ -24,7 +23,6 @@ pub fn make_cfg(admin_key: String) -> std::io::Result<impl FnOnce(&mut web::Serv
 		cfg.service(web::scope("control").configure(control::cfg));
 		cfg.route("u/{username}/{path:.+}", web::get().to(delivery::plane));
 		cfg.route("b/{encoded}", web::get().to(delivery::b64));
-		cfg.route("e/{encoded}", web::get().to(delivery::encrypt));
 		cfg.service(web::scope("admin").wrap(common::AdminGuardMiddleware(admin_key)).configure(admin::cfg));
 	})
 }

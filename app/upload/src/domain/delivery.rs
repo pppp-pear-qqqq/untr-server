@@ -5,10 +5,8 @@ use crate::util::{Resource, RouteMap, upload_dir};
 
 use ab_glyph::{FontRef, PxScale};
 use actix_web::HttpRequest;
-use aead::{Aead, KeyInit};
 use base64::prelude::*;
 use common::FetchDest;
-use deoxys::DeoxysII256;
 use fxhash::FxHashMap as HashMap;
 use image::{Rgba, RgbaImage};
 use rand::seq::IndexedRandom;
@@ -51,15 +49,6 @@ pub async fn plane(req: HttpRequest, path: web::Path<Addr>, web::Query(query): w
 pub async fn b64(req: HttpRequest, path: web::Path<String>, web::Query(query): web::Query<HashMap<String, String>>, dest: Option<FetchDest>, route_map: web::Data<RouteMap>) -> common::Result<impl Responder> {
 	let decoded = BASE64_URL_SAFE_NO_PAD.decode(&path.into_inner())?;
 	let (addr, query) = parse_addr(&decoded, query).ok_or_else(|| ErrorBadRequest("パスの形式が正しくありません"))?;
-	file(req, addr, query, dest, &route_map).await
-}
-pub async fn encrypt(req: HttpRequest, path: web::Path<String>, web::Query(query): web::Query<HashMap<String, String>>, dest: Option<FetchDest>, route_map: web::Data<RouteMap>, enc_key: web::Data<DeoxysKey>) -> common::Result<impl Responder> {
-	let decoded = BASE64_URL_SAFE_NO_PAD.decode(&path.into_inner())?;
-	let (nonce, ciphertext) = decoded.split_at(15);
-	let nonce = deoxys::Nonce::try_from(nonce)?;
-	let cipher = DeoxysII256::new(&*enc_key);
-	let decrypted = cipher.decrypt(&nonce, ciphertext)?;
-	let (addr, query) = parse_addr(&decrypted, query).ok_or_else(|| ErrorBadRequest("パスの形式が正しくありません"))?;
 	file(req, addr, query, dest, &route_map).await
 }
 

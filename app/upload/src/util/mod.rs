@@ -1,14 +1,11 @@
 //! アプリケーション全体で使用するような汎用構造体・関数
 mod client;
-pub mod setting;
-mod setting_dto;
+mod map;
 mod state;
-mod usermap;
 
 pub use client::client;
-pub use setting::*;
+pub use map::{route as routemap, route::*, user::UserMap};
 pub use state::State;
-pub use usermap::UserMap;
 
 use base64::prelude::*;
 

@@ -53,14 +53,7 @@ pub async fn b64(req: HttpRequest, path: web::Path<String>, web::Query(query): w
 	let (addr, query) = parse_addr(&decoded, query).ok_or_else(|| ErrorBadRequest("パスの形式が正しくありません"))?;
 	file(req, addr, query, dest, &setting).await
 }
-pub async fn encrypt(
-	req: HttpRequest,
-	path: web::Path<String>,
-	web::Query(query): web::Query<HashMap<String, String>>,
-	dest: Option<FetchDest>,
-	setting: web::Data<RouteMap>,
-	enc_key: web::Data<deoxys::Key<DeoxysII256>>,
-) -> common::Result<impl Responder> {
+pub async fn encrypt(req: HttpRequest, path: web::Path<String>, web::Query(query): web::Query<HashMap<String, String>>, dest: Option<FetchDest>, setting: web::Data<RouteMap>, enc_key: web::Data<DeoxysKey>) -> common::Result<impl Responder> {
 	let decoded = BASE64_URL_SAFE_NO_PAD.decode(&path.into_inner())?;
 	let (nonce, ciphertext) = decoded.split_at(15);
 	let nonce = deoxys::Nonce::try_from(nonce)?;

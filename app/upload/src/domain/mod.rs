@@ -11,6 +11,7 @@ use tera::Tera;
 use uuid::Uuid;
 use validator::Validate;
 
+use crate::app_data::DeoxysKey;
 use crate::util::{Identity, StateHandle, resource};
 
 pub fn make_cfg(admin_key: String) -> std::io::Result<impl FnOnce(&mut web::ServiceConfig)> {

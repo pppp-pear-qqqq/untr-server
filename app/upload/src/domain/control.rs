@@ -32,7 +32,7 @@ async fn index(dest: Option<FetchDest>, id: Identity, setting: web::Data<RouteMa
 			let mut ctx = tera::Context::new();
 			ctx.insert("username", &username);
 			if let Some(v) = setting {
-				ctx.insert("setting", &util::setting::pathmap_to_serializable(v.value()));
+				ctx.insert("setting", &util::routemap::pathmap_to_serializable(v.value()));
 			}
 			let body = tera.render("control.html", &ctx)?;
 			Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
@@ -70,13 +70,7 @@ async fn post(MultipartForm(info): MultipartForm<Post>, id: Identity, state: Sta
 		let prepared = PreparedFile::new(file);
 
 		let mut value = util::Setting::default();
-		value.insert(
-			None,
-			util::Resource::File {
-				key: prepared.key,
-				mime: prepared.mime.clone(),
-			},
-		);
+		value.insert(None, util::Resource::File { key: prepared.key, mime: prepared.mime.clone() });
 
 		resources_to_insert.push((name, value));
 		prepared_files.push(prepared);

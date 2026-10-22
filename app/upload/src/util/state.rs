@@ -1,6 +1,5 @@
-use std::{fmt, str::FromStr};
-
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, strum::EnumString, strum::Display)]
+#[strum(serialize_all = "lowercase")]
 pub enum State {
 	Active,
 	Closed,
@@ -10,26 +9,6 @@ pub enum State {
 impl common::IsMaintenance for State {
 	fn is_maintenance(&self) -> bool {
 		self == &State::Maintenance
-	}
-}
-impl fmt::Display for State {
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		match self {
-			State::Active => write!(f, "active"),
-			State::Closed => write!(f, "closed"),
-			State::Maintenance => write!(f, "maintenance"),
-		}
-	}
-}
-impl FromStr for State {
-	type Err = ();
-	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		match s {
-			"active" => Ok(State::Active),
-			"closed" => Ok(State::Closed),
-			"maintenance" => Ok(State::Maintenance),
-			_ => Err(()),
-		}
 	}
 }
 

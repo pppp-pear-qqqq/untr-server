@@ -80,7 +80,7 @@ impl AppData {
 		});
 		tera.add_template_files(files).unwrap();
 		// setting
-		let setting = util::setting::load_or_default().await.unwrap();
+		let setting = util::routemap::load_or_default().await.unwrap();
 		// users
 		let users = util::UserMap::new();
 

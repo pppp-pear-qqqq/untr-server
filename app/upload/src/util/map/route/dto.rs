@@ -61,7 +61,7 @@ impl super::Resource {
 	}
 }
 
-const SAVE_FILE_PATH: &str = if cfg!(debug_assertions) { "route.rkyv" } else { "data/route.rkyv" };
+const SAVE_FILE_PATH: &str = if cfg!(debug_assertions) { "pld.route.rkyv" } else { "data/pld.route.rkyv" };
 
 pub async fn save(data: &super::RouteMap) -> std::io::Result<()> {
 	let mut users_map = HashMap::default();

@@ -31,7 +31,7 @@ async fn main() -> Result<(), io::Error> {
 		loop {
 			interval.tick().await;
 			info!("RouteMapの定期保存を開始");
-			if let Err(e) = util::setting::save(&bg_setting).await {
+			if let Err(e) = util::routemap::save(&bg_setting).await {
 				error!("保存失敗: {}", e);
 			}
 		}
@@ -71,7 +71,7 @@ async fn main() -> Result<(), io::Error> {
 	server.bind(format!("{host}:{port}"))?.run().await?;
 
 	info!("RouteMapの保存");
-	util::setting::save(&app_data.setting).await?;
+	util::routemap::save(&app_data.setting).await?;
 
 	Ok(())
 }

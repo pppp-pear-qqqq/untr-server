@@ -1,3 +1,5 @@
+mod dto;
+
 use actix_web::{error::ErrorBadRequest, mime};
 use common::FetchDest;
 use dashmap::DashMap;
@@ -5,11 +7,11 @@ use fxhash::FxHashMap as HashMap;
 use serde_with::{DisplayFromStr, serde_as};
 use uuid::Uuid;
 
-pub use super::setting_dto::load_or_default;
-pub use super::setting_dto::save;
+pub use dto::load_or_default;
+pub use dto::save;
 
-pub type RouteMap = DashMap<String, PathMap>;
-pub type PathMap = HashMap<String, Setting>;
+pub type RouteMap = DashMap<String, User>;
+type User = HashMap<String, Setting>;
 pub type Setting = HashMap<Option<FetchDest>, Resource>;
 
 #[serde_as]
@@ -107,7 +109,7 @@ pub enum ResourceConfig {
 	},
 }
 
-pub fn pathmap_to_serializable(map: &PathMap) -> HashMap<&String, HashMap<String, &Resource>> {
+pub fn pathmap_to_serializable(map: &User) -> HashMap<&String, HashMap<String, &Resource>> {
 	let mut parsed = HashMap::default();
 	for (path, path_map) in map {
 		let mut stringified = HashMap::default();

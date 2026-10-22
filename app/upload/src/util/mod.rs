@@ -4,7 +4,7 @@ mod map;
 mod state;
 
 pub use client::client;
-pub use map::{route as routemap, route::*, user::UserMap};
+pub use map::{id::*, route::*, user::*};
 pub use state::State;
 
 use base64::prelude::*;

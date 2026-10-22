@@ -6,7 +6,7 @@ use log::info;
 use sqlx::SqlitePool;
 use tera::Tera;
 
-use crate::util::{self, RouteMap, State, StateHandle, UserMap, resource};
+use crate::util::{self, IdMap, RouteMap, State, StateHandle, UserMap, resource};
 
 pub type DeoxysKey = deoxys::Key<DeoxysII256>;
 
@@ -19,7 +19,8 @@ const ENC_KEY: &str = "UPL_ENC_KEY";
 pub struct AppData {
 	pub state: StateHandle,
 
-	pub setting: web::Data<RouteMap>,
+	pub route_map: web::Data<RouteMap>,
+	pub id_map: web::Data<IdMap>,
 	pub users: web::Data<UserMap>,
 	pub tera: web::Data<Tera>,
 	pub enc_key: web::Data<DeoxysKey>,
@@ -79,14 +80,15 @@ impl AppData {
 			if file_name != "template.html" { Some((path.to_owned(), Some(file_name.to_string()))) } else { None }
 		});
 		tera.add_template_files(files).unwrap();
-		// setting
-		let setting = util::routemap::load_or_default().await.unwrap();
-		// users
+
+		let setting = util::RouteMap::load_or_default().await.unwrap();
+		let id_map = IdMap::load_or_default().await.unwrap();
 		let users = util::UserMap::new();
 
 		Self {
 			state: StateHandle::new(state),
-			setting: web::Data::new(setting),
+			route_map: web::Data::new(setting),
+			id_map: web::Data::new(id_map),
 			users: web::Data::new(users),
 			tera: web::Data::new(tera),
 			enc_key: web::Data::new(enc_key),

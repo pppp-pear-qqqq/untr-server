@@ -45,26 +45,26 @@ fn parse_addr(slice: &[u8], req_query: HashMap<String, String>) -> Option<(Addr,
 	))
 }
 
-pub async fn plane(req: HttpRequest, path: web::Path<Addr>, web::Query(query): web::Query<HashMap<String, String>>, dest: Option<FetchDest>, setting: web::Data<RouteMap>) -> common::Result<impl Responder> {
-	file(req, path.into_inner(), query, dest, &setting).await
+pub async fn plane(req: HttpRequest, path: web::Path<Addr>, web::Query(query): web::Query<HashMap<String, String>>, dest: Option<FetchDest>, route_map: web::Data<RouteMap>) -> common::Result<impl Responder> {
+	file(req, path.into_inner(), query, dest, &route_map).await
 }
-pub async fn b64(req: HttpRequest, path: web::Path<String>, web::Query(query): web::Query<HashMap<String, String>>, dest: Option<FetchDest>, setting: web::Data<RouteMap>) -> common::Result<impl Responder> {
+pub async fn b64(req: HttpRequest, path: web::Path<String>, web::Query(query): web::Query<HashMap<String, String>>, dest: Option<FetchDest>, route_map: web::Data<RouteMap>) -> common::Result<impl Responder> {
 	let decoded = BASE64_URL_SAFE_NO_PAD.decode(&path.into_inner())?;
 	let (addr, query) = parse_addr(&decoded, query).ok_or_else(|| ErrorBadRequest("パスの形式が正しくありません"))?;
-	file(req, addr, query, dest, &setting).await
+	file(req, addr, query, dest, &route_map).await
 }
-pub async fn encrypt(req: HttpRequest, path: web::Path<String>, web::Query(query): web::Query<HashMap<String, String>>, dest: Option<FetchDest>, setting: web::Data<RouteMap>, enc_key: web::Data<DeoxysKey>) -> common::Result<impl Responder> {
+pub async fn encrypt(req: HttpRequest, path: web::Path<String>, web::Query(query): web::Query<HashMap<String, String>>, dest: Option<FetchDest>, route_map: web::Data<RouteMap>, enc_key: web::Data<DeoxysKey>) -> common::Result<impl Responder> {
 	let decoded = BASE64_URL_SAFE_NO_PAD.decode(&path.into_inner())?;
 	let (nonce, ciphertext) = decoded.split_at(15);
 	let nonce = deoxys::Nonce::try_from(nonce)?;
 	let cipher = DeoxysII256::new(&*enc_key);
 	let decrypted = cipher.decrypt(&nonce, ciphertext)?;
 	let (addr, query) = parse_addr(&decrypted, query).ok_or_else(|| ErrorBadRequest("パスの形式が正しくありません"))?;
-	file(req, addr, query, dest, &setting).await
+	file(req, addr, query, dest, &route_map).await
 }
 
-async fn file(req: HttpRequest, addr: Addr, query: HashMap<String, String>, dest: Option<FetchDest>, setting: &RouteMap) -> common::Result<HttpResponse> {
-	let setting = setting.get(&addr.username).ok_or_else(|| ErrorNotFound("ファイルがありません"))?;
+async fn file(req: HttpRequest, addr: Addr, query: HashMap<String, String>, dest: Option<FetchDest>, route_map: &RouteMap) -> common::Result<HttpResponse> {
+	let setting = route_map.get(&addr.username).ok_or_else(|| ErrorNotFound("ファイルがありません"))?;
 	let setting = setting.get(&addr.path).ok_or_else(|| ErrorNotFound("ファイルがありません"))?;
 	let r = dest.and_then(|d| setting.get(&Some(d))).or_else(|| setting.get(&None)).ok_or_else(|| ErrorNotFound("ファイルがありません"))?;
 	let (mut res, cache) = match r {

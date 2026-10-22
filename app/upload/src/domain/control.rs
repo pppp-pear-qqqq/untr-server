@@ -16,9 +16,9 @@ pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.service(web::resource("{path:.+}").get(path_get_encrypt).post(path_post).put(path_put).patch(path_patch).delete(path_delete));
 }
 
-async fn index(dest: Option<FetchDest>, id: Identity, setting: web::Data<RouteMap>, users: web::Data<UserMap>, tera: web::Data<Tera>) -> common::Result<impl Responder> {
+async fn index(dest: Option<FetchDest>, id: Identity, route_map: web::Data<RouteMap>, users: web::Data<UserMap>, tera: web::Data<Tera>) -> common::Result<impl Responder> {
 	let username = users.get(&*id).ok_or_else(|| ErrorUnauthorized("ログインしてください"))?;
-	let setting = setting.get(&username);
+	let setting = route_map.get(&username);
 	match dest {
 		Some(FetchDest::Empty) | None => {
 			if let Some(s) = setting {
@@ -32,7 +32,7 @@ async fn index(dest: Option<FetchDest>, id: Identity, setting: web::Data<RouteMa
 			let mut ctx = tera::Context::new();
 			ctx.insert("username", &username);
 			if let Some(v) = setting {
-				ctx.insert("setting", &util::routemap::pathmap_to_serializable(v.value()));
+				ctx.insert("setting", &v.value());
 			}
 			let body = tera.render("control.html", &ctx)?;
 			Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
@@ -45,10 +45,10 @@ struct Post {
 	files: Vec<TempFile>,
 }
 /// ファイルの一括アップロード・リソース設定
-async fn post(MultipartForm(info): MultipartForm<Post>, id: Identity, state: StateHandle, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
+async fn post(MultipartForm(info): MultipartForm<Post>, id: Identity, state: StateHandle, route_map: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
 	state.get().only_active()?;
 	let username = users.get(&*id).ok_or_else(|| ErrorUnauthorized("ログインしてください"))?;
-	let mut setting = setting.entry(username.clone()).or_default();
+	let mut setting = route_map.entry(username.clone()).or_default();
 
 	let mut result = String::new();
 	let mut prepared_files = Vec::new();
@@ -111,25 +111,25 @@ struct NewPath {
 	config: form::text::Text<String>,
 }
 /// リソースの新規作成
-async fn path_post(path: web::Path<String>, MultipartForm(info): MultipartForm<NewPath>, id: Identity, state: StateHandle, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
+async fn path_post(path: web::Path<String>, MultipartForm(info): MultipartForm<NewPath>, id: Identity, state: StateHandle, route_map: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
 	state.get().only_active()?;
 	let username = users.get(&*id).ok_or_else(|| ErrorUnauthorized("ログインしてください"))?;
-	let value = path_set(username, path.into_inner(), info, setting, false).await?;
+	let value = path_set(username, path.into_inner(), info, route_map, false).await?;
 	Ok(HttpResponse::Ok().json(value))
 }
 /// リソースの置き換え
-async fn path_put(path: web::Path<String>, MultipartForm(info): MultipartForm<NewPath>, id: Identity, state: StateHandle, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
+async fn path_put(path: web::Path<String>, MultipartForm(info): MultipartForm<NewPath>, id: Identity, state: StateHandle, route_map: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
 	state.get().only_active()?;
 	let username = users.get(&*id).ok_or_else(|| ErrorUnauthorized("ログインしてください"))?;
-	let value = path_set(username, path.into_inner(), info, setting, true).await?;
+	let value = path_set(username, path.into_inner(), info, route_map, true).await?;
 	Ok(HttpResponse::Ok().json(value))
 }
 /// リソース設定
-async fn path_set(username: String, path: String, info: NewPath, setting: web::Data<RouteMap>, rewrite: bool) -> actix_web::Result<Vec<Uuid>> {
+async fn path_set(username: String, path: String, info: NewPath, route_map: web::Data<RouteMap>, rewrite: bool) -> actix_web::Result<Vec<Uuid>> {
 	let fetch_dest = info.fetch_dest.map(|x| x.into_inner());
 	let config: ResourceConfig = serde_json::from_str(&info.config).map_err(|_| ErrorBadRequest("configのパースに失敗"))?;
 
-	let mut setting = setting.entry(username.clone()).or_default();
+	let mut setting = route_map.entry(username.clone()).or_default();
 	let setting = setting.entry(path).or_default();
 
 	// 上書き不可かつ既に存在する場合は早期リターン
@@ -168,12 +168,12 @@ struct PathPatch {
 	config: Option<form::text::Text<ResourceConfig>>,
 }
 /// 既存リソースの設定変更
-async fn path_patch(path: web::Path<String>, MultipartForm(info): MultipartForm<PathPatch>, id: Identity, state: StateHandle, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
+async fn path_patch(path: web::Path<String>, MultipartForm(info): MultipartForm<PathPatch>, id: Identity, state: StateHandle, route_map: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
 	state.get().only_active()?;
 	let mut path = path.into_inner();
 	let username = users.get(&*id).ok_or_else(|| ErrorUnauthorized("ログインしてください"))?;
 
-	let mut setting = setting.entry(username.clone()).or_default();
+	let mut setting = route_map.entry(username.clone()).or_default();
 
 	// # パス名変更
 	if let Some(new_path) = info.new_path {
@@ -255,12 +255,12 @@ async fn path_patch(path: web::Path<String>, MultipartForm(info): MultipartForm<
 }
 
 /// 指定パスのリソースをすべて削除
-async fn path_delete(path: web::Path<String>, id: Identity, state: StateHandle, setting: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
+async fn path_delete(path: web::Path<String>, id: Identity, state: StateHandle, route_map: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
 	state.get().only_active()?;
 	let path = path.into_inner();
 	let username = users.get(&*id).ok_or_else(|| ErrorUnauthorized("ログインしてください"))?;
 
-	let mut setting = setting.entry(username.clone()).or_default();
+	let mut setting = route_map.entry(username.clone()).or_default();
 
 	// パスごと一括削除し、ぶら下がっていた全ファイルを消去
 	if let Some(removed) = setting.remove(&path) {

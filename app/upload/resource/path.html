@@ -1,0 +1,36 @@
+{% extends "template.html" %}
+{% block head %}
+<link rel="stylesheet" href="style/note.css">
+<link rel="stylesheet" href="style/form.css">
+{% endblock %}
+{% block content %}
+<h2>{{username}}/{{path}}</h2>
+<input type="text" readonly name="u" value="u/{{username}}/{{path}}"><br>
+{% if setting %}
+<input type="text" readonly name="s" placeholder="短縮URL" {% if setting[1] %}value="s/{{setting[1]}}"{% endif %}>
+{% for k,v in setting[0] %}
+<section class="path">
+	<h3>Dest: {{k|default(value='*')}}</h3>
+	{% if v.File %}
+	<span class="key">{{v.File.key}}</span>
+	<span class="mime">{{v.File.mime}}</span>
+	{% elif v.RandomFile %}
+	{% for item in v.RandomFile %}
+	<div class="item">
+		<span class="key">{{item[0]}}</span>
+		<span class="mime">{{item[1]}}</span>
+		<span class="weight">{{item[2]}}</span>
+	</div>
+	<label class="cache"><input type="checkbox" name="cache" {% if v.RandomFile.cache %}checked{% endif %}></label>
+	{% endfor %}
+	{% elif v.FontRender %}
+	<span class="key">{{v.FontRender.key}}</span>
+	<span class="size">{{v.FontRender.width}}x{{v.FontRender.height}}</span>
+	<span class="length">{{v.FontRender.line_length}}</span>
+	{% endif %}
+</section>
+{% endfor %}
+{% else %}
+<p>パスは存在しますがファイルの設定がありません</p>
+{% endif %}
+{% endblock %}

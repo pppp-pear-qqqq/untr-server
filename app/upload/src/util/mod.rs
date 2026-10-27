@@ -9,7 +9,7 @@ pub use state::State;
 
 use base64::prelude::*;
 
-pub type Identity = common::Identity<Vec<u8>>;
+pub type Identity = common::Identity<u128>;
 pub type StateHandle = common::StateHandle<State>;
 
 pub fn resource(path: impl std::fmt::Display) -> String {

@@ -55,7 +55,7 @@ pub async fn b64(req: HttpRequest, path: web::Path<String>, web::Query(query): w
 async fn file(req: HttpRequest, addr: Addr, query: HashMap<String, String>, dest: Option<FetchDest>, route_map: &RouteMap) -> common::Result<HttpResponse> {
 	let setting = route_map.get(&addr.username).ok_or_else(|| ErrorNotFound("ファイルがありません"))?;
 	let setting = setting.get(&addr.path).ok_or_else(|| ErrorNotFound("ファイルがありません"))?;
-	let r = dest.and_then(|d| setting.get(&Some(d))).or_else(|| setting.get(&None)).ok_or_else(|| ErrorNotFound("ファイルがありません"))?;
+	let r = dest.and_then(|d| setting.map.get(&Some(d))).or_else(|| setting.map.get(&None)).ok_or_else(|| ErrorNotFound("ファイルがありません"))?;
 	let (mut res, cache) = match r {
 		Resource::File { key, mime } => {
 			debug!("{}", addr.username);

@@ -32,8 +32,13 @@ impl IdMap {
 		self.0.get(id).map(|v| (v.0.clone(), v.1.clone()))
 	}
 
-	pub async fn insert_and_save(&mut self, id: impl ToString, user: String, path: String) -> std::io::Result<()> {
+	pub async fn insert_and_save(&self, id: impl ToString, user: String, path: String) -> std::io::Result<()> {
 		self.0.insert(id.to_string(), (Arc::new(user), Arc::new(path)));
+		self.save().await
+	}
+
+	pub async fn remove_and_save(&self, id: &str) -> std::io::Result<()> {
+		self.0.remove(id);
 		self.save().await
 	}
 }

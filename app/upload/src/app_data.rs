@@ -56,7 +56,7 @@ impl AppData {
 		let mut tera = Tera::default();
 		tera.register_filter("urlencode", common::tera::urlencode_filter);
 		tera.register_filter("time", common::tera::make_timestamp_filter(chrono::Local));
-		// tera.add_template_file(resource("template.html"), Some("template.html")).unwrap();
+		tera.add_template_file(resource("template.html"), Some("template.html")).unwrap();
 		let files = glob(&resource("*.html")).unwrap().filter_map(|res| {
 			let path = res.unwrap();
 			let file_name = path.file_name().unwrap().to_str().unwrap();

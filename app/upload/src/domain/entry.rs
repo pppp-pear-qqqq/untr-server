@@ -21,9 +21,9 @@ pub async fn login(web::Form(info): web::Form<Auth>, session: Session, state: St
 	} else if user_name == "." || user_name == ".." {
 		return Err(ErrorBadRequest("ユーザー名が予約語であるため当サービスを利用できません").into());
 	}
-	let user_id = user_id.to_bytes_le().to_vec();
+	let user_id = user_id.to_u128_le();
 
-	users.insert(&user_id, user_name);
+	users.insert(user_id, user_name);
 
 	Identity::set(&session, user_id)?;
 

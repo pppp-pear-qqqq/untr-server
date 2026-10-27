@@ -1,12 +1,14 @@
 use super::*;
-use crate::util::{self, Resource, ResourceConfig, RouteMap, UserMap, upload_create_dir, upload_dir};
+use crate::util::{self, IdMap, Resource, ResourceConfig, RouteMap, UserMap, upload_create_dir, upload_dir};
 
 use actix_multipart::form::{self, MultipartForm, tempfile::TempFile};
 use actix_web::mime;
 use common::FetchDest;
+use nanoid::nanoid;
 
 pub fn cfg(cfg: &mut web::ServiceConfig) {
 	cfg.service(web::resource("").get(index).post(post));
+	cfg.service(web::resource("s/{path:.+}").post(make_sid));
 	cfg.service(web::resource("{path:.+}").get(path_get).post(path_post).put(path_put).patch(path_patch).delete(path_delete));
 }
 
@@ -15,12 +17,8 @@ async fn index(dest: Option<FetchDest>, id: Identity, route_map: web::Data<Route
 	let setting = route_map.get(&username);
 	match dest {
 		Some(FetchDest::Empty) | None => {
-			if let Some(s) = setting {
-				let keys = s.keys().collect::<Vec<_>>();
-				Ok(HttpResponse::Ok().json(keys))
-			} else {
-				Ok(HttpResponse::Ok().json(Vec::<String>::new()))
-			}
+			let keys: Option<Vec<_>> = setting.map(|s| s.keys().cloned().collect());
+			Ok(HttpResponse::Ok().json(keys))
 		}
 		_ => {
 			let mut ctx = tera::Context::new();
@@ -36,8 +34,21 @@ async fn index(dest: Option<FetchDest>, id: Identity, route_map: web::Data<Route
 }
 
 /// パス情報、または設定ページ
-async fn path_get(path: web::Path<String>) -> common::Result<impl Responder> {
-	Ok("TODO")
+async fn path_get(dest: Option<FetchDest>, path: web::Path<String>, id: Identity, route_map: web::Data<RouteMap>, users: web::Data<UserMap>, tera: web::Data<Tera>) -> common::Result<impl Responder> {
+	let username = users.get(&*id).ok_or_else(|| ErrorUnauthorized("ログインしてください"))?;
+	let path = path.into_inner();
+	let setting = route_map.get(&username).and_then(|s| s.get(&path).cloned());
+	match dest {
+		Some(FetchDest::Empty) | None => Ok(HttpResponse::Ok().json(setting)),
+		_ => {
+			let mut ctx = tera::Context::new();
+			ctx.insert("username", &username);
+			ctx.insert("path", &path);
+			ctx.insert("setting", &setting);
+			let body = tera.render("path.html", &ctx)?;
+			Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
+		}
+	}
 }
 
 #[derive(MultipartForm)]
@@ -70,7 +81,7 @@ async fn post(MultipartForm(info): MultipartForm<Post>, id: Identity, state: Sta
 		let prepared = PreparedFile::new(file);
 
 		let mut value = util::Setting::default();
-		value.insert(None, util::Resource::File { key: prepared.key, mime: prepared.mime.clone() });
+		value.map.insert(None, util::Resource::File { key: prepared.key, mime: prepared.mime.clone() });
 
 		resources_to_insert.push((name, value));
 		prepared_files.push(prepared);
@@ -122,7 +133,7 @@ async fn path_set(username: String, path: String, info: NewPath, route_map: web:
 	let setting = setting.entry(path).or_default();
 
 	// 上書き不可かつ既に存在する場合は早期リターン
-	if !rewrite && setting.contains_key(&fetch_dest) {
+	if !rewrite && setting.map.contains_key(&fetch_dest) {
 		return Err(ErrorBadRequest("既に同名・同条件のパスが設定されています").into());
 	}
 
@@ -140,7 +151,7 @@ async fn path_set(username: String, path: String, info: NewPath, route_map: web:
 	commit_files(prepared_files, &username).await?;
 
 	// 設定の上書き ＆ 古いファイルのクリーンアップ
-	if let Some(old) = setting.insert(fetch_dest, resource) {
+	if let Some(old) = setting.map.insert(fetch_dest, resource) {
 		let old_keys = old.key_and_mimes().into_iter().map(|(key, _)| *key).collect();
 		remove_files(old_keys, &username).await;
 	}
@@ -179,7 +190,7 @@ async fn path_patch(path: web::Path<String>, MultipartForm(info): MultipartForm<
 	let fetch_dest = info.fetch_dest.map(|x| x.into_inner());
 	let setting = setting.entry(path).or_default();
 
-	if let Some(cur) = setting.get_mut(&fetch_dest) {
+	if let Some(cur) = setting.map.get_mut(&fetch_dest) {
 		// ## 既存設定の更新
 		let rem_files: Vec<Uuid> = info.rem_files.into_iter().map(|k| k.into_inner()).collect();
 		let (rem_targets, saved_infos): (Vec<_>, Vec<_>) = cur.key_and_mimes().into_iter().partition(|(key, _)| rem_files.contains(key));
@@ -236,14 +247,35 @@ async fn path_patch(path: web::Path<String>, MultipartForm(info): MultipartForm<
 		let resource = Resource::build(config, file_infos)?;
 		commit_files(prepared_files, &username).await?;
 
-		setting.insert(fetch_dest, resource);
+		setting.map.insert(fetch_dest, resource);
 	}
 
 	Ok(HttpResponse::Ok().finish())
 }
 
+/// 短縮URLのid取得
+async fn make_sid(path: web::Path<String>, id: Identity, state: StateHandle, route_map: web::Data<RouteMap>, id_map: web::Data<IdMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
+	state.get().only_active()?;
+	let path = path.into_inner();
+	let username = users.get(&*id).ok_or_else(|| ErrorUnauthorized("ログインしてください"))?;
+
+	if let Some(setting) = route_map.get(&username).and_then(|s| s.get(&path).cloned()) {
+		let sid = if let Some(id) = setting.id {
+			id
+		} else {
+			let sid = nanoid!(8);
+			id_map.insert_and_save(&sid, username, path).await?;
+			sid
+		};
+
+		Ok(HttpResponse::Ok().content_type(header::ContentType::plaintext()).body(sid))
+	} else {
+		Err(ErrorBadRequest("指定したパスは設定されていません").into())
+	}
+}
+
 /// 指定パスのリソースをすべて削除
-async fn path_delete(path: web::Path<String>, id: Identity, state: StateHandle, route_map: web::Data<RouteMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
+async fn path_delete(path: web::Path<String>, id: Identity, state: StateHandle, route_map: web::Data<RouteMap>, id_map: web::Data<IdMap>, users: web::Data<UserMap>) -> common::Result<impl Responder> {
 	state.get().only_active()?;
 	let path = path.into_inner();
 	let username = users.get(&*id).ok_or_else(|| ErrorUnauthorized("ログインしてください"))?;
@@ -252,7 +284,10 @@ async fn path_delete(path: web::Path<String>, id: Identity, state: StateHandle, 
 
 	// パスごと一括削除し、ぶら下がっていた全ファイルを消去
 	if let Some(removed) = setting.remove(&path) {
-		for (_, resource) in removed {
+		if let Some(id) = removed.id {
+			id_map.remove_and_save(&id).await?;
+		}
+		for (_, resource) in removed.map {
 			remove_files(resource.key_and_mimes().into_iter().map(|(key, _)| *key).collect(), &username).await;
 		}
 		Ok(HttpResponse::Ok().finish())

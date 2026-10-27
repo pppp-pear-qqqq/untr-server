@@ -15,7 +15,11 @@ use self::dto::*;
 pub struct RouteMap(DashMap<String, User>);
 pub struct User(HashMap<String, Setting>);
 
-pub type Setting = HashMap<Option<FetchDest>, Resource>;
+#[derive(Debug, Clone, Default, serde::Serialize)]
+pub struct Setting {
+	pub map: HashMap<Option<FetchDest>, Resource>,
+	pub id: Option<String>,
+}
 
 #[serde_as]
 #[derive(Debug, Clone, serde::Serialize)]
@@ -121,7 +125,12 @@ mod dto {
 	use uuid::Uuid;
 
 	#[derive(Archive, RkyvDeserialize, RkyvSerialize)]
-	pub struct RouteMapDto(pub HashMap<String, HashMap<String, Vec<(Option<String>, ResourceDto)>>>);
+	pub struct RouteMapDto(pub HashMap<String, HashMap<String, SettingDto>>);
+	#[derive(Archive, RkyvDeserialize, RkyvSerialize)]
+	pub struct SettingDto {
+		pub map: Vec<(Option<String>, ResourceDto)>,
+		pub id: Option<String>,
+	}
 
 	// 保存用リソース（Mime を String に変換）
 	#[derive(Archive, RkyvDeserialize, RkyvSerialize)]
@@ -192,7 +201,7 @@ impl RouteMap {
 			let mut actual_path_map = HashMap::default();
 			for (path, setting_vec_dto) in path_map_dto {
 				let mut setting = HashMap::default();
-				for (fetch_dest, resource_dto) in setting_vec_dto {
+				for (fetch_dest, resource_dto) in setting_vec_dto.map {
 					// パース失敗したらスキップするかエラーにする (ここではスキップ)
 					let fetch_dest = if let Some(d) = fetch_dest {
 						match FetchDest::from_str(&d) {
@@ -206,7 +215,7 @@ impl RouteMap {
 						setting.insert(fetch_dest, resource);
 					}
 				}
-				actual_path_map.insert(path, setting);
+				actual_path_map.insert(path, Setting { map: setting, id: setting_vec_dto.id });
 			}
 			route_map.insert(username, User(actual_path_map));
 		}
@@ -223,10 +232,11 @@ impl RouteMap {
 			for (path_key, path_value) in user_entry.value().iter() {
 				// Setting(HashMap) を Vec に平坦化
 				let settings_vec: Vec<_> = path_value
+					.map
 					.iter()
 					.map(|(k, v)| (k.map(|k| k.to_string()), ResourceDto::from(v.clone()))) // ※ ResourceにCloneを実装しておくか、参照から生成する必要があります
 					.collect();
-				paths_map.insert(path_key.clone(), settings_vec);
+				paths_map.insert(path_key.clone(), SettingDto { map: settings_vec, id: path_value.id.clone() });
 			}
 			users_map.insert(user_entry.key().clone(), paths_map);
 		}
@@ -272,11 +282,12 @@ impl serde::Serialize for User {
 		let mut parsed = HashMap::default();
 		for (path, map) in &self.0 {
 			let mut stringified = HashMap::default();
-			for (dest_opt, resource) in map.iter() {
+			let id = map.id.clone();
+			for (dest_opt, resource) in map.map.iter() {
 				let key_str = dest_opt.as_ref().map(|d| d.to_string()).unwrap_or_else(|| "".to_string());
 				stringified.insert(key_str, resource);
 			}
-			parsed.insert(path, stringified);
+			parsed.insert(path, (stringified, id));
 		}
 		parsed.serialize(serializer)
 	}

@@ -11,11 +11,9 @@ use tera::Tera;
 use uuid::Uuid;
 use validator::Validate;
 
-use crate::util::{Identity, StateHandle, resource};
+use crate::util::{Identity, StateHandle};
 
 pub fn make_cfg(admin_key: String) -> std::io::Result<impl FnOnce(&mut web::ServiceConfig)> {
-	let index = make_static_page("index.html")?;
-
 	Ok(|cfg: &mut web::ServiceConfig| {
 		cfg.route("/", web::get().to(index));
 		cfg.route("login", web::to(entry::login));
@@ -27,10 +25,8 @@ pub fn make_cfg(admin_key: String) -> std::io::Result<impl FnOnce(&mut web::Serv
 	})
 }
 
-pub fn make_static_page(path: &str) -> std::io::Result<impl Fn() -> std::future::Ready<HttpResponse> + Clone> {
-	let body = web::Bytes::from(std::fs::read(resource(path))?);
-	Ok(move || {
-		let res = HttpResponse::Ok().content_type(header::ContentType::html()).body(body.clone());
-		std::future::ready(res)
-	})
+async fn index(tera: web::Data<Tera>) -> common::Result<impl Responder> {
+	let ctx = tera::Context::new();
+	let body = tera.render("index.html", &ctx)?;
+	Ok(HttpResponse::Ok().content_type(header::ContentType::html()).body(body))
 }

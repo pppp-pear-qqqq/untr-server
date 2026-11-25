@@ -1,0 +1,23 @@
+[Unit]
+Description=teiki game no tukurikata
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/app/teiki
+
+# docker-compose.yml の環境変数を指定
+Environment="SERVER_HOST=127.0.0.1"
+Environment="SERVER_PORT=8101"
+Environment="RUST_LOG=info,actix_web::middleware=warn"
+
+# 実行ファイル
+ExecStart=/app/teiki/teiki
+
+# クラッシュ時の自動再起動設定
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

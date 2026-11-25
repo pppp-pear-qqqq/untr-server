@@ -9,3 +9,4 @@ privkey.pem
 *.ps1
 app/upload/upload/
 route.rkyv
+app/teiki/

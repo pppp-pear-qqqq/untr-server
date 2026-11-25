@@ -34,7 +34,7 @@ services:
             # - ./app/ondyst/resource:/app/resource/ondyst
         depends_on:
             - portal
-            - upload
+            # - upload
             # - ondyst
         networks: [untroche]
 
@@ -50,6 +50,14 @@ services:
             - ./watcher/compile.sh:/app/compile.sh:ro
             - ./watcher/compile_all.sh:/app/compile_all.sh:ro
 
+    teiki:
+        <<: *rust-base
+        environment:
+            - APP_NAME=teiki
+            - SERVER_PORT=8101
+            - RUST_LOG=info,portal=debug,actix_web::middleware=warn
+        networks: [untroche]
+
     portal:
         <<: *rust-base
         environment:
@@ -59,33 +67,33 @@ services:
             - RUST_LOG=info,portal=debug,actix_web::middleware=warn
         networks: [untroche]
 
-    upload:
-        <<: *rust-base
-        environment:
-            - APP_NAME=upload
-            - SERVER_PORT=8100
-            - DATABASE_URL=sqlite:/app/app/portal/portal.db
-            - RUST_LOG=info,upload=debug,actix_web::middleware=warn
-        networks: [untroche]
-
-    # ondyst:
-    #     <<: *rust-base
-    #     environment:
-    #         - APP_NAME=ondyst
-    #         - SERVER_PORT=8006
-    #         - DATABASE_URL=sqlite:/app/app/ondyst/ondyst.db
-    #         - RUST_LOG=info,ondyst=debug,actix_web::middleware=warn
-    #     networks: [untroche]
-
-    sqlite-web-portal:
-        <<: *sqlite-web-base
-        ports: ["127.0.0.1:3300:8080"]
-        volumes: [./app/portal/portal.db:/data/database.db]
-
-    # sqlite-web-ondyst:
-    #     <<: *sqlite-web-base
-    #     ports: ["127.0.0.1:3306:8080"]
-    #     volumes: [./app/ondyst/ondyst.db:/data/database.db]
+#     upload:
+#         <<: *rust-base
+#         environment:
+#             - APP_NAME=upload
+#             - SERVER_PORT=8100
+#             - DATABASE_URL=sqlite:/app/app/portal/portal.db
+#             - RUST_LOG=info,upload=debug,actix_web::middleware=warn
+#         networks: [untroche]
+#
+#     ondyst:
+#         <<: *rust-base
+#         environment:
+#             - APP_NAME=ondyst
+#             - SERVER_PORT=8006
+#             - DATABASE_URL=sqlite:/app/app/ondyst/ondyst.db
+#             - RUST_LOG=info,ondyst=debug,actix_web::middleware=warn
+#         networks: [untroche]
+#
+#     sqlite-web-portal:
+#         <<: *sqlite-web-base
+#         ports: ["127.0.0.1:3300:8080"]
+#         volumes: [./app/portal/portal.db:/data/database.db]
+#
+#     sqlite-web-ondyst:
+#         <<: *sqlite-web-base
+#         ports: ["127.0.0.1:3306:8080"]
+#         volumes: [./app/ondyst/ondyst.db:/data/database.db]
 
 networks:
     untroche:
